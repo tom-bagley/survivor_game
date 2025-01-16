@@ -1,4 +1,6 @@
 const express = require('express');
+const User = require('../models/user');
+const bcrypt = require('bcrypt');
 const Stock = require('../models/survivor_stock'); // Import the Stock model
 const router = express.Router();
 
@@ -35,6 +37,7 @@ router.get('/all', async (req, res) => {
 });
 
 // Get a specific stock by symbol (case-insensitive)
+
 router.get('/:symbol', async (req, res) => {
     try {
       const stock = await Stock.findOne({ symbol: req.params.symbol });
@@ -86,4 +89,52 @@ router.delete('/delete/:symbol', async (req, res) => {
   }
 });
 
+router.post('/add-user', async (req, res) => {
+  const { username, password } = req.body;
+
+  // Check if username already exists
+  const existingUser = await User.findOne({ username });
+
+  if (existingUser) {
+    return res.status(400).json({ message: 'Username already taken' });
+  }
+
+  // Hash the password for security
+  const bcrypt = require('bcrypt');
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  // Create a new user using the Mongoose model
+  const user = new User({
+    username,
+    passwordHash,
+  });
+
+  try {
+    // Save the user to the database
+    await user.save();
+    res.status(201).json({ message: 'User created successfully!' });
+  } catch (err) {
+    console.error('Error saving user:', err);
+    res.status(500).json({ message: 'Error creating user', error: err.message });
+  }
+});
+
+/*
+//Login
+router.post('/users/login', async (req, res) => ) {
+  const { username, password } = req.body;
+  const existingUser = await User.findOne({ username });
+  if (existingUser == null) {
+    return res.status(400).send('Cannot find user');
+  }
+
+  try {
+    if(await bcrypt.compare(password, existingUser.passwordHash)) {
+      res.send('Sucess');
+    }
+  } catch {
+    res.status(500).send();
+  }
+}
+  */
 module.exports = router;
