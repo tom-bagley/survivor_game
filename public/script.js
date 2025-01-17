@@ -1,3 +1,5 @@
+const { response } = require("express");
+
 const API_BASE_URL = 'http://localhost:3000'; // Base URL for API routes
 
 
@@ -57,35 +59,28 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 //Login
-/*
+
 document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('addUserForm').addEventListener('submit', async (e) => {
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     console.log("In here");
 
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
     
-      
-    
-    // You should hash the password before sending it to the server, using bcrypt or a similar library
-    console.log(username);
-    console.log(password);
-    const response = await fetch(`${API_BASE_URL}/add-user`, {
+    const response = await fetch(`${API_BASE_URL}/users/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
-    });
-
+    })
     if (response.ok) {
-      alert('User added successfully!');
-      // Optionally, refresh the user list or redirect to a login page
+        window.location.href = '/welcome';
     } else {
-      alert('Error adding user');
+        alert('Error logging in');
     }
   });
 });
-*/
+
 
 // Delete a stock
 async function deleteStock(symbol) {

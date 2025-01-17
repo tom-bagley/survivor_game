@@ -26,14 +26,9 @@ router.post('/add', async (req, res) => {
 });
 
 // Get all stocks
-router.get('/all', async (req, res) => {
-  try {
-    const stocks = await Stock.find();
-    res.status(200).json(stocks);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Error fetching stocks', error: err.message });
-  }
+router.get('/welcome', async (req, res) => {
+  const username = req.query.username; // Retrieve the username from the query
+  //res.render('/welcome', { username });
 });
 
 // Get a specific stock by symbol (case-insensitive)
@@ -119,9 +114,9 @@ router.post('/add-user', async (req, res) => {
   }
 });
 
-/*
+
 //Login
-router.post('/users/login', async (req, res) => ) {
+router.post('/users/login', async (req, res) =>  {
   const { username, password } = req.body;
   const existingUser = await User.findOne({ username });
   if (existingUser == null) {
@@ -135,6 +130,12 @@ router.post('/users/login', async (req, res) => ) {
   } catch {
     res.status(500).send();
   }
-}
+});
+/*
+router.get('/welcome', async (req, res) => {
+  console.log('hey');
+  //const username = req.query.username; // Retrieve the username from the query
+  //res.render('welcome', { username }); // Render the welcome.ejs template
+});
   */
 module.exports = router;
