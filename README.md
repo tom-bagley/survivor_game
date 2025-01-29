@@ -12,6 +12,8 @@ Each week, as contestants are eliminated from the show, any stock you’ve inves
 
 The ultimate goal? Outplay, outlast, and outwit other players to end the game with the highest portfolio value. May the best strategist win!
 
+The project is still under development but will be up and running for the start of the season.
+
 ## Project Contents 
 1. **Excel layout folwder**:
    - **'Survivor Start.xlsx'**: An excel framework to see how the game is played and experiment with different situations.
@@ -43,4 +45,17 @@ The ultimate goal? Outplay, outlast, and outwit other players to end the game wi
    - **package-lock.json**: Automatically generated file that locks the versions of dependencies to ensure consistent installs across environments.
    - **vite.config**: Configuration file for Vite, the build tool used in this project. It manages settings like plugins, server options, and build output.
 
-3. **Server folder**:
+3. **Sever folder**: The server folder contains the backend code for the application, including API endpoints, authentication logic, and database models.
+   - **controllers folder**: 
+        -**authControllers.js**: authControllers.js: Handles user authentication logic, such as login, registration, and token generation.
+   - **helpers folder**: 
+        - **auth.js**: Contains helper functions related to authentication, such as token validation and middleware for protected routes.
+   - **models folder**: 
+        - **survivor_contestants.js**: Defines the schema and model for Survivor contestants, including their stock price and other attributes.
+        - **user.js**: Defines the schema and model for users, including their portfolio, email, and other personal information.
+   - **node_modules folder**: Contains all dependencies and libraries installed for the backend via npm, such as Express, bcrypt, and JWT.
+   - **routes folder**:
+        - **authRoutes**: Defines the API routes for authentication-related operations, such as /login, /register
+   - **index.js**: The entry point for the backend server. Configures the Express server, connects to the database, and sets up API routes.
+   - **package.json**: Lists the backend project's dependencies, scripts, and metadata. It is used by npm to manage the server project.
+   - **package-lock.json**: Automatically generated file that locks the versions of dependencies to ensure consistent installs across environments.
