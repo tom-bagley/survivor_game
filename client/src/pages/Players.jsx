@@ -6,19 +6,31 @@ import {toast} from 'react-hot-toast';
 export default function Players() {
   const [data, setData] = useState({
     name: '',
+    profile_pic: '',
+    age: '',
+    Hometown: '',
+    Current_Residence: '',
+    Occupation: '',
   })
 
   const [players, setPlayers] = useState([]);
 
   const addPlayer = async (e) => {
     e.preventDefault()
-    const {name} = data
+    const {name, profile_pic, age, Hometown, Current_Residence, Occupation } = data
     try {
-      const {data} = await axios.post('/players/addplayer', {name});
+      const {data} = await axios.post('/players/addplayer', {name, profile_pic, age, Hometown, Current_Residence, Occupation});
       if(data.error) {
         toast.error(data.error)
       } else {
-        setData({})
+        setData({
+          name: '',
+          profile_pic: '',
+          age: '',
+          Hometown: '',
+          Current_Residence: '',
+          Occupation: '',
+        })
         displayPlayers();
         toast.success('Player added successfully')
       }
@@ -81,6 +93,42 @@ export default function Players() {
             value={data.name} 
             onChange={(e) => setData({...data, name: e.target.value})} 
           />
+
+          <input 
+            type="text" 
+            placeholder="Enter profile photo URL" 
+            value={data.profile_pic} 
+            onChange={(e) => setData({ ...data, profile_pic: e.target.value })} 
+          />
+
+          <input 
+            type="text" 
+            placeholder="Enter age" 
+            value={data.age} 
+            onChange={(e) => setData({ ...data, age: e.target.value  })} 
+          />
+
+          <input 
+            type="text" 
+            placeholder="Enter hometown" 
+            value={data.Hometown} 
+            onChange={(e) => setData({ ...data, Hometown: e.target.value })} 
+          />
+
+          <input 
+            type="text" 
+            placeholder="Enter current residence" 
+            value={data.Current_Residence} 
+            onChange={(e) => setData({ ...data, Current_Residence: e.target.value })} 
+          />
+
+          <input 
+            type="text" 
+            placeholder="Enter occupation" 
+            value={data.Occupation} 
+            onChange={(e) => setData({ ...data, Occupation: e.target.value })} 
+          />
+
           <button type="submit">Submit</button>
         </form>
       </div>

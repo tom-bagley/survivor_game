@@ -9,6 +9,7 @@ import { Toaster } from 'react-hot-toast';
 import { UserContextProvider } from '../context/userContext';
 import Dashboard from './pages/Dashboard';
 import Players from './pages/Players';
+import DisplayPlayers from './pages/displayPlayers';
 import DashboardPreSeason from './pages/DashboardPreSeason';
 
 axios.defaults.baseURL = 'http://localhost:8000';
@@ -26,6 +27,7 @@ function App() {
       <Route path='/dashboard' element={<Dashboard />} />
       <Route path='/players' element={<Players />} />
       <Route path='/dashboardpreseason' element={<DashboardPreSeason />} />
+      <Route path='/displayplayers' element={<DisplayPlayers />} />
     </Routes>
     </UserContextProvider>
   )

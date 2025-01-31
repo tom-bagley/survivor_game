@@ -18,6 +18,14 @@ const playerSchema = new Schema({
         type: Boolean,
         default: true,
     },
+    profile_pic: {
+        type: String,
+    },
+    age: String,
+    Hometown: String,
+    Current_Residence: String,
+    Occupation: String,
+
 });
 
 const PlayerModel = mongoose.model('Player', playerSchema);

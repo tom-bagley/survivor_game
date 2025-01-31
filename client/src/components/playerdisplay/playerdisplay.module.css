@@ -1,0 +1,48 @@
+.container {
+    border-radius: 8px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 500px; /* Increased width for more space */
+    height: 300px; /* Increased height to allow more space for profile picture */
+    margin: 20px;
+    display: flex; /* Flexbox layout */
+    justify-content: space-between; /* Push content to the sides */
+    align-items: center; /* Vertically center elements */
+    font-family: Arial, sans-serif;
+  }
+  
+  .profilepicture {
+    margin-right: 10px; /* Space between profile picture and details */
+  }
+  
+  .profilepicture img {
+    width: 200px; /* Extra large profile picture */
+    height: 300px; /* Extra large profile picture */
+    border-radius: 50%; /* Keep the profile picture circular */
+    object-fit: cover; /* Ensure image fits nicely */
+  }
+  
+  .details {
+    display: flex;
+    flex-direction: column; /* Stack name and stats vertically */
+    align-items: flex-start; /* Align text to the left */
+    max-width: 60%; /* Restrict the width of details to avoid taking up too much space */
+  }
+  
+  .details h4 {
+    font-size: 30px; /* Larger name font */
+    margin: 0 0 10px 0;
+    text-align: left; /* Space below the name */
+  }
+  
+  .details p {
+    margin: 5px 0; /* Space between the stats */
+    line-height: 1.4;
+    text-align: left; /* Align text to the left */
+}
+
+  
+  
+  
+  

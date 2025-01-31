@@ -32,6 +32,20 @@ const getPrices = async (req, res) => {
     }
 };
 
+const getProfile = async (req, res) => {
+    try {
+        const players = await Player.find({});
+        const response = players.reduce((acc, player) => {
+            const profile = player.profile_pic
+            acc[player.name] = profile;
+            return acc; // Ensure the accumulator is returned
+        }, {});
+        res.json(response);
+    } catch (error) {
+        res.status(500).json({ message: error.message }); // Send error response
+    }
+};
+
 
 function calculateStockPrice(currentPlayerCount, totalPlayerCount) {
     try {
@@ -225,4 +239,5 @@ module.exports = {
     getPortfolio,
     getPrices,
     updatePortfolioPreseason,
+    getProfile,
 }

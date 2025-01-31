@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const cors = require('cors');
-const { updatePortfolio, getPortfolio, getPrices, updatePortfolioPreseason } = require('../controllers/transactionControllers')
+const { updatePortfolio, getPortfolio, getPrices, updatePortfolioPreseason, getProfile } = require('../controllers/transactionControllers')
 
 //middleware
 router.use(
@@ -14,6 +14,7 @@ router.use(
 router.put('/updateportfolio', updatePortfolio)
 router.get('/getportfolio', getPortfolio)
 router.get('/getprices', getPrices)
+router.get('/getprofile', getProfile)
 router.put('/updateportfoliopreseason', updatePortfolioPreseason)
 
 

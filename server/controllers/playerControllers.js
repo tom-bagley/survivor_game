@@ -2,8 +2,10 @@ const Player = require('../models/players');
 
 const addPlayer = async (req, res) => {
     try {
-        const {name} = req.body;
-
+        console.log(req.body);
+        const { name, profile_pic, age, Hometown, Current_Residence, Occupation } = req.body;
+        console.log(age);
+        console.log(name);
         //Check if player already added
         const exist = await Player.findOne({name});
         if(exist) {
@@ -15,6 +17,11 @@ const addPlayer = async (req, res) => {
         //Create player in database
         const player = await Player.create({
             name,
+            profile_pic,
+            age, 
+            Hometown,
+            Current_Residence,
+            Occupation,
         });
 
         return res.json(player)

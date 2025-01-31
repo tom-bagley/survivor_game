@@ -3,7 +3,7 @@
   padding: 10px;
   background-color: #f9f9f9;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  width: 350px; /* Fixed width for each container */
+  width: 450px; /* Increased width */
   margin: 10px;
   display: flex;
   flex-direction: row; /* Change to row layout */
@@ -11,7 +11,14 @@
   justify-content: space-between; /* Space out items */
   font-family: Arial, sans-serif;
 }
-  
+
+.profilepicture img {
+  width: 50px; /* Set a fixed width for the profile picture */
+  height: 75px; /* Set a fixed height for the profile picture */
+  border-radius: 50%; /* Make it circular */
+  margin-right: 15px; /* Add space between the picture and the content */
+  object-fit: cover; /* Ensure the image fits well */
+}
 
 h4 {
   font-size: 18px;

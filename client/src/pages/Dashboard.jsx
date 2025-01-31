@@ -11,6 +11,7 @@ export default function Dashboard() {
   const [netWorth, setNetWorth] = useState({});
   const [stocks, setStocks] = useState({});
   const [prices, setPrices] = useState({});
+  const [profiles, setProfiles] = useState({});
   const [loading, setLoading] = useState(true);
 
   const updatePortfolio = async (stock, action) => {
@@ -24,6 +25,7 @@ export default function Dashboard() {
         toast.error(data.error)
       } else {
         getPrices();
+        getProfilePics();
         setStocks(data.portfolio);
         setBudget(data.budget);
         setNetWorth(data.netWorth);
@@ -53,8 +55,16 @@ export default function Dashboard() {
   const getPrices = async () => {
     try {
       const {data} = await axios.get('/transactions/getprices');
-      console.log(data);
       setPrices(data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const getProfilePics = async () => {
+    try {
+      const {data} = await axios.get('/transactions/getprofile');
+      setProfiles(data);
     } catch (error) {
       console.log(error);
     }
@@ -64,6 +74,7 @@ export default function Dashboard() {
     if (user?.id) { 
       displayPlayers();
       getPrices();
+      getProfilePics();
     }
   }, [user]);
 
@@ -96,6 +107,7 @@ export default function Dashboard() {
       {/* Grid container */}
       <div className="grid-container">
         {Object.keys(stocks).map((stock) => {
+          const profile = profiles[stock];
           const shares = stocks[stock];
           const price = prices[stock];
           const holdingsValue = shares * price;
@@ -104,6 +116,7 @@ export default function Dashboard() {
             <Display
               key={stock}
               stock={stock}
+              profilePhotoUrl={profile}
               shares={shares}
               price={price}
               holdingsValue={holdingsValue}
