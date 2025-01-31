@@ -9,7 +9,7 @@ import { Toaster } from 'react-hot-toast';
 import { UserContextProvider } from '../context/userContext';
 import Dashboard from './pages/Dashboard';
 import Players from './pages/Players';
-import DisplayPlayers from './pages/displayPlayers';
+import DisplayPlayers from './pages/DisplayPlayers';
 import DashboardPreSeason from './pages/DashboardPreSeason';
 
 axios.defaults.baseURL = 'http://localhost:8000';
