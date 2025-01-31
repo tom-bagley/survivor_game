@@ -1,0 +1,53 @@
+.container {
+  border-radius: 8px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 350px; /* Fixed width for each container */
+  margin: 10px;
+  display: flex;
+  flex-direction: row; /* Change to row layout */
+  align-items: center; /* Center items vertically */
+  justify-content: space-between; /* Space out items */
+  font-family: Arial, sans-serif;
+}
+  
+
+h4 {
+  font-size: 18px;
+  margin: 0; /* Remove margin to eliminate extra space */
+  text-align: left; /* Align text to the left */
+  width: 30%; /* Allocate space for the stock name */
+  min-height: 2.4em; /* Ensure it takes up two lines */
+  line-height: 1.2; /* Adjust line height for consistent spacing */
+  display: flex;
+  align-items: center; /* Vertically center the text */
+}
+
+.details {
+  display: flex;
+  flex-direction: column; /* Stack details vertically */
+  align-items: flex-start; /* Align text to the left */
+  width: 40%; /* Allocate space for the details */
+}
+
+.details p {
+  margin: 2px 0; /* Reduce margin to bring elements closer */
+  line-height: 1.2; /* Adjust line height for tighter spacing */
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column; /* Stack buttons vertically */
+  gap: 5px; /* Add space between buttons */
+  width: 30%; /* Allocate space for the buttons */
+}
+
+button {
+  padding: 5px 10px;
+  font-size: 14px;
+  width: 100%; /* Make buttons fill the available width */
+}
+
+
+  

@@ -14,6 +14,10 @@ const playerSchema = new Schema({
         type: Number,
         default: 0,
     },
+    availability: {
+        type: Boolean,
+        default: true,
+    },
 });
 
 const PlayerModel = mongoose.model('Player', playerSchema);

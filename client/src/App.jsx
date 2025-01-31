@@ -1,6 +1,6 @@
 import './App.css'
 import {Routes, Route} from 'react-router-dom';
-import Navbar from '../src/components/Navbar';
+import Navbar from '../src/components/Navbar/Navbar';
 import Home from './pages/Home';
 import Register from './pages/Register';
 import Login from './pages/Login';
@@ -9,6 +9,7 @@ import { Toaster } from 'react-hot-toast';
 import { UserContextProvider } from '../context/userContext';
 import Dashboard from './pages/Dashboard';
 import Players from './pages/Players';
+import DashboardPreSeason from './pages/DashboardPreSeason';
 
 axios.defaults.baseURL = 'http://localhost:8000';
 axios.defaults.withCredentials = true;
@@ -24,6 +25,7 @@ function App() {
       <Route path='/login' element={<Login />} />
       <Route path='/dashboard' element={<Dashboard />} />
       <Route path='/players' element={<Players />} />
+      <Route path='/dashboardpreseason' element={<DashboardPreSeason />} />
     </Routes>
     </UserContextProvider>
   )

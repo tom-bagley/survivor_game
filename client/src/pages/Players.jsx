@@ -14,7 +14,7 @@ export default function Players() {
     e.preventDefault()
     const {name} = data
     try {
-      const {data} = await axios.post('/addplayer', {name});
+      const {data} = await axios.post('/players/addplayer', {name});
       if(data.error) {
         toast.error(data.error)
       } else {
@@ -30,7 +30,7 @@ export default function Players() {
 
   const displayPlayers = async () => {
     try {
-      const {data} = await axios.get('/allplayers');
+      const {data} = await axios.get('/players/allplayers');
       setPlayers(data);
     } catch (error) {
       console.log(error);
@@ -39,7 +39,7 @@ export default function Players() {
 
   const deletePlayer = async (playerID) => {
     try {
-      const { data } = await axios.delete(`/deleteplayer/${playerID}`);
+      const { data } = await axios.delete(`/players/deleteplayer/${playerID}`);
       if (data.error) {
         toast.error(data.error);
       } else {
@@ -51,31 +51,57 @@ export default function Players() {
     }
   }
 
+  const makeUnavailable = async (playerID) => {
+    try {
+      const { data } = await axios.patch(`/players/changeavailability/${playerID}`)
+      if (data.error) {
+        toast.error(data.error);
+      } else {
+        displayPlayers();
+        toast.success('availability changed successfully')
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   useEffect(() => {
     displayPlayers();
   }, []);
   
   return (
-    <div>
+    <div className="players-container">
       <h1>Survivor Season 48 Players</h1>
-      <form onSubmit={addPlayer}>
-        <label>Add Player</label>
-        <input type="text" placeholder="enter name" value={data.name} onChange={(e) => setData({...data, name: e.target.value})} />
-        <button type = 'submit'>Submit</button>
-      </form>
+      <div className="form-container">
+        <form onSubmit={addPlayer}>
+          <label>Add Player</label>
+          <input 
+            type="text" 
+            placeholder="Enter name" 
+            value={data.name} 
+            onChange={(e) => setData({...data, name: e.target.value})} 
+          />
+          <button type="submit">Submit</button>
+        </form>
+      </div>
+  
       <h2>All Players</h2>
-      <ul>
+      <div className="players-list">
         {players.length > 0 ? (
           players.map((player, index) => (
-            <li key={index}>
-              {player.name}
+            <div key={index} className="player-item">
+              <span>{player.name}</span>
+              <span>{player.availability ? "Available" : "Unavailable"}</span> {/* Show availability */}
               <button onClick={() => deletePlayer(player._id)}>Delete</button>
-              </li>
+              <button onClick={() => makeUnavailable(player._id)}>Make Unavailable</button>
+            </div>
           ))
         ) : (
           <p>No players yet</p>
         )}
-      </ul>
+      </div>
+
     </div>
-  )
+  );
+  
 }

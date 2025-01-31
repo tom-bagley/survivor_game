@@ -23,7 +23,7 @@ export default function Login() {
       }
       else {
         setData({});
-        navigate('/dashboard')
+        navigate('/dashboardpreseason')
       }
     } catch (error) {
       console.log(error)
@@ -31,14 +31,26 @@ export default function Login() {
   }
   
   return (
-    <div>
-      <form onSubmit={loginUser}>
+    <div className="login-container">
+      <form onSubmit={loginUser} className="login-form">
         <label>Email</label>
-        <input type="email" placeholder='enter email...' value={data.email} onChange={(e) => setData({...data, email: e.target.value})}/>
+        <input
+          type="email"
+          placeholder="enter email..."
+          value={data.email}
+          onChange={(e) => setData({ ...data, email: e.target.value })}
+        />
         <label>Password</label>
-        <input type="password" placeholder='enter password...' value={data.password} onChange={(e) => setData({...data, password: e.target.value})}/>
-        <button type = 'submit'>Login</button>
+        <input
+          type="password"
+          placeholder="enter password..."
+          value={data.password}
+          onChange={(e) => setData({ ...data, password: e.target.value })}
+        />
+        <button type="submit">Login</button>
       </form>
     </div>
-  )
+  );
+  
 }
+

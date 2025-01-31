@@ -22,7 +22,7 @@ export default function Register() {
         toast.error(data.error)
       } else {
         setData({})
-        toast.success('Login Successful. Welcome!')
+        toast.success('Register Successful. Welcome!')
         navigate('/login')
       }
     } catch (error) {
@@ -31,16 +31,31 @@ export default function Register() {
   }
 
   return (
-    <div>
-      <form onSubmit={registerUser}>
+    <div className="register-container">
+      <form onSubmit={registerUser} className="register-form">
         <label>Name</label>
-        <input type="text" placeholder='enter name...' value={data.name} onChange={(e) => setData({...data, name: e.target.value})}/>
+        <input
+          type="text"
+          placeholder="enter name..."
+          value={data.name}
+          onChange={(e) => setData({ ...data, name: e.target.value })}
+        />
         <label>Email</label>
-        <input type="email" placeholder='enter email...' value={data.email} onChange={(e) => setData({...data, email: e.target.value})}/>
+        <input
+          type="email"
+          placeholder="enter email..."
+          value={data.email}
+          onChange={(e) => setData({ ...data, email: e.target.value })}
+        />
         <label>Password</label>
-        <input type="password" placeholder='enter password...' value={data.password} onChange={(e) => setData({...data, password: e.target.value})}/>
-        <button type = 'submit'>Submit</button>
+        <input
+          type="password"
+          placeholder="enter password..."
+          value={data.password}
+          onChange={(e) => setData({ ...data, password: e.target.value })}
+        />
+        <button type="submit">Submit</button>
       </form>
     </div>
-  )
+  );
 }

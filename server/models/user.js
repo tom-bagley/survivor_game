@@ -12,6 +12,14 @@ const userSchema = new Schema({
         type: Map,
         of: Number,
         default: {},
+    },
+    budget: {
+        type: Number,
+        default: 100
+    },
+    netWorth: {
+        type: Number,
+        default: 100
     }
 })
 
