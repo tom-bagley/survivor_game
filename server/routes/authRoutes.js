@@ -7,7 +7,7 @@ const { test, registerUser, loginUser, getProfile, } = require('../controllers/a
 router.use(
     cors({
         credentials: true,
-        origin: 'https://survivor-gameapi.onrender.com'
+        origin: 'https://survivorstockgame.onrender.com'
     })
 )
 

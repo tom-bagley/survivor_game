@@ -7,7 +7,7 @@ const { updatePortfolio, getPortfolio, getPrices, updatePortfolioPreseason, getP
 router.use(
     cors({
         credentials: true,
-        origin: 'https://survivor-gameapi.onrender.com'
+        origin: 'https://survivorstockgame.onrender.com'
     })
 )
 
