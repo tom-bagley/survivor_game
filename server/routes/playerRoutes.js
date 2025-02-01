@@ -7,7 +7,7 @@ const { addPlayer, getAllPlayers, deletePlayer, togglePlayerAvailability } = req
 router.use(
     cors({
         credentials: true,
-        origin: 'http://localhost:5173'
+        origin: 'https://survivorstockgame.onrender.com/'
     })
 )
 

@@ -7,7 +7,7 @@ const { test, registerUser, loginUser, getProfile, } = require('../controllers/a
 router.use(
     cors({
         credentials: true,
-        origin: 'http://localhost:5173'
+        origin: 'https://survivorstockgame.onrender.com/'
     })
 )
 
