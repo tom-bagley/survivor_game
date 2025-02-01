@@ -77,7 +77,8 @@ const loginUser = async (req, res) => {
                 res.cookie('token', token, {
                     httpOnly: true,
                     secure: true,
-                    sameSite: 'None'
+                    sameSite: 'None',
+                    domain: 'survivorstockgame.onrender.com'
                 }).json(user)
             })
         }
