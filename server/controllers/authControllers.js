@@ -47,7 +47,7 @@ const registerUser = async (req, res) => {
             name,
             email, 
             password: hashedPassword,
-            portfolio: portfolio,
+            portfolio,
         });
 
         return res.json(user)
@@ -74,12 +74,7 @@ const loginUser = async (req, res) => {
         if(match) {
             jwt.sign({email: user.email, id: user._id, name: user.name, portfolio: user.portfolio}, process.env.JWT_SECRET, {}, (err, token) => {
                 if(err) throw err;
-                res.cookie('token', token, {
-                    httpOnly: true,
-                    secure: true,
-                    sameSite: 'None',
-                    domain: 'survivorstockgame.onrender.com'
-                }).json(user)
+                res.cookie('token', token).json(user)
             })
         }
         if(!match) {
