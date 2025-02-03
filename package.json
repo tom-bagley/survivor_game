@@ -5,9 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "install-frontend": "cd client && npm install",
-    "build-frontend": "cd client && npm run build",
-    "build": "npm run install-frontend && npm run build-frontend",
+    "build": "npm install && cd client && npm install && npm run build && cd ..",
     "start": "node server/index.js"
   },
   "author": "",
