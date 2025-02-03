@@ -87,7 +87,7 @@ const loginUser = async (req, res) => {
         console.log(error)
     }
 }
-
+//notes
 const getProfile = (req, res) => {
     const {token} = req.cookies
     if(token) {
