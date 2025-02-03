@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "install-frontend": "cd frontend && npm install",
-    "build-frontend": "cd frontend && npm run build",
+    "install-frontend": "cd client && npm install",
+    "build-frontend": "cd client && npm run build",
     "build": "npm run install-frontend && npm run build-frontend",
     "start": "node server/index.js"
   },
