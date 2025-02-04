@@ -27,11 +27,11 @@ console.log(process.env.NODE_ENV);
 
 if(process.env.NODE_ENV === 'production') {
     console.log('in heree');
-    app.use(express.static(path.join(__dirname, '../client/dist')));
+    app.use(express.static(path.join(__dirname, '../src/client/dist')));
 
     app.get('*', (req, res) => {
         console.log('Serving index.html');
-        res.sendFile(path.resolve(__dirname, '../client/dist', 'index.html'));
+        res.sendFile(path.resolve(__dirname, '../src/client/dist', 'index.html'));
     });
     
 }
