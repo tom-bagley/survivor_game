@@ -25,9 +25,6 @@ replay_pid*
 
 #env
 .env
-
-#node_modules/
-node_modules/
-client/node_modules/
-client/dist
+node_modules
+client/node_modules
 
