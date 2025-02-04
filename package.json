@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm install && cd src && cd client && npm install && npm install vite --save-dev && npm run build && cd ..",
+    "build": "npm install && cd client && npm install && npm install vite --save-dev && npm run build && cd ..",
     "start": "node server/index.js"
   },
   "author": "",
