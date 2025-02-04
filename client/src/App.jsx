@@ -12,7 +12,7 @@ import Players from './pages/Players';
 import DisplayPlayers from './pages/DisplayPlayers';
 import DashboardPreSeason from './pages/DashboardPreSeason';
 
-axios.defaults.baseURL = 'http://localhost:8000';
+axios.defaults.baseURL = 'https://survivor-game11.onrender.com/';
 axios.defaults.withCredentials = true;
 
 function App() {
