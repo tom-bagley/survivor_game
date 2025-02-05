@@ -59,3 +59,5 @@ The project is still under development but will be up and running for the start 
    - **index.js**: The entry point for the backend server. Configures the Express server, connects to the database, and sets up API routes.
    - **package.json**: Lists the backend project's dependencies, scripts, and metadata. It is used by npm to manage the server project.
    - **package-lock.json**: Automatically generated file that locks the versions of dependencies to ensure consistent installs across environments.
+
+   ![Project](figures/fig1.png)
