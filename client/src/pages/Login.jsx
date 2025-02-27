@@ -31,7 +31,7 @@ export default function Login() {
           portfolio: responseData.portfolio,
         };
         setUser(user);
-        navigate('/dashboardpreseason');
+        navigate('/dashboard');
         
       }
     } catch (error) {

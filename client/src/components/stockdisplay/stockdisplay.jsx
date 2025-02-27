@@ -10,8 +10,8 @@ const Display = ({ stock, profilePhotoUrl, shares, price, holdingsValue, buyStoc
       <h4>{stock}</h4>
       <div className={styles.details}>
         <p>Shares: {shares}</p>
-        <p>Price: ${price}</p>
-        <p>Value: ${holdingsValue}</p>
+        <p>Price: ${price.toFixed(2)}</p>
+        <p>Value: ${holdingsValue.toFixed(2)}</p>
       </div>
       <div className={styles.buttons}>
         <button onClick={() => buyStock(stock)}>Buy 1</button>
