@@ -1,10 +1,15 @@
 const express = require('express');
 const dotenv = require('dotenv').config();
 const {mongoose} = require('mongoose');
+const cors = require('cors');
 const app = express();
 const cookieParser = require('cookie-parser');
 const path = require('path');
 
+app.use(cors({
+  origin: 'http://localhost:5173', // or whatever your frontend port is
+  credentials: true // if using cookies/auth
+}));
 
 console.log('MONGO_URL:', process.env.MONGO_URL);
 

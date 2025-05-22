@@ -3,7 +3,7 @@ import React from 'react'
 export default function Home() {
   return (
     <div className="top-container">
-      <h1>Survivor Season 48 Interactive Stock Game</h1>
+      <h1>Survivor Season 49 Interactive Stock Game</h1>
       <p>
         Welcome to the Survivor Season 48 Stock Game! In this interactive experience, each player begins with $100 to invest in Survivor contestants. You can choose to put all your stock in one contestant or spread your investments across multiple players.
         <br />
