@@ -7,8 +7,8 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 
 app.use(cors({
-  origin: 'http://localhost:5173', // or whatever your frontend port is
-  credentials: true // if using cookies/auth
+  origin: 'http://localhost:5173', 
+  credentials: true 
 }));
 
 console.log('MONGO_URL:', process.env.MONGO_URL);
