@@ -1,8 +1,9 @@
 .container {
     border-radius: 8px;
     padding: 20px;
-    background-color: #f9f9f9;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    background: rgba(27, 27, 28, 0.544);
+    backdrop-filter: blur(4px);
     width: 500px; /* Increased width for more space */
     height: 300px; /* Increased height to allow more space for profile picture */
     margin: 20px;

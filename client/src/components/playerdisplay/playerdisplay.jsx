@@ -2,10 +2,6 @@ import React from 'react';
 import styles from './playerdisplay.module.css';
 
 const Display = ({ name, profilePhotoUrl, age, Hometown, Current_Residence, Occupation }) => {
-    /*console.log(profilePhotoUrl);
-    console.log(stock);
-    console.log(age);
-    console.log(Hometown);*/
     return (
         <div className={styles.container}>
           <div className={styles.profilepicture}>

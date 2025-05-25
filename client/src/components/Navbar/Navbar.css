@@ -1,0 +1,40 @@
+.navbar {
+  position: sticky;
+  z-index: 10;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: #383535;
+  padding: 10px 40px; /* Add horizontal padding */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.navbar ul {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar li {
+  margin-right: 20px;
+}
+
+.navbar li:last-child {
+  margin-right: 0;
+}
+
+.navbar a {
+  margin-right: 20px; /* Space between each link */
+  font-weight: 500;
+  color: #b0611b;
+  text-decoration: inherit;
+}
+
+.navbar a:hover {
+  color: #a6804b;
+}
