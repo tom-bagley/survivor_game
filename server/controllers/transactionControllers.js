@@ -242,4 +242,6 @@ module.exports = {
     getProfile,
     getTotalStockCount,
     calculateStockPrice,
+    calculateNetWorth,
+    calculatePrices,
 }

@@ -6,6 +6,7 @@ const app = express();
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const recordStockPrices = require('./jobs/recordPricesJob');
+const updateLiveLeaderboard = require('./jobs/recordLeaderboardJob');
 
 app.use(cors({
   origin: 'http://localhost:5173', 
@@ -27,6 +28,10 @@ mongoose.connect(process.env.MONGO_URL)
 // //Schedule to run every minute
 // setInterval(recordStockPrices, 60 * 1000);
 
+updateLiveLeaderboard()
+  .then(() => console.log('Leaderboard updated'))
+  .catch(console.error);
+
 //middleware
 app.use(express.json());
 app.use(cookieParser());
@@ -35,6 +40,7 @@ app.use(express.urlencoded({extended: false}));
 app.use('/auth', require('./routes/authRoutes'));
 app.use('/players', require('./routes/playerRoutes'));
 app.use('/transactions', require('./routes/transactionRoutes'));
+app.use('/leaderboard', require('./routes/leaderboardRoutes'))
 
 console.log(process.env.NODE_ENV);
 

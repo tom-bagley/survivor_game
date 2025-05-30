@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import Players from './pages/Players';
 import DisplayPlayers from './pages/DisplayPlayers';
 import DashboardPreSeason from './pages/DashboardPreSeason';
+import Leaderboard from './pages/Leaderboard/Leaderboard'
 
 if (process.env.NODE_ENV === 'production') {
   axios.defaults.baseURL = 'https://survivorseason48stockgame.onrender.com';
@@ -34,6 +35,8 @@ function App() {
       <Route path='/players' element={<Players />} />
       <Route path='/dashboardpreseason' element={<DashboardPreSeason />} />
       <Route path='/displayplayers' element={<DisplayPlayers />} />
+      <Route path='/leaderboard' element={<Leaderboard />} />
+
     </Routes>
     </UserContextProvider>
   )
