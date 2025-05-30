@@ -1,5 +1,6 @@
 const User = require('../models/user');
 const Player = require('../models/players');
+const PriceWatch = require('../models/pricewatch');
 const { hashPassword, comparePassword } = require('../helpers/auth');
 const jwt = require('jsonwebtoken');
 
@@ -98,7 +99,9 @@ const getProfile = (req, res) => {
     } else {
         res.json(null)
     }
-} 
+}
+
+
 
 module.exports = {
     test,

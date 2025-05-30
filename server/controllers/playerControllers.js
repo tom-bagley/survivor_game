@@ -1,4 +1,5 @@
 const Player = require('../models/players');
+const PriceWatch = require('../models/pricewatch');
 
 const addPlayer = async (req, res) => {
     try {
@@ -79,6 +80,21 @@ const togglePlayerAvailability = async (req, res) => {
     }
 };
 
+const getHistoricalPrices = async (req, res) => {
+    const { name } = req.params;
+    try {
+        const { name } = req.params;
+        const prices = await PriceWatch.find({ name }).sort({ date: 1 }); // oldest to newest
+        res.json(prices.map(p => ({
+        date: p.date.toISOString().split('T')[0], // 'YYYY-MM-DD'
+        price: p.price
+        })));
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch prices' });
+    }
+
+};
+
 
 
 
@@ -87,4 +103,5 @@ module.exports = {
     getAllPlayers,
     deletePlayer,
     togglePlayerAvailability,
+    getHistoricalPrices,
 }

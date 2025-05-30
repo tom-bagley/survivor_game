@@ -12,8 +12,11 @@ import Players from './pages/Players';
 import DisplayPlayers from './pages/DisplayPlayers';
 import DashboardPreSeason from './pages/DashboardPreSeason';
 
-axios.defaults.baseURL = 'https://survivorseason48stockgame.onrender.com';
-axios.defaults.withCredentials = true;
+if (process.env.NODE_ENV === 'production') {
+  axios.defaults.baseURL = 'https://survivorseason48stockgame.onrender.com';
+} else {
+  axios.defaults.baseURL = 'http://localhost:8000'; 
+}
 
 axios.defaults.withCredentials = true;
 

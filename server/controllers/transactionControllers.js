@@ -49,7 +49,7 @@ const getProfile = async (req, res) => {
 
 function calculateStockPrice(currentPlayerCount, totalPlayerCount) {
     try {
-        let result = 1 + (13.28771237 * Math.log(1 + (currentPlayerCount / totalPlayerCount)));
+        let result = 5 + (4 * (currentPlayerCount / totalPlayerCount) - 1) * 5;
         return result;
     } catch (error) {
         return 1;
@@ -240,4 +240,6 @@ module.exports = {
     getPrices,
     updatePortfolioPreseason,
     getProfile,
+    getTotalStockCount,
+    calculateStockPrice,
 }

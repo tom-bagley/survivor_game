@@ -6,11 +6,12 @@ import Display from '../../components/playerdisplay/playerdisplay';
 export default function Home() {
   const [players, setPlayers] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [priceData, setPriceData] = useState([]);
 
   useEffect(() => {
     async function fetchPlayers() {
       try {
-        const {data} = await axios.get('/players/allplayers'); // Your API endpoint
+        const {data} = await axios.get('/players/allplayers');
         setPlayers(data);
       } catch (error) {
         console.log(error);

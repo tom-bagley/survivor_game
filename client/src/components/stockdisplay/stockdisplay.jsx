@@ -2,6 +2,7 @@ import React from 'react';
 import styles from './stockdisplay.module.css';
 
 const Display = ({ stock, profilePhotoUrl, shares, price, holdingsValue, buyStock, sellStock }) => {
+  console.log(price)
   return (
     <div className={styles.container}>
       <div className={styles.profilepicture}>

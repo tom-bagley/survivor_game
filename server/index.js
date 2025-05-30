@@ -5,6 +5,7 @@ const cors = require('cors');
 const app = express();
 const cookieParser = require('cookie-parser');
 const path = require('path');
+const recordStockPrices = require('./jobs/recordPricesJob');
 
 app.use(cors({
   origin: 'http://localhost:5173', 
@@ -19,6 +20,13 @@ mongoose.connect(process.env.MONGO_URL)
 .then(() => console.log('Database Connected'))
 .catch((err) => console.log('Database not Connected', err))
 
+// recordStockPrices()
+//   .then(() => console.log("Initial price recording done"))
+//   .catch(console.error);
+
+// //Schedule to run every minute
+// setInterval(recordStockPrices, 60 * 1000);
+
 //middleware
 app.use(express.json());
 app.use(cookieParser());
@@ -31,7 +39,6 @@ app.use('/transactions', require('./routes/transactionRoutes'));
 console.log(process.env.NODE_ENV);
 
 if(process.env.NODE_ENV === 'production') {
-    console.log('in here');
     app.use(express.static(path.join(__dirname, '../client/dist')));
 
     app.get('*', (req, res) => {

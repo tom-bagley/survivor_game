@@ -12,7 +12,7 @@ const fakeData = [
   { date: '2025-05-25', price: 140 },
 ];
 
-const StockChart = ({ data = fakeData }) => (
+const StockChart = ({ data }) => (
   <div className="stock-chart-container">
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data}>
