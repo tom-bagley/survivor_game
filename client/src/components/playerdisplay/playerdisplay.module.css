@@ -2,7 +2,8 @@
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  background: rgba(27, 27, 28, 0.544);
+  background: rgb(0, 0, 0);
+  opacity: 0.8;
   backdrop-filter: blur(4px);
   width: 500px;
   height: 500px;
@@ -13,6 +14,8 @@
   justify-content: flex-start;
   align-items: center;
   font-family: Arial, sans-serif;
+  color: white;
+  text-align: center;
 }
 
 .bottomRow {
@@ -68,6 +71,8 @@
   font-size: 1.5rem;
   font-weight: bold;
 }
+
+
 
 
   

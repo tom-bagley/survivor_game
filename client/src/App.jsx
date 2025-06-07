@@ -3,7 +3,6 @@ import {Routes, Route} from 'react-router-dom';
 import Navbar from '../src/components/Navbar/Navbar';
 import Home from './pages/Home/Home';
 import Register from './pages/Register';
-import Login from './pages/Login';
 import axios from 'axios';
 import { Toaster } from 'react-hot-toast';
 import { UserContextProvider } from '../context/userContext';
@@ -30,7 +29,6 @@ function App() {
     <Routes>
       <Route path='/' element={<Home />} />
       <Route path='/register' element={<Register />} />
-      <Route path='/login' element={<Login />} />
       <Route path='/dashboard' element={<Dashboard />} />
       <Route path='/players' element={<Players />} />
       <Route path='/dashboardpreseason' element={<DashboardPreSeason />} />

@@ -10,9 +10,9 @@ export default function Navbar() {
         <li><Link to="/leaderboard">Leaderboard</Link></li>
       </ul>
       <ul className="nav-right">
-        <li><Link to="/login">Login</Link></li>
-        <li><Link to="/register">Register</Link></li>
-        <li><Link to="/dashboard">Dashboard</Link></li>
+        {/* <li><Link to="/login">Login</Link></li>
+        <li><Link to="/register">Register</Link></li> */}
+        <li><Link to="/dashboard">Your Stock Portfolio</Link></li>
       </ul>
     </nav>
   );
