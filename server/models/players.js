@@ -8,7 +8,7 @@ const playerSchema = new Schema({
     },
     price: {
         type: Number,
-        default: 1,
+        default: 5,
     },
     count: {
         type: Number,

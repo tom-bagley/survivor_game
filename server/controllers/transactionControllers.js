@@ -49,7 +49,7 @@ const getProfile = async (req, res) => {
 
 function calculateStockPrice(currentPlayerCount, totalPlayerCount) {
     try {
-        let result = 5 + (4 * (currentPlayerCount / totalPlayerCount) - 1) * 5;
+        let result = 5 + (((22 * (currentPlayerCount / totalPlayerCount)) - 1) * 5);
         return result;
     } catch (error) {
         return 1;

@@ -2,7 +2,7 @@ import './App.css'
 import {Routes, Route} from 'react-router-dom';
 import Navbar from '../src/components/Navbar/Navbar';
 import Home from './pages/Home/Home';
-import Register from './pages/Register';
+import Register from './pages/Register/Register';
 import axios from 'axios';
 import { Toaster } from 'react-hot-toast';
 import { UserContextProvider } from '../context/userContext';

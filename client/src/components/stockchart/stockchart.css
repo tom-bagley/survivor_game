@@ -1,47 +1,14 @@
-/* Container styling */
 .stock-chart-container {
-  margin: 1rem auto;
-  padding: 1rem;
-  background-color: #ffffff;
-  border: 1px solid #e0e0e0;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.2);
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  max-width: 800px;
 }
 
-/* Tooltip styling (Recharts adds its own classes, this overrides them) */
-.recharts-tooltip-wrapper {
-  font-size: 0.875rem;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 0.5rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* Axis text styling */
-.recharts-cartesian-axis-tick-value {
-  font-size: 0.75rem;
-  fill: #666;
-}
-
-/* Line styling override if needed */
-.recharts-line {
-  stroke-width: 2;
-}
-
-/* Optional: Add animation */
-@keyframes fadeInChart {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.stock-chart-container {
-  animation: fadeInChart 0.6s ease-out;
+/* Optional: Customize the grid look */
+.stock-chart-grid {
+  stroke-dasharray: 3 3;
+  stroke: #444;
 }

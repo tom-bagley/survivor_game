@@ -7,7 +7,8 @@ import Login from '../../components/logindisplay/Login';
 export default function Home() {
   const [players, setPlayers] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [priceData, setPriceData] = useState([]);
+  const [isFading, setIsFading] = useState(false);
+
 
   useEffect(() => {
     async function fetchPlayers() {
@@ -25,9 +26,17 @@ export default function Home() {
   useEffect(() => {
     if (players.length === 0) return;
 
+    const fadeTime = 500; // match animation duration
+    const displayTime = 4000;
+
     const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % players.length);
-    }, 4000);
+      setIsFading(true); // Start fade out
+
+      setTimeout(() => {
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % players.length);
+        setIsFading(false); // Fade in new player
+      }, fadeTime);
+    }, displayTime);
 
     return () => clearInterval(interval);
   }, [players]);
@@ -41,7 +50,8 @@ export default function Home() {
     <div className="homepage">
 
       <div className="homepage-title">
-        <img src="/logo.png" alt="Logo" className="logo" />
+        <h1>Survivor Stock Game</h1>
+        {/* <img src="/logo.png" alt="Logo" className="logo" /> */}
         <h2>Pick Your Favortites. Invest. Compete With Others.</h2>
       </div>
       <div className="row">
@@ -51,14 +61,17 @@ export default function Home() {
         <div className='column'>
           <div className='display'>
             <Display 
-              key={players[currentIndex].name} 
-              {...players[currentIndex]} 
-              profilePhotoUrl={players[currentIndex].profile_pic} // override here
+              key={players[currentIndex].name}
+              {...players[currentIndex]}
+              profilePhotoUrl={players[currentIndex].profile_pic}
+              isFading={isFading}
+              eliminated={!players[currentIndex].availability}
+
             />
           </div>
         </div>
       </div>
-      <div>
+      {/* <div>
         <div className='rules'>
         <h1>Rules</h1>
           <p>
@@ -69,7 +82,7 @@ export default function Home() {
             The ultimate goal? Outplay, outlast, and outwit other players to end the game with the highest portfolio value. May the best strategist win!
           </p>
           </div>
-        </div>
+        </div> */}
     </div>
     
   );

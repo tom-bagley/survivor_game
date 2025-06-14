@@ -2,6 +2,7 @@ import { useState } from "react"
 import axios from 'axios';
 import {toast} from 'react-hot-toast';
 import { useNavigate } from "react-router-dom";
+import './register.css';
 
 export default function Register() {
   const navigate = useNavigate()
@@ -31,8 +32,10 @@ export default function Register() {
   }
 
   return (
-    <div className="register-container">
-      <form onSubmit={registerUser} className="register-form">
+    <form onSubmit={registerUser} className="register-form">
+      <div className="register-container">
+        <h2>Register</h2>
+
         <label>Name</label>
         <input
           type="text"
@@ -55,7 +58,7 @@ export default function Register() {
           onChange={(e) => setData({ ...data, password: e.target.value })}
         />
         <button type="submit">Submit</button>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 }

@@ -15,11 +15,11 @@ const userSchema = new Schema({
     },
     budget: {
         type: Number,
-        default: 100
+        default: 10000
     },
     netWorth: {
         type: Number,
-        default: 100
+        default: 10000
     }
 })
 

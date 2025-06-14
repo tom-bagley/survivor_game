@@ -1,13 +1,15 @@
-
-
-.login-form {
+.register-form {
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 100vh; /* full height of the viewport */
+  width: 100vw;  /* full width of the viewport */
   padding: 2rem;
+  box-sizing: border-box;
+  background-color: #8a8686; /* optional: dark background */
 }
 
-.login-container {
+.register-container {
   background-color: rgb(14, 14, 14);
   opacity: 0.8;
   padding: 2rem;
@@ -21,23 +23,23 @@
   color: white;
 }
 
-.login-container h2 {
+.register-container h2 {
   text-align: center;
   margin-bottom: 1rem;
 }
 
-.login-container label {
+.register-container label {
   font-weight: bold;
 }
 
-.login-container input {
+.register-container input {
   padding: 0.5rem;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 1rem;
 }
 
-.login-container button {
+.register-container button {
   padding: 0.75rem;
   background-color: #333;
   color: white;
@@ -48,36 +50,6 @@
   transition: background-color 0.3s ease;
 }
 
-.login-container button:hover {
+.register-container button:hover {
   background-color: #555;
-}
-
-.forgot-password {
-  text-align: center;
-  margin-top: 1rem;
-}
-
-.forgot-password a {
-  color: #007BFF;
-  text-decoration: none;
-}
-
-.forgot-password a:hover {
-  text-decoration: underline;
-}
-
-.register-link {
-  text-align: center;
-  margin-top: 1rem;
-  font-size: 0.95rem;
-}
-
-.register-link a {
-  color: #28a745;
-  font-weight: bold;
-  text-decoration: none;
-}
-
-.register-link a:hover {
-  text-decoration: underline;
 }

@@ -1,21 +1,53 @@
-.container {
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  background: rgb(0, 0, 0);
-  opacity: 0.8;
-  backdrop-filter: blur(4px);
-  width: 500px;
-  height: 500px;
-  margin: 20px;
 
-  display: flex;
-  flex-direction: column; /* stack vertically */
-  justify-content: flex-start;
-  align-items: center;
-  font-family: Arial, sans-serif;
+
+.container {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(6px);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  width: 100%;
+  max-width: 600px;
+  height: 100%;
   color: white;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.5s ease;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 24px;
+}
+
+.avatarContainer {
+  flex-shrink: 0;
+}
+
+.avatarWrapper {
+  padding: 6px; /* space for border */
+  border-radius: 50%;
+  display: inline-block;
+  transition: box-shadow 0.4s ease, border 0.4s ease;
+}
+
+.avatar {
+  width: 120px;
+  height: 200px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.container:hover {
+  box-shadow: 0 12px 35px rgba(0, 255, 255, 0.25), 0 0 20px rgba(0, 255, 255, 0.15);
+  transform: translateY(-4px);
+  transition: all 0.3s ease;
 }
 
 .bottomRow {
@@ -23,37 +55,52 @@
   justify-content: space-between;
   width: 100%;
   margin-top: 20px;
+  gap: 20px;
+  align-items: center;
 }
 
   
 .profilepicture {
-  margin-right: 10px; /* Space between profile picture and details */
+  margin-right: 10px; 
 }
 
 .profilepicture img {
-  width: 200px; /* Extra large profile picture */
-  height: 300px; /* Extra large profile picture */
-  border-radius: 50%; /* Keep the profile picture circular */
-  object-fit: cover; /* Ensure image fits nicely */
+  width: 200px; 
+  height: 300px; 
+  border-radius: 50%; 
+  object-fit: cover;
+  border: 4px solid rgba(0, 255, 255, 0.4);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+  transition: transform 0.3s ease; 
+}
+
+.profilepicture img:hover {
+  transform: scale(1.05);
 }
 
 .details {
   display: flex;
-  flex-direction: column; /* Stack name and stats vertically */
-  align-items: flex-start; /* Align text to the left */
-  max-width: 60%; /* Restrict the width of details to avoid taking up too much space */
+  flex-direction: column; 
+  align-items: flex-start;
+  max-width: 60%; 
 }
 
 .details h4 {
-  font-size: 30px; /* Larger name font */
+  font-size: 30px; 
   margin: 0 0 10px 0;
-  text-align: left; /* Space below the name */
+  text-align: left; 
 }
 
 .details p {
-  margin: 5px 0; /* Space between the stats */
+  margin: 5px 0; 
   line-height: 1.4;
-  text-align: left; /* Align text to the left */
+  text-align: left; 
+}
+
+.chartContainer {
+  flex-grow: 1;
+  height: 250px;
+  max-width: 100%;
 }
 
 .chart {
@@ -63,14 +110,96 @@
 }
 
 .name {
-  white-space: nowrap;       /* Prevent line break */
-  overflow: hidden;          /* Hide overflow */
-  text-overflow: ellipsis;   /* Show ellipsis (…) */
-  width: 100%;               /* Required for ellipsis to work */
-  text-align: center;        /* Optional: center the text */
-  font-size: 1.5rem;
+  text-align: center;
+  font-size: 2rem;
   font-weight: bold;
+  margin-bottom: 0.5rem;
 }
+
+.good {
+  border: 2px solid #00e676;
+  box-shadow: 0 0 12px #00e676;
+}
+
+.bad {
+  border: 2px solid #ff5252;
+  box-shadow: 0 0 12px #ff5252;
+}
+
+.price {
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+
+.emoji {
+  margin-left: 0.5rem;
+  font-size: 1.5rem;
+  animation: flicker 1s infinite alternate;
+}
+
+.eliminated {
+  filter: grayscale(100%) brightness(0.6);
+  pointer-events: none; /* Optional: disable interactions */
+  opacity: 0.6;
+  transition: filter 0.4s ease, opacity 0.4s ease;
+}
+
+@keyframes flicker {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0.7; transform: scale(1.1); }
+}
+
+
+@keyframes rotateOut {
+  0% {
+    opacity: 1;
+    transform: rotateY(0deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: rotateY(-90deg) scale(0.95);
+  }
+}
+
+@keyframes rotateIn {
+  0% {
+    opacity: 0;
+    transform: rotateY(90deg) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: rotateY(0deg) scale(1);
+  }
+}
+
+.rotateOut {
+  animation: rotateOut 0.5s ease forwards;
+}
+
+.rotateIn {
+  animation: rotateIn 0.5s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.98); }
+}
+
+.fadeIn {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.fadeOut {
+  animation: fadeOut 0.5s ease forwards;
+}
+
 
 
 
