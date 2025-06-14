@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [profiles, setProfiles] = useState({});
   const [loading, setLoading] = useState(true);
 
+
   const updatePortfolio = async (stock, action) => {
     try {
       const { data } = await axios.put('/transactions/updateportfolio', {
@@ -64,7 +65,11 @@ export default function Dashboard() {
   const getProfilePics = async () => {
     try {
       const {data} = await axios.get('/transactions/getprofile');
-      setProfiles(data);
+      const profileMap = data.reduce((acc, player) => {
+        acc[player.name] = player;
+        return acc;
+      }, {});
+      setProfiles(profileMap);
     } catch (error) {
       console.log(error);
     }
@@ -108,20 +113,23 @@ export default function Dashboard() {
       <div className="grid-container">
         {Object.keys(stocks).map((stock) => {
           const profile = profiles[stock];
+          const profile_pic = profile.profile_pic
           const shares = stocks[stock];
           const price = prices[stock];
           const holdingsValue = shares * price;
+          const eliminated = !profile.availability;
   
           return (
             <Display
               key={stock}
-              stock={stock}
-              profilePhotoUrl={profile}
+              name={stock}
+              profilePhotoUrl={profile_pic}
               shares={shares}
               price={price}
               holdingsValue={holdingsValue}
               buyStock={buyStock}
               sellStock={sellStock}
+              eliminated={eliminated}
             />
           );
         })}

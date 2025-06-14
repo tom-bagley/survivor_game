@@ -35,11 +35,11 @@ const getPrices = async (req, res) => {
 const getProfile = async (req, res) => {
     try {
         const players = await Player.find({});
-        const response = players.reduce((acc, player) => {
-            const profile = player.profile_pic
-            acc[player.name] = profile;
-            return acc; // Ensure the accumulator is returned
-        }, {});
+        const response = players.map(player => ({
+            name: player.name,
+            profile_pic: player.profile_pic,
+            availability: player.availability
+        }));
         res.json(response);
     } catch (error) {
         res.status(500).json({ message: error.message }); // Send error response
@@ -217,7 +217,7 @@ const getPortfolio = async (req, res) => {
     const {userId} = req.query;
     try {
         const user = await User.findById(userId);
-        const players = await Player.find({ availability: true });
+        const players = await Player.find();
         const playerNames = players.map(player => player.name); // Extract the names of players
         for (let [key] of user.portfolio) {
             if (!playerNames.includes(key)) {

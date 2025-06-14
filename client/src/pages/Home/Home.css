@@ -52,22 +52,31 @@
   border: 5px;
 }
 
-.row::after {
-  content: "";
-  display: table;
-  clear: both;
+@media screen and (max-width: 1100px) {
+  .column {
+    width: 100%;
+    padding: 20px;
+  }
+
+  .row {
+    flex-direction: column;
+  }
+}
+
+/* Optional: Use flexbox instead of float for .row (modern & easier to manage) */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
 }
 
 .column {
-  float: left;
-  width: 50%;
-  padding: 50px;
-}
-
-@media screen and (max-width:600px) {
-  .column {
-    width: 100%;
-  }
+  flex: 1;
+  min-width: 300px;
+  max-width: 600px;
+  box-sizing: border-box;
 }
 
 

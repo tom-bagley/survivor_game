@@ -19,6 +19,7 @@
   flex-direction: column;
   gap: 1rem;
   color: white;
+  margin-top: 10px;
 }
 
 .login-container h2 {
