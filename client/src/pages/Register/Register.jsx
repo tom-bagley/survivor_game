@@ -24,7 +24,7 @@ export default function Register() {
       } else {
         setData({})
         toast.success('Register Successful. Welcome!')
-        navigate('/welcome')
+        navigate('/dashboard')
       }
     } catch (error) {
       console.log(error)

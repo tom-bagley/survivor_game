@@ -39,6 +39,16 @@ export default function Dashboard() {
     getData();
   }, [loading, user]);
 
+  if (!user?.id) return <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontSize: '2rem'
+    }}>
+        Not Logged In
+    </div>;
+
   if (loading || loadingFinancials) return <div style={{
             display: 'flex',
             justifyContent: 'center',
@@ -47,16 +57,6 @@ export default function Dashboard() {
             fontSize: '2rem'
         }}>
             Loading!
-        </div>;
-
-    if (!user?.id) return <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: '100vh',
-            fontSize: '2rem'
-        }}>
-            Not Logged In
         </div>;
 
 

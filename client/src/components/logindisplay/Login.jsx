@@ -29,7 +29,7 @@ const Login = () => {
         const profileRes = await axios.get("/auth/profile");
         const user = profileRes.data;
         setUser(user);
-        navigate('/welcome');
+        navigate('/dashboard');
         
       }
     } catch (error) {
