@@ -6,11 +6,12 @@ import Register from './pages/Register/Register';
 import axios from 'axios';
 import { Toaster } from 'react-hot-toast';
 import { UserContextProvider } from '../context/userContext';
-import Dashboard from './pages/Dashboard';
+import Dashboard from './pages/Dashboard/Dashboard';
 import Players from './pages/Players';
 import DisplayPlayers from './pages/DisplayPlayers';
 import DashboardPreSeason from './pages/DashboardPreSeason';
 import Leaderboard from './pages/Leaderboard/Leaderboard'
+import Welcome from './pages/WelcomePage/welcomepage'
 
 if (process.env.NODE_ENV === 'production') {
   axios.defaults.baseURL = 'https://survivorseason48stockgame.onrender.com';
@@ -34,6 +35,7 @@ function App() {
       <Route path='/dashboardpreseason' element={<DashboardPreSeason />} />
       <Route path='/displayplayers' element={<DisplayPlayers />} />
       <Route path='/leaderboard' element={<Leaderboard />} />
+      <Route path='/welcome' element={<Welcome />} />
 
     </Routes>
     </UserContextProvider>

@@ -10,7 +10,6 @@ const Display = ({ name, profilePhotoUrl, isFading, eliminated }) => {
     async function fetchPrices() {
       try {
         const { data } = await axios.get(`/players/${name}`);
-        console.log("Fetched data for", name, data);
         setPriceData(data);
       } catch (error) {
         console.log(error);

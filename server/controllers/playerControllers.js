@@ -1,5 +1,6 @@
 const Player = require('../models/players');
 const PriceWatch = require('../models/pricewatch');
+const { getTotalStockCount, calculateStockPrice } = require('./transactionControllers')
 
 const addPlayer = async (req, res) => {
     try {
@@ -60,12 +61,16 @@ const togglePlayerAvailability = async (req, res) => {
     const { id } = req.params;
 
     try {
-        // Find the player by ID
         const player = await Player.findById(id);
 
         if (!player) {
             return res.status(404).json({ error: 'Player not found' });
         }
+        const total = await getTotalStockCount();
+        const availablePlayerCount = await Player.countDocuments({ availability: true });
+        const currentPrice = calculateStockPrice(player.count, total, availablePlayerCount);
+
+        player.price = currentPrice;
 
         // Toggle availability to false
         player.availability = false;

@@ -9,7 +9,8 @@ async function recordStockPrices() {
     try {
       const name = player.name;       
       const total = await getTotalStockCount();
-      const currentPrice = calculateStockPrice(player.count, total);
+      const availablePlayerCount = await Player.countDocuments({ availability: true });
+      const currentPrice = calculateStockPrice(player.count, total, availablePlayerCount);
       
       await PriceWatch.create({
         name: name,

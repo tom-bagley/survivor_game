@@ -36,12 +36,18 @@ const Display = ({ name, profilePhotoUrl, shares, price, holdingsValue, buyStock
         <div className={styles.details}>
           <p>Shares: {shares}</p>
           <p>Price: ${price.toFixed(2)}</p>
-          <p>Value: ${holdingsValue.toFixed(2)}</p>
+          <p>
+            <span className={eliminated ? styles.redText : ''}>
+              {eliminated ? 'Total Lost' : 'Value'}
+            </span>: ${holdingsValue.toFixed(2)}
+          </p>
         </div>
-        <div className={styles.buttons}>
-          <button onClick={() => buyStock(name)}>Buy 1</button>
-          <button onClick={() => sellStock(name)}>Sell 1</button>
-        </div>
+        {!eliminated && (
+          <div className={styles.buttons}>
+            <button onClick={() => buyStock(name)}>Buy 1</button>
+            <button onClick={() => sellStock(name)}>Sell 1</button>
+          </div>
+        )}
       </div>
       <div className={styles.rightColumn}>
         <StockChart data={priceData} />

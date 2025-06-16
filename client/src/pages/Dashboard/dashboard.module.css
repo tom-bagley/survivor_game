@@ -1,0 +1,61 @@
+.body { 
+  padding: 2rem;
+  box-sizing: border-box;
+  background-color: #8a8686; 
+}
+
+.grid-container {
+  display: grid;
+  gap: 32px;
+  padding: 16px;
+  
+  /* Responsive columns: min 300px, max 1 fraction of space */
+  grid-template-columns: repeat(auto-fit, minmax(700px, 1fr));
+
+  justify-content: center;
+}
+
+.header {
+  
+  background: rgba(20, 20, 20, 0.8);
+  backdrop-filter: blur(8px);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  margin-top: 40px;
+  margin-bottom: 40px;
+  color: white;
+  text-align: center;
+  transition: all 0.4s ease;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.financial-info {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.financial-info h2 {
+  font-size: 1.25rem;
+  font-weight: 400;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.portfolio-title {
+  font-size: 1.75rem;
+  color: #f0f0f0;
+  margin-bottom: 16px;
+  text-align: center;
+}

@@ -26,13 +26,10 @@ const Login = () => {
         toast.error(data.error)
       }
       else {
-        const user = {
-          email: responseData.email,
-          name: responseData.name,
-          portfolio: responseData.portfolio,
-        };
+        const profileRes = await axios.get("/auth/profile");
+        const user = profileRes.data;
         setUser(user);
-        navigate('/dashboard');
+        navigate('/welcome');
         
       }
     } catch (error) {

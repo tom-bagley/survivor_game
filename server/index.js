@@ -13,8 +13,6 @@ app.use(cors({
   credentials: true 
 }));
 
-console.log('MONGO_URL:', process.env.MONGO_URL);
-
 
 //database connection
 mongoose.connect(process.env.MONGO_URL)

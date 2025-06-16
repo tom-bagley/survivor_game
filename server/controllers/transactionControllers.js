@@ -1,34 +1,37 @@
 const User = require('../models/user');
 const Player = require('../models/players');
 
-// Reusable function to calculate stock prices
-// Reusable function to calculate stock prices
 const calculatePrices = async () => {
     try {
-        const totalPlayerCount = await getTotalStockCount(); // Ensure this function works correctly
-        const players = await Player.find({});
-        const response = players.reduce((acc, player) => {
-            const price = calculateStockPrice(player.count, totalPlayerCount);
-            acc[player.name] = price;
-            return acc; // Ensure the accumulator is returned
-        }, {});
-        return response; // Return the response for further use
+        const totalPlayerCount = await getTotalStockCount();
+        const availablePlayers = await Player.find({ availability: true });
+        const unavailablePlayers = await Player.find({ availability: false });
+
+        const availablePlayerCount = availablePlayers.length;
+
+        const response = {};
+
+        for (const player of availablePlayers) {
+            const price = calculateStockPrice(player.count, totalPlayerCount, availablePlayerCount);
+            response[player.name] = price;
+        }
+
+            for (const player of unavailablePlayers) {
+            response[player.name] = player.price; 
+        }
+        return response; 
     } catch (error) {
         console.error("Error occurred while calculating prices:", error);
-        throw error; // Throw error so it can be handled by the caller
+        throw error; 
     }
 };
 
-
-
-
-// HTTP handler that uses the reusable function
 const getPrices = async (req, res) => {
     try {
-        const response = await calculatePrices(); // Call the reusable function
-        res.json(response); // Send the response as JSON
+        const response = await calculatePrices(); 
+        res.json(response); 
     } catch (error) {
-        res.status(500).json({ message: error.message }); // Send error response
+        res.status(500).json({ message: error.message }); 
     }
 };
 
@@ -42,14 +45,15 @@ const getProfile = async (req, res) => {
         }));
         res.json(response);
     } catch (error) {
-        res.status(500).json({ message: error.message }); // Send error response
+        res.status(500).json({ message: error.message }); 
     }
 };
 
 
-function calculateStockPrice(currentPlayerCount, totalPlayerCount) {
+function calculateStockPrice (currentPlayerCount, totalPlayerCount, availablePlayerCount) {
     try {
-        let result = 5 + (((22 * (currentPlayerCount / totalPlayerCount)) - 1) * 5);
+        let result = 5 + (((availablePlayerCount * (currentPlayerCount / totalPlayerCount)) - 1) * 5);
+        result = Math.min(result, 10);
         return result;
     } catch (error) {
         return 1;
@@ -58,44 +62,49 @@ function calculateStockPrice(currentPlayerCount, totalPlayerCount) {
 
 async function getTotalStockCount() {
     const totalStockCount = await Player.aggregate([
-        {
-          $group: {
-            _id: null,
-            total: { $sum: "$count" }
-          }
+    {
+        $match: {
+        availability: true
         }
-      ]);
-      const total = totalStockCount[0].total;
-      return total;
+    },
+    {
+        $group: {
+        _id: null,
+        total: { $sum: "$count" }
+        }
+    }
+    ]);
+    const total = totalStockCount[0].total;
+    return total;
 }
 
 
 
 const updatePortfolio = async (req, res) => {
-    const { userId, stock, action } = req.body;
-
+    const { userId, survivorPlayer, action } = req.body;
     try {
         const user = await User.findById(userId);
-        const player = await Player.findOne({ name: stock });
+        const player = await Player.findOne({ name: survivorPlayer });
         if (!user || !player) {
             return res.status(404).json({ error: 'User or player not found' });
         }
 
-        const currentUserPlayerCount = user.portfolio.get(stock) || 0;
+        const currentUserPlayerCount = user.portfolio.get(survivorPlayer) || 0;
         const currentBudget = user.budget;
+        const availablePlayerCount = await Player.countDocuments({ availability: true });
 
         const total = await getTotalStockCount();
-        const currentPrice = calculateStockPrice(player.count, total);
+        const currentPrice = calculateStockPrice(player.count, total, availablePlayerCount);
         if (action === 'buy') {
             if (currentBudget < currentPrice) {
                 return res.json({ error: 'Not enough funds' });
             }
-            await handleBuy(user, player, stock, currentPrice);
+            await handleBuy(user, player, survivorPlayer, currentPrice);
         } else if (action === 'sell') {
             if (currentUserPlayerCount <= 0) {
                 return res.json({ error: 'No stock to sell' });
             }
-            await handleSell(user, player, stock);
+            await handleSell(user, player, survivorPlayer, availablePlayerCount);
         } else {
             return res.json({ error: 'Invalid action' });
         }
@@ -120,11 +129,11 @@ const handleBuy = async (user, player, stock, currentPrice) => {
 };
 
 // Helper function to handle selling logic
-const handleSell = async (user, player, stock) => {
+const handleSell = async (user, player, stock, availablePlayerCount) => {
     user.portfolio.set(stock, user.portfolio.get(stock) - 1);
     player.count -= 1;
     const total = await getTotalStockCount();
-    const currentPrice = calculateStockPrice(player.count, total);
+    const currentPrice = calculateStockPrice(player.count, total, availablePlayerCount);
     user.budget += currentPrice;
     
 };
