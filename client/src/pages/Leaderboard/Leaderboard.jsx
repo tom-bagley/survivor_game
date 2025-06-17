@@ -11,17 +11,18 @@ export default function Leaderboard() {
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
 
   useEffect(() => {
-    if (loading || !user?.id) return;
-
     async function fetchLeaders() {
       try {
         const { data } = await axios.get("/leaderboard/getleaderboard");
-        const { data: leaderboardRank } = await axios.get(`/leaderboard/getleaderboard/${user.id}`);
-
         if (data && data.entries) {
           setLeaders(data.entries);
         }
-        setLeaderboard(leaderboardRank); // Assuming leaderboardRank is an object with user info including rank
+
+        // If user is logged in, fetch their specific rank
+        if (user?.id) {
+          const { data: leaderboardRank } = await axios.get(`/leaderboard/getleaderboard/${user.id}`);
+          setLeaderboard(leaderboardRank); // e.g. { user_id, rank, username, ... }
+        }
       } catch (error) {
         console.log("Error fetching leaderboard:", error);
       } finally {
@@ -30,20 +31,24 @@ export default function Leaderboard() {
     }
 
     fetchLeaders();
-  }, [loading, user]);
+  }, [user]);
 
   if (loadingLeaderboard) {
-    return <div className="body" style={{ textAlign: "center", padding: "2rem", color: "white" }}>Loading leaderboard...</div>;
+    return (
+      <div className="body" style={{ textAlign: "center", padding: "2rem", color: "white" }}>
+        Loading leaderboard...
+      </div>
+    );
   }
 
-  // Get top 10 leaders
+  // Get top 10
   const topTen = leaders.slice(0, 10);
 
-  // Check if current user is in top 10
+  // Is user in top 10?
   const isUserInTopTen = leaderboard <= 10;
 
-  // Find current user's entry if not in top 10
-  const myEntry = !isUserInTopTen
+  // Find user's entry if not in top 10
+  const myEntry = user && leaderboard && !isUserInTopTen
     ? leaders.find((leader) => leader.user_id === user.id)
     : null;
 
@@ -55,17 +60,20 @@ export default function Leaderboard() {
         {topTen.map((leader) => (
           <div
             key={leader.user_id}
-            className={`leader ${leader.user_id === user.id ? "highlight" : ""}`}
+            className={`leader ${user && leader.user_id === user.id ? "highlight" : ""}`}
           >
             <span className="leader-rank">#{leader.rank}</span>
             <span className="leader-name">{leader.username}</span>
             <span className="leader-net-worth">
-              ${leader.net_worth.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ${leader.net_worth.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </span>
           </div>
         ))}
 
-        {/* Show current user if not in top 10 */}
+        {/* If user not in top 10, show them separately */}
         {myEntry && (
           <>
             <hr style={{ margin: "24px 0", borderColor: "rgba(255,255,255,0.1)" }} />
@@ -73,7 +81,10 @@ export default function Leaderboard() {
               <span className="leader-rank">#{myEntry.rank}</span>
               <span className="leader-name">{myEntry.username}</span>
               <span className="leader-net-worth">
-                ${myEntry.net_worth.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ${myEntry.net_worth.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </span>
             </div>
           </>
