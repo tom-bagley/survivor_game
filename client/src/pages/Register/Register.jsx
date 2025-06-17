@@ -1,15 +1,17 @@
-import { useState } from "react"
+import { useContext, useState } from "react";
 import axios from 'axios';
 import {toast} from 'react-hot-toast';
 import { useNavigate } from "react-router-dom";
+import { UserContext } from "../../../context/userContext";
 import './register.css';
 
 export default function Register() {
+  const { setUser } = useContext(UserContext);
   const navigate = useNavigate()
-  const [data, setData] = useState({
+    const [data, setData] = useState({
     name: '',
     email: '',
-    password: '',
+    password: ''
   })
 
   const registerUser = async (e) => {
@@ -22,8 +24,10 @@ export default function Register() {
       if(data.error) {
         toast.error(data.error)
       } else {
-        setData({})
         toast.success('Register Successful. Welcome!')
+        const profileRes = await axios.get("/auth/profile");
+        const user = profileRes.data;
+        setUser(user);
         navigate('/dashboard')
       }
     } catch (error) {

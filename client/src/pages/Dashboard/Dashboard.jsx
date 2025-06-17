@@ -12,6 +12,7 @@ export default function Dashboard() {
   const [sharesOwned, setSharesOwned] = useState({});
   const [survivorPlayerStats, setSurvivorPlayerStats] = useState({});
   const [prices, setPrices] = useState({});
+  const [leaderboard, setLeaderboard] = useState({});
   const [loadingFinancials, setLoadingFinancials] = useState(true);
 
   useEffect(() => {
@@ -21,6 +22,7 @@ export default function Dashboard() {
         const { data: financialData } = await axios.get('/transactions/getportfolio', { params: { userId: user.id } });
         const { data: pricesData } = await axios.get('/transactions/getprices');
         const {data: survivorPlayersData} = await axios.get('/transactions/getprofile');
+        const {data: leaderboardRank} = await axios.get(`/leaderboard/getleaderboard/${user.id}`)
         const survivorsMap = survivorPlayersData.reduce((acc, player) => {
           acc[player.name] = player;
           return acc;
@@ -29,6 +31,7 @@ export default function Dashboard() {
         setNetWorth(financialData.netWorth);
         setSharesOwned(financialData.portfolio);
         setPrices(pricesData);
+        setLeaderboard(leaderboardRank);
         setSurvivorPlayerStats(survivorsMap);
       } catch (error) {
         console.log(error)
@@ -110,6 +113,7 @@ export default function Dashboard() {
         <div className= {styles["financial-info"]}>
           <h2>Your Budget: {formattedBudget}</h2>
           <h2>Your Net Worth: {formattedNetWorth}</h2>
+          <h2>Your Rank: {leaderboard}th</h2>
         </div>
       </div>
       <div>

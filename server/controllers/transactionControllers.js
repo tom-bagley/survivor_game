@@ -140,9 +140,19 @@ const handleSell = async (user, player, stock, availablePlayerCount) => {
 
 // Helper function to calculate net worth
 const calculateNetWorth = async (user) => {
-    const stockPrices = await calculatePrices();
+    const totalPlayerCount = await getTotalStockCount();
+
+    const availablePlayers = await Player.find({ availability: true });
+    const availablePlayerCount = availablePlayers.length;
+
+    const survivorPlayerPrices = {};
+
+    for (const player of availablePlayers) {
+        const price = calculateStockPrice(player.count, totalPlayerCount, availablePlayerCount);
+        survivorPlayerPrices[player.name] = price;
+    }
     return [...user.portfolio.entries()].reduce(
-        (netWorth, [stock, quantity]) => netWorth + (stockPrices[stock] || 0) * quantity,
+        (netWorth, [player, quantity]) => netWorth + (survivorPlayerPrices[player] || 0) * quantity,
         user.budget
     );
 };
@@ -227,13 +237,13 @@ const getPortfolio = async (req, res) => {
     try {
         const user = await User.findById(userId);
         const players = await Player.find();
-        const playerNames = players.map(player => player.name); // Extract the names of players
+        const playerNames = players.map(player => player.name);
         for (let [key] of user.portfolio) {
             if (!playerNames.includes(key)) {
               user.portfolio.delete(key);
             }
           }
-
+        user.netWorth = await calculateNetWorth(user);
         await user.save(); 
 
         res.json(user);

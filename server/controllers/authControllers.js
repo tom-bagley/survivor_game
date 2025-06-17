@@ -54,8 +54,6 @@ const registerUser = async (req, res) => {
             if(err) throw err;
             res.cookie('token', token).json(user)
         })
-
-        return res.json(user)
     } catch (error) {
         console.log(error)
     }

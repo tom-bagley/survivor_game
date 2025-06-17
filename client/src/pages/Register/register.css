@@ -7,6 +7,10 @@
   padding: 2rem;
   box-sizing: border-box;
   background-color: #8a8686; /* optional: dark background */
+  background-image: url('/homepage3.png');
+  background-repeat: no-repeat;
+  background-attachment: scroll;
+  background-size: cover; 
 }
 
 .register-container {
