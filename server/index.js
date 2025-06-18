@@ -20,12 +20,12 @@ mongoose.connect(process.env.MONGO_URL)
 .catch((err) => console.log('Database not Connected', err))
 
 
-recordStockPrices()
-  .then(() => console.log("Initial price recording done"))
-  .catch(console.error);
+// recordStockPrices()
+//   .then(() => console.log("Initial price recording done"))
+//   .catch(console.error);
 
-//Schedule to run every minute
-setInterval(recordStockPrices, 60 * 1000);
+// //Schedule to run every minute
+// setInterval(recordStockPrices, 60 * 1000);
 
 // updateLiveLeaderboard()
 //   .then(() => console.log('Leaderboard updated'))
