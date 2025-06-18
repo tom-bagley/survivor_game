@@ -1,10 +1,18 @@
 .stock-chart-container {
   width: 100%;
-  height: 100%;
+  max-width: 600px;  /* or whatever max makes sense */
+  min-height: 300px;
   padding: 8px;
   box-sizing: border-box;
   background: rgba(0, 0, 0, 0.2);
   border-radius: 12px;
+}
+
+.stock-chart-container svg,
+.stock-chart-container canvas {
+  width: 100% !important;
+  height: auto !important;
+  max-width: 100%;
 }
 
 /* Optional: Customize the grid look */
@@ -40,4 +48,16 @@
   border-color: #00eaff;
   box-shadow: 0 0 10px #00eaff88;
   font-weight: bold;
+}
+
+@media (max-width: 700px) {
+  .stock-chart-container {
+    padding: 4px;
+  }
+
+  .stock-chart-container svg,
+  .stock-chart-container canvas {
+    width: 100% !important;
+    height: auto !important;
+  }
 }
