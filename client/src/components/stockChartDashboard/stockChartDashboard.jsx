@@ -3,9 +3,9 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import './stockChartDashboard.css';
 
 const StockChart = ({ data, latestWeek, latestSeason, medianPrice }) => {
-  console.log(data)
-  console.log(latestWeek)
-  console.log(latestSeason)
+  // console.log(data)
+  // console.log(latestWeek)
+  // console.log(latestSeason)
   const [viewMode, setViewMode] = useState('week');
 
     const filteredData = data.filter(d =>
@@ -13,14 +13,14 @@ const StockChart = ({ data, latestWeek, latestSeason, medianPrice }) => {
         ? d.week === latestWeek && d.season === latestSeason
         : d.season === latestSeason
     );
-  console.log(filteredData)
+  // console.log(filteredData)
   const toggleView = () => {
     setViewMode(prev => (prev === 'week' ? 'season' : 'week'));
   };
   if (!filteredData || filteredData.length === 0) return <div>nothing</div>;
 
   const latestPrice = filteredData[filteredData.length - 1].price;
-  const lineColor = latestPrice >= 5 ? '#00cc66' : '#ff4444';
+  const lineColor = latestPrice >= medianPrice ? '#00cc66' : '#ff4444';
 
   return (
     <div className="stock-chart-container">
@@ -48,11 +48,15 @@ const StockChart = ({ data, latestWeek, latestSeason, medianPrice }) => {
             </linearGradient>
           </defs>
           <CartesianGrid className="stock-chart-grid" />
-          <XAxis dataKey="date" tick={{ fill: '#ccc' }} />
+          <XAxis
+            dataKey="date"
+            tick={{ fill: '#ccc' }}
+            padding={filteredData.length === 1 ? { left: 0, right: 300 } : { left: 20, right: 20 }}
+          />
           <YAxis 
             domain={[0, medianPrice * 2]} 
             ticks={[0, medianPrice, (medianPrice * 2)]} 
-            tickFormatter={(value) => `$${value}`} 
+            tickFormatter={(value) => `$${value.toFixed(2)}`} 
             tick={{ fill: '#ccc' }} 
           />
           <Tooltip 

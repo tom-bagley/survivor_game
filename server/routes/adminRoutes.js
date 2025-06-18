@@ -4,7 +4,7 @@ const { addPlayer, getAllPlayers, deletePlayer, togglePlayerAvailability } = req
 const { resetUsers, changeSeason, changeWeek, getCurrentSeason } = require('../controllers/adminControllers')
 const { requireAuth, requireAdmin } = require('../authMiddleware/authMiddleware')
 
-router.get('/getcurrentseason', requireAuth, requireAdmin, getCurrentSeason);
+router.get('/getcurrentseason', getCurrentSeason);
 router.post('/addplayer', requireAuth, requireAdmin, addPlayer)
 router.get('/allplayers', requireAuth, requireAdmin, getAllPlayers);
 router.delete('/deleteplayer/:id', requireAuth, requireAdmin, deletePlayer);

@@ -1,16 +1,7 @@
 const User = require('../models/user');
 const Player = require('../models/players');
 const adminSettings = require('../models/adminSettings')
-
-const getCurrentSeason = async (req, res) => {
-    try {
-        const currentSettings = await adminSettings.findById("game_settings")
-        return res.json(currentSettings);
-    } catch (error) {
-        console.error(error);
-        return res.json({error: 'Failed to fetch current season'})
-    }
-}
+const recordStockPrices = require('../jobs/recordPricesJob');
 
 const resetUsers = async (req, res) => {
   const { budget, initialSurvivorPrice } = req.body;
@@ -48,7 +39,6 @@ const changeSeason = async (req, res) => {
       settings.week = 0;
       settings.price = initialPrice;
       settings.percentageIncrement = percentageIncrement;
-
       await settings.save();
 
       res.json({message: 'Season Changed Successfully'});
@@ -60,7 +50,6 @@ const changeSeason = async (req, res) => {
 
 const changeWeek = async (req, res) => {
     const { newWeek } = req.body;
-    console.log(newWeek);
     try {
       const settings = await adminSettings.findById("game_settings")
       settings.week = newWeek;
@@ -68,6 +57,7 @@ const changeWeek = async (req, res) => {
       percentageIncrement = settings.percentageIncrement;
       newPrice = price * (1 + percentageIncrement);
       settings.price = newPrice;
+      recordStockPrices()
       await settings.save();
 
       res.json({message: 'Week Created Successfully'});
@@ -77,9 +67,19 @@ const changeWeek = async (req, res) => {
     }
 }
 
+const getCurrentSeason = async (req, res) => {
+    try {
+        const currentSettings = await adminSettings.findById("game_settings")
+        return res.json(currentSettings);
+    } catch (error) {
+        console.error(error);
+        return res.json({error: 'Failed to fetch current season'})
+    }
+}
+
 module.exports = {
-  getCurrentSeason,
   resetUsers,
   changeSeason,
-  changeWeek
+  changeWeek,
+  getCurrentSeason
 };

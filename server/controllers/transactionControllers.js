@@ -188,17 +188,18 @@ const calculateNetWorth = async (user) => {
 
 
 const updatePortfolioPreseason = async (req, res) => {
-    const { userId, stock, action } = req.body;
-
+    const { userId, survivorPlayer, action } = req.body;
     try {
         const user = await User.findById(userId);
-        const player = await Player.findOne({ name: stock });
+        const player = await Player.findOne({ name: survivorPlayer });
+        const currentSettings = await adminSettings.findById('game_settings');
+        const price = currentSettings.price;
 
         if (!user || !player) {
             return res.json({ error: 'User or player not found' });
         }
 
-        const currentUserPlayerCount = user.portfolio.get(stock) || 0;
+        const currentUserPlayerCount = user.portfolio.get(survivorPlayer) || 0;
         const currentBudget = user.budget;
         const currentPlayerCount = player.count;
 
@@ -207,7 +208,8 @@ const updatePortfolioPreseason = async (req, res) => {
             currentBudget,
             currentUserPlayerCount,
             currentPlayerCount,
-            action
+            action,
+            price
         );
 
         if (updatedBudget === null) {
@@ -217,7 +219,7 @@ const updatePortfolioPreseason = async (req, res) => {
         }
 
         // Update the user's portfolio and budget
-        user.portfolio.set(stock, updatedUserPlayerCount);
+        user.portfolio.set(survivorPlayer, updatedUserPlayerCount);
         user.budget = updatedBudget;
 
         // Update the player's stock count
@@ -234,8 +236,8 @@ const updatePortfolioPreseason = async (req, res) => {
 };
 
 // Helper function for preseason transactions
-const handlePreseasonTransaction = (budget, userStockCount, playerStockCount, action) => {
-    const stockPrice = 1; // Fixed preseason price
+const handlePreseasonTransaction = (budget, userStockCount, playerStockCount, action, price) => {
+    const stockPrice = price; // Fixed preseason price
 
     if (action === 'buy') {
         if (budget <= 0) {

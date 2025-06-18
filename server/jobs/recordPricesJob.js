@@ -23,7 +23,7 @@ async function recordStockPrices() {
         week: currentSettings.week
       });
 
-      console.log(`✅ Saved ${name} at $${currentPrice}`);
+      // console.log(`✅ Saved ${name} at $${currentPrice}`);
     } catch (err) {
       console.error(`❌ Error fetching ${player.name}:`, err.message);
     }

@@ -1,5 +1,6 @@
 const Player = require('../models/players');
 const PriceWatch = require('../models/pricewatch');
+const adminSettings = require('../models/adminSettings')
 const { getTotalStockCount, calculateStockPrice } = require('./transactionControllers')
 
 const addPlayer = async (req, res) => {
@@ -100,6 +101,18 @@ const getHistoricalPrices = async (req, res) => {
 
 };
 
+const getCurrentSeason = async (req, res) => {
+    console.log('in here')
+    try {
+        const currentSettings = await adminSettings.findById("game_settings")
+        console.log(currentSettings)
+        return res.json(currentSettings);
+    } catch (error) {
+        console.error(error);
+        return res.json({error: 'Failed to fetch current season'})
+    }
+}
+
 
 
 
@@ -109,4 +122,5 @@ module.exports = {
     deletePlayer,
     togglePlayerAvailability,
     getHistoricalPrices,
+    getCurrentSeason,
 }

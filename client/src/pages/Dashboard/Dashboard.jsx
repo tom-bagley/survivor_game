@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [season, setSeason] = useState([]);
   const [week, setWeek] = useState([]);
   const [medianPrice, setMedianPrice] = useState([]);
+  const [admin, setAdmin] = useState([]);
 
   useEffect(() => {
     if (loading || !user?.id) return;
@@ -31,6 +32,7 @@ export default function Dashboard() {
           return acc;
         }, {});
         const { data: seasonData } = await axios.get('/admin/getcurrentseason');
+        setAdmin(seasonData);
         setWeek(seasonData.week);
         setSeason(seasonData.season);
         setMedianPrice(seasonData.price);
@@ -48,6 +50,10 @@ export default function Dashboard() {
     }
     getData();
   }, [loading, user]);
+
+  useEffect(() => {
+    console.log("admin:", admin);
+  }, [admin]);
 
   if (!user?.id) return <div style={{
         display: 'flex',
@@ -72,13 +78,18 @@ export default function Dashboard() {
 
   const updatePortfolio = async (survivorPlayer, action) => {
     try {
-      const { data } = await axios.put('/transactions/updateportfolio', {
+      const endpoint = week === 0 
+        ? '/transactions/updateportfoliopreseason' 
+        : '/transactions/updateportfolio';
+
+      const { data } = await axios.put(endpoint, {
         userId: user.id,
         survivorPlayer,
         action,
       });
-      if(data.error) {
-        toast.error(data.error)
+
+      if (data.error) {
+        toast.error(data.error);
       } else {
         resetPrices();
         // getProfilePics();
@@ -133,7 +144,8 @@ export default function Dashboard() {
           const profile_pic = survivor.profile_pic
           const shares = sharesOwned[survivorPlayer];
           const price = prices[survivorPlayer];
-          const holdingsValue = shares * price;
+          const displayPrice = week === 0 ? medianPrice : price;
+          const holdingsValue = shares * displayPrice;
           const eliminated = !survivor.availability;
           const historical_prices = survivor.historicalprices
   
@@ -143,7 +155,7 @@ export default function Dashboard() {
               name={survivorPlayer}
               profilePhotoUrl={profile_pic}
               shares={shares}
-              price={price}
+              price={week === 0 ? medianPrice : price}
               holdingsValue={holdingsValue}
               buyStock={buyStock}
               sellStock={sellStock}

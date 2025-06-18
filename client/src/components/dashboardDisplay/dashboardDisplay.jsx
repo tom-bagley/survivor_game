@@ -5,7 +5,7 @@ import axios from 'axios';
 
 const Display = ({ name, profilePhotoUrl, shares, price, holdingsValue, buyStock, sellStock, eliminated, season, week, historical_prices, medianPrice }) => {
     const latestPrice = historical_prices.length > 0 ? historical_prices[historical_prices.length - 1].price : null;
-    const isGood = latestPrice !== null && latestPrice > 5;
+    const isGood = latestPrice !== null && latestPrice > medianPrice;
 
   return (
     <div className={`
@@ -34,8 +34,15 @@ const Display = ({ name, profilePhotoUrl, shares, price, holdingsValue, buyStock
           </div>
         )}
       </div>
-      <div className={"rightColumn"}>
-        <StockChart data={historical_prices} latestWeek = {String(week)} latestSeason = {season} medianPrice = {medianPrice} />
+      <div className="rightColumn">
+        {week !== 0 && (
+          <StockChart 
+            data={historical_prices} 
+            latestWeek={String(week)} 
+            latestSeason={season} 
+            medianPrice={medianPrice} 
+          />
+        )}
       </div>
     </div>
   );

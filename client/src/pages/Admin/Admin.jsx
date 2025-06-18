@@ -135,7 +135,7 @@ export default function Players() {
   useEffect(() => {
     async function getCurrentSeason () {
       try {
-        const { data: currentSeason } = await axios.get('admin/getcurrentseason');
+        const { data: currentSeason } = await axios.get('/admin/getcurrentseason');
         setSeason(currentSeason.season);
         setWeek(currentSeason.week);
         setPrice(currentSeason.price);
