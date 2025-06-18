@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../../context/userContext";
 import axios from "axios";
 import { toast } from 'react-hot-toast';
-import Display from '../components/stockdisplay/stockdisplay';
+import Display from '../components/dashboardDisplay/dashboardDisplay';
 
 export default function DashboardPreSeason() {
   const { user, setUser } = useContext(UserContext);

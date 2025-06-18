@@ -5,9 +5,11 @@ import Home from './pages/Home/Home';
 import Register from './pages/Register/Register';
 import axios from 'axios';
 import { Toaster } from 'react-hot-toast';
-import { UserContextProvider } from '../context/userContext';
+import { useContext } from 'react';
+import { UserContextProvider, UserContext } from '../context/userContext';
+import { useNavigate } from "react-router-dom";
 import Dashboard from './pages/Dashboard/Dashboard';
-import Players from './pages/Players';
+import Admin from './pages/Admin/Admin';
 import DisplayPlayers from './pages/DisplayPlayers';
 import DashboardPreSeason from './pages/DashboardPreSeason';
 import Leaderboard from './pages/Leaderboard/Leaderboard'
@@ -20,6 +22,31 @@ if (process.env.NODE_ENV === 'production') {
 
 axios.defaults.withCredentials = true;
 
+const RequireAdmin = ({ children }) => {
+  const { user, loading } = useContext(UserContext);
+
+  if (loading) return <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100vh',
+            fontSize: '2rem'
+        }}>
+            Loading!
+        </div>;
+  if (!user || user.role !== 'admin') return <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100vh',
+            fontSize: '2rem'
+        }}>
+            Not Admin
+        </div>;
+
+  return children;
+}
+
 
 function App() {
   return (
@@ -30,10 +57,17 @@ function App() {
       <Route path='/' element={<Home />} />
       <Route path='/register' element={<Register />} />
       <Route path='/dashboard' element={<Dashboard />} />
-      <Route path='/players' element={<Players />} />
       <Route path='/dashboardpreseason' element={<DashboardPreSeason />} />
       <Route path='/displayplayers' element={<DisplayPlayers />} />
       <Route path='/leaderboard' element={<Leaderboard />} />
+      <Route
+        path='/admin'
+        element={
+          <RequireAdmin>
+            <Admin />
+          </RequireAdmin>
+        }
+      />
 
     </Routes>
     </UserContextProvider>

@@ -27,7 +27,6 @@ export default function DisplayPlayers() {
         <div className="grid-container">
   {Object.keys(players).map((key) => {
     const player = players[key];
-    console.log(player);
     const { name, profile_pic, age, Hometown, Current_Residence, Occupation } = player;
 
     return (

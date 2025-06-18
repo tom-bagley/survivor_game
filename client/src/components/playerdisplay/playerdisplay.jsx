@@ -20,9 +20,6 @@ const Display = ({ name, profilePhotoUrl, isFading, eliminated }) => {
   
   const latestPrice = priceData.length > 0 ? priceData[priceData.length - 1].price : null;
   const isGood = latestPrice !== null && latestPrice > 5;
-
-
-
   
     return (
       <div className={`
@@ -41,7 +38,8 @@ const Display = ({ name, profilePhotoUrl, isFading, eliminated }) => {
             <img src={profilePhotoUrl} alt="Profile" className={styles.avatar} />
           </div>
           <div className={styles.chartContainer}>
-            <StockChart data={priceData} />
+            
+            <StockChart data={priceData}/>
           </div>
         </div>
       </div>

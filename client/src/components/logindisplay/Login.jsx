@@ -28,6 +28,7 @@ const Login = () => {
       else {
         const profileRes = await axios.get("/auth/profile");
         const user = profileRes.data;
+        console.log(user);
         setUser(user);
         navigate('/dashboard');
         

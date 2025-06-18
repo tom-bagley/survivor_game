@@ -13,6 +13,14 @@ const StockPriceEntry = new Schema({
     date: {
         type: Date,
         default: Date.now,
+    },
+    season: {
+        type: String,
+        default: 'Unknown Season'
+    },
+    week: {
+        type: String,
+        default: 'Unknown Week'
     }
 
 });

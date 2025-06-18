@@ -3,7 +3,7 @@ import { UserContext } from "../../../context/userContext";
 import axios from "axios";
 import {toast} from 'react-hot-toast';
 import styles from './dashboard.module.css';
-import Display from '../../components/stockdisplay/stockdisplay';
+import Display from '../../components/dashboardDisplay/dashboardDisplay';
 
 export default function Dashboard() {
   const { user, loading } = useContext(UserContext);
@@ -14,6 +14,9 @@ export default function Dashboard() {
   const [prices, setPrices] = useState({});
   const [leaderboard, setLeaderboard] = useState({});
   const [loadingFinancials, setLoadingFinancials] = useState(true);
+  const [season, setSeason] = useState([]);
+  const [week, setWeek] = useState([]);
+  const [medianPrice, setMedianPrice] = useState([]);
 
   useEffect(() => {
     if (loading || !user?.id) return;
@@ -27,6 +30,10 @@ export default function Dashboard() {
           acc[player.name] = player;
           return acc;
         }, {});
+        const { data: seasonData } = await axios.get('/admin/getcurrentseason');
+        setWeek(seasonData.week);
+        setSeason(seasonData.season);
+        setMedianPrice(seasonData.price);
         setBudget(financialData.budget);
         setNetWorth(financialData.netWorth);
         setSharesOwned(financialData.portfolio);
@@ -122,11 +129,13 @@ export default function Dashboard() {
       <div className={styles["grid-container"]}>
         {Object.keys(sharesOwned).map((survivorPlayer) => {
           const survivor = survivorPlayerStats[survivorPlayer];
+
           const profile_pic = survivor.profile_pic
           const shares = sharesOwned[survivorPlayer];
           const price = prices[survivorPlayer];
           const holdingsValue = shares * price;
           const eliminated = !survivor.availability;
+          const historical_prices = survivor.historicalprices
   
           return (
             <Display
@@ -139,6 +148,10 @@ export default function Dashboard() {
               buyStock={buyStock}
               sellStock={sellStock}
               eliminated={eliminated}
+              season={season}
+              week={week}
+              historical_prices={historical_prices}
+              medianPrice={medianPrice}
             />
           );
         })}

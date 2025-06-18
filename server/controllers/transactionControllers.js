@@ -1,5 +1,7 @@
 const User = require('../models/user');
 const Player = require('../models/players');
+const PriceWatch = require('../models/pricewatch');
+const adminSettings = require('../models/adminSettings');
 
 const calculatePrices = async () => {
     try {
@@ -8,11 +10,13 @@ const calculatePrices = async () => {
         const unavailablePlayers = await Player.find({ availability: false });
 
         const availablePlayerCount = availablePlayers.length;
+        const currentSettings = await adminSettings.findById("game_settings");
+        const currentMedianPrice = currentSettings.price;
 
         const response = {};
 
         for (const player of availablePlayers) {
-            const price = calculateStockPrice(player.count, totalPlayerCount, availablePlayerCount);
+            const price = calculateStockPrice(player.count, totalPlayerCount, availablePlayerCount, currentMedianPrice);
             response[player.name] = price;
         }
 
@@ -35,25 +39,45 @@ const getPrices = async (req, res) => {
     }
 };
 
+const fetchHistoricalPrices = async (name) => {
+    const prices = await PriceWatch.find({ name }).sort({ date: 1 });
+    return prices.map(p => ({
+        date: p.date.toISOString().split('T')[0],
+        price: p.price,
+        week: p.week,
+        season: p.season
+    }));
+};
+
 const getProfile = async (req, res) => {
     try {
         const players = await Player.find({});
-        const response = players.map(player => ({
-            name: player.name,
-            profile_pic: player.profile_pic,
-            availability: player.availability
-        }));
+        const response = [];
+
+        for (const player of players) {
+            const historicalprices = await fetchHistoricalPrices(player.name);
+            response.push({
+                name: player.name,
+                profile_pic: player.profile_pic,
+                availability: player.availability,
+                historicalprices
+            });
+        }
+
         res.json(response);
     } catch (error) {
-        res.status(500).json({ message: error.message }); 
+        res.status(500).json({ message: error.message });
     }
 };
 
 
-function calculateStockPrice (currentPlayerCount, totalPlayerCount, availablePlayerCount) {
+function calculateStockPrice (currentPlayerCount, totalPlayerCount, availablePlayerCount, currentMedianPrice) {
+    if (currentPlayerCount === 0) {
+        return 0;
+    }
     try {
-        let result = 5 + (((availablePlayerCount * (currentPlayerCount / totalPlayerCount)) - 1) * 5);
-        result = Math.min(result, 10);
+        let result = currentMedianPrice + (((availablePlayerCount * (currentPlayerCount / totalPlayerCount)) - 1) * currentMedianPrice);
+        result = Math.max(0, Math.min(result, currentMedianPrice * 2));
         return result;
     } catch (error) {
         return 1;
@@ -92,9 +116,11 @@ const updatePortfolio = async (req, res) => {
         const currentUserPlayerCount = user.portfolio.get(survivorPlayer) || 0;
         const currentBudget = user.budget;
         const availablePlayerCount = await Player.countDocuments({ availability: true });
+        const currentSettings = await adminSettings.findById("game_settings");
+        const currentMedianPrice = currentSettings.price;
 
         const total = await getTotalStockCount();
-        const currentPrice = calculateStockPrice(player.count, total, availablePlayerCount);
+        const currentPrice = calculateStockPrice(player.count, total, availablePlayerCount, currentMedianPrice);
         if (action === 'buy') {
             if (currentBudget < currentPrice) {
                 return res.json({ error: 'Not enough funds' });
@@ -104,7 +130,7 @@ const updatePortfolio = async (req, res) => {
             if (currentUserPlayerCount <= 0) {
                 return res.json({ error: 'No stock to sell' });
             }
-            await handleSell(user, player, survivorPlayer, availablePlayerCount);
+            await handleSell(user, player, survivorPlayer, availablePlayerCount, currentMedianPrice);
         } else {
             return res.json({ error: 'Invalid action' });
         }
@@ -129,11 +155,11 @@ const handleBuy = async (user, player, stock, currentPrice) => {
 };
 
 // Helper function to handle selling logic
-const handleSell = async (user, player, stock, availablePlayerCount) => {
+const handleSell = async (user, player, stock, availablePlayerCount, currentMedianPrice) => {
     user.portfolio.set(stock, user.portfolio.get(stock) - 1);
     player.count -= 1;
     const total = await getTotalStockCount();
-    const currentPrice = calculateStockPrice(player.count, total, availablePlayerCount);
+    const currentPrice = calculateStockPrice(player.count, total, availablePlayerCount, currentMedianPrice);
     user.budget += currentPrice;
     
 };
@@ -144,11 +170,13 @@ const calculateNetWorth = async (user) => {
 
     const availablePlayers = await Player.find({ availability: true });
     const availablePlayerCount = availablePlayers.length;
+    const currentSettings = await adminSettings.findById("game_settings");
+    const currentMedianPrice = currentSettings.price;
 
     const survivorPlayerPrices = {};
 
     for (const player of availablePlayers) {
-        const price = calculateStockPrice(player.count, totalPlayerCount, availablePlayerCount);
+        const price = calculateStockPrice(player.count, totalPlayerCount, availablePlayerCount, currentMedianPrice);
         survivorPlayerPrices[player.name] = price;
     }
     return [...user.portfolio.entries()].reduce(

@@ -20,6 +20,10 @@ const userSchema = new Schema({
     netWorth: {
         type: Number,
         default: 10000
+    },
+    role: {
+        type: String,
+        default: 'user'
     }
 })
 

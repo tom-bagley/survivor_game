@@ -4,10 +4,7 @@ const { getTotalStockCount, calculateStockPrice } = require('./transactionContro
 
 const addPlayer = async (req, res) => {
     try {
-        console.log(req.body);
         const { name, profile_pic, age, Hometown, Current_Residence, Occupation } = req.body;
-        console.log(age);
-        console.log(name);
         //Check if player already added
         const exist = await Player.findOne({name});
         if(exist) {
@@ -58,41 +55,44 @@ const deletePlayer = async (req, res) => {
 }
 
 const togglePlayerAvailability = async (req, res) => {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    try {
-        const player = await Player.findById(id);
+  try {
+    const player = await Player.findById(id);
 
-        if (!player) {
-            return res.status(404).json({ error: 'Player not found' });
-        }
-        const total = await getTotalStockCount();
-        const availablePlayerCount = await Player.countDocuments({ availability: true });
-        const currentPrice = calculateStockPrice(player.count, total, availablePlayerCount);
-
-        player.price = currentPrice;
-
-        // Toggle availability to false
-        player.availability = false;
-
-        // Save the updated player
-        await player.save();
-
-        res.json({ message: 'Player availability set to false successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'An error occurred while updating player availability' });
+    if (!player) {
+      return res.status(404).json({ error: 'Player not found' });
     }
+
+    const total = await getTotalStockCount();
+    const availablePlayerCount = await Player.countDocuments({ availability: true });
+    const currentPrice = calculateStockPrice(player.count, total, availablePlayerCount);
+
+    player.price = currentPrice;
+
+    player.availability = !player.availability;
+
+    await player.save();
+
+    res.json({ 
+      message: `Player availability set to ${player.availability} successfully`,
+      player 
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred while toggling player availability' });
+  }
 };
 
 const getHistoricalPrices = async (req, res) => {
-    const { name } = req.params;
     try {
         const { name } = req.params;
-        const prices = await PriceWatch.find({ name }).sort({ date: 1 }); // oldest to newest
+        const prices = await PriceWatch.find({ name }).sort({ date: 1 }); 
         res.json(prices.map(p => ({
-        date: p.date.toISOString().split('T')[0], // 'YYYY-MM-DD'
-        price: p.price
+          date: p.date.toISOString().split('T')[0], 
+          price: p.price,
+          week: p.week,
+          season: p.season
         })));
     } catch (err) {
         res.status(500).json({ error: 'Failed to fetch prices' });
