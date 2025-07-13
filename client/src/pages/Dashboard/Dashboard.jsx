@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../../../context/userContext";
+import { Navigate } from 'react-router-dom';
 import axios from "axios";
 import {toast} from 'react-hot-toast';
 import styles from './dashboard.module.css';
@@ -18,42 +19,63 @@ export default function Dashboard() {
   const [week, setWeek] = useState([]);
   const [medianPrice, setMedianPrice] = useState([]);
   const [admin, setAdmin] = useState([]);
+  const [onAir, setOnAir] = useState({});
+
+  useEffect(() => {
+    const fetchOnAirStatus = async () => {
+      try {
+        const res = await axios.get('/admin/onair-status');
+        setOnAir(res.data);
+      } catch (err) {
+        console.error("Failed to fetch onAir status:", err);
+      }
+    };
+
+    fetchOnAirStatus();
+  }, []);
 
   useEffect(() => {
     if (loading || !user?.id) return;
     async function getData() {
-      try {
-        const { data: financialData } = await axios.get('/transactions/getportfolio', { params: { userId: user.id } });
-        const { data: pricesData } = await axios.get('/transactions/getprices');
-        const {data: survivorPlayersData} = await axios.get('/transactions/getprofile');
-        const {data: leaderboardRank} = await axios.get(`/leaderboard/getleaderboard/${user.id}`)
-        const survivorsMap = survivorPlayersData.reduce((acc, player) => {
-          acc[player.name] = player;
-          return acc;
-        }, {});
-        const { data: seasonData } = await axios.get('/admin/getcurrentseason');
-        setAdmin(seasonData);
-        setWeek(seasonData.week);
-        setSeason(seasonData.season);
-        setMedianPrice(seasonData.price);
-        setBudget(financialData.budget);
-        setNetWorth(financialData.netWorth);
-        setSharesOwned(financialData.portfolio);
-        setPrices(pricesData);
-        setLeaderboard(leaderboardRank);
-        setSurvivorPlayerStats(survivorsMap);
-      } catch (error) {
-        console.log(error)
-      } finally {
-        setLoadingFinancials(false);
-      }
-    }
-    getData();
-  }, [loading, user]);
+    try {
+      const [
+        { data: financialData },
+        { data: pricesData },
+        { data: survivorPlayersData },
+        { data: leaderboardRank },
+        { data: seasonData },
+      ] = await Promise.all([
+        axios.get('/transactions/getportfolio', { params: { userId: user.id } }),
+        axios.get('/transactions/getprices'),
+        axios.get('/transactions/getprofile'),
+        axios.get(`/leaderboard/getleaderboard/${user.id}`),
+        axios.get('/admin/getcurrentseason'),
+      ]);
 
-  useEffect(() => {
-    console.log("admin:", admin);
-  }, [admin]);
+      const survivorsMap = survivorPlayersData.reduce((acc, player) => {
+        acc[player.name] = player;
+        return acc;
+      }, {});
+
+      setAdmin(seasonData);
+      setWeek(seasonData.week);
+      setSeason(seasonData.season);
+      setMedianPrice(seasonData.price);
+      setBudget(financialData.budget);
+      setNetWorth(financialData.netWorth);
+      setSharesOwned(financialData.portfolio);
+      setPrices(pricesData);
+      setLeaderboard(leaderboardRank);
+      setSurvivorPlayerStats(survivorsMap);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingFinancials(false);
+    }
+  }
+
+  getData();
+}, [loading, user]);
 
   if (!user?.id) return <div style={{
         display: 'flex',
@@ -65,7 +87,7 @@ export default function Dashboard() {
         Not Logged In
     </div>;
 
-  if (loading || loadingFinancials) return <div style={{
+  if (loading || loadingFinancials || onAir === null) return <div style={{
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -74,6 +96,10 @@ export default function Dashboard() {
         }}>
             Loading!
         </div>;
+
+  if (onAir) {
+    return <Navigate to="/on-air" replace />;
+  }
 
 
   const updatePortfolio = async (survivorPlayer, action) => {

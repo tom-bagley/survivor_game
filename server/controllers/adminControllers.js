@@ -39,6 +39,7 @@ const changeSeason = async (req, res) => {
       settings.week = 0;
       settings.price = initialPrice;
       settings.percentageIncrement = percentageIncrement;
+      settings.onAir = false;
       await settings.save();
 
       res.json({message: 'Season Changed Successfully'});
@@ -77,9 +78,32 @@ const getCurrentSeason = async (req, res) => {
     }
 }
 
+const fetchOnAirStatus = async (req, res) => {
+  try {
+    const currentSettings = await adminSettings.findById("game_settings")
+    const onAirStatus = currentSettings.onAir;
+    return res.json(onAirStatus);
+  } catch (error) {
+    return res.json({error: 'Failed to fetch on air status'})
+  }
+}
+
+const toggleOnAirStatus = async (req, res) => {
+  try {
+    const currentSettings = await adminSettings.findById("game_settings")
+    currentSettings.onAir = !currentSettings.onAir;
+    await currentSettings.save()
+    return res.json({ onAir: currentSettings.onAir });
+  } catch (error) {
+    return res.json({error: 'Failed to fetch on air status'})
+  }
+}
+
 module.exports = {
   resetUsers,
   changeSeason,
   changeWeek,
-  getCurrentSeason
+  getCurrentSeason,
+  fetchOnAirStatus,
+  toggleOnAirStatus
 };

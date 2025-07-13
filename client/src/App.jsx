@@ -5,14 +5,14 @@ import Home from './pages/Home/Home';
 import Register from './pages/Register/Register';
 import axios from 'axios';
 import { Toaster } from 'react-hot-toast';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { UserContextProvider, UserContext } from '../context/userContext';
 import { useNavigate } from "react-router-dom";
 import Dashboard from './pages/Dashboard/Dashboard';
 import Admin from './pages/Admin/Admin';
 import DisplayPlayers from './pages/DisplayPlayers';
-import DashboardPreSeason from './pages/DashboardPreSeason';
 import Leaderboard from './pages/Leaderboard/Leaderboard'
+import Episode_Airing from './pages/Episode Airing Stopgap/episode_airing';
 
 if (process.env.NODE_ENV === 'production') {
   axios.defaults.baseURL = 'https://survivorseason48stockgame.onrender.com';
@@ -47,7 +47,6 @@ const RequireAdmin = ({ children }) => {
   return children;
 }
 
-
 function App() {
   return (
     <UserContextProvider>
@@ -56,10 +55,10 @@ function App() {
     <Routes>
       <Route path='/' element={<Home />} />
       <Route path='/register' element={<Register />} />
-      <Route path='/dashboard' element={<Dashboard />} />
-      <Route path='/dashboardpreseason' element={<DashboardPreSeason />} />
-      <Route path='/displayplayers' element={<DisplayPlayers />} />
+      <Route path='/dashboard' element={<Dashboard />}/>
+      <Route path='/displayplayers' element={<DisplayPlayers />}/>
       <Route path='/leaderboard' element={<Leaderboard />} />
+      <Route path='/on-air' element={<Episode_Airing />} />
       <Route
         path='/admin'
         element={

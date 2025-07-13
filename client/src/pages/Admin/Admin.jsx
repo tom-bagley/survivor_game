@@ -12,10 +12,10 @@ export default function Players() {
     Occupation: '',
     season: '',
   })
-  const [season, setSeason] = useState('something');
-  const [week, setWeek] = useState('something'); // or a number
-  const [price, setPrice] = useState('something');
-  const [increment, setIncrement] = useState('something');
+  const [season, setSeason] = useState();
+  const [week, setWeek] = useState();
+  const [price, setPrice] = useState();
+  const [increment, setIncrement] = useState();
 
   const [players, setPlayers] = useState([]);
 
@@ -132,6 +132,20 @@ export default function Players() {
     }
   }
 
+  const handleOnAirStatusChange = async (e) => {
+    e.preventDefault()
+    try {
+      const { data } = await axios.patch('/admin/changeonairstatus')
+      if (data.error) {
+        toast.error(data.error);
+      } else {
+        toast.success('changed on air status successfully')
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   useEffect(() => {
     async function getCurrentSeason () {
       try {
@@ -237,6 +251,15 @@ export default function Players() {
         </form>
 
       </div>
+
+      <div clasasName="on-air-status">
+        <h2>Change On Air Status</h2>
+        <form onSubmit={handleOnAirStatusChange}>
+          <label>Change On Air Status:</label>
+          <button type="submit">Change</button>
+        </form>
+      </div>
+
       <div className="reset-users">
         <h2>Reset Users</h2>
         <form onSubmit={handleResetUsers}>

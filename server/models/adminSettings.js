@@ -10,6 +10,7 @@ const adminSettingsSchema = new Schema({
     week: Number,
     price: Number,
     percentageIncrement: Number,
+    onAir: Boolean,
 }, {timestamps: true});
 
 const adminSettings = mongoose.model('adminSettings', adminSettingsSchema);
