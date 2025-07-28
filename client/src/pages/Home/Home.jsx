@@ -52,7 +52,7 @@ export default function Home() {
       <div className="homepage-title">
         <h1>Survivor Stock Game</h1>
         {/* <img src="/logo.png" alt="Logo" className="logo" /> */}
-        <h2>Pick Your Favortites. Invest. Compete With Others.</h2>
+        <h2>Pick Your Favor tites. Invest. Compete With Others.</h2>
       </div>
       <div className="row">
         <div className='column'>
