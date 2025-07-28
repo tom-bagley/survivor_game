@@ -24,7 +24,7 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchOnAirStatus = async () => {
       try {
-        const res = await axios.get('/admin/onair-status');
+        const res = await axios.get('/episode/onair-status');
         setOnAir(res.data);
       } catch (err) {
         console.error("Failed to fetch onAir status:", err);

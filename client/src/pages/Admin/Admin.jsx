@@ -135,7 +135,7 @@ export default function Players() {
   const handleOnAirStatusChange = async (e) => {
     e.preventDefault()
     try {
-      const { data } = await axios.patch('/admin/changeonairstatus')
+      const { data } = await axios.patch('/episode/changeonairstatus')
       if (data.error) {
         toast.error(data.error);
       } else {

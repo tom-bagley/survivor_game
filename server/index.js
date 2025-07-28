@@ -19,7 +19,6 @@ mongoose.connect(process.env.MONGO_URL)
 .then(() => console.log('Database Connected'))
 .catch((err) => console.log('Database not Connected', err))
 
-
 // recordStockPrices()
 //   .then(() => console.log("Initial price recording done"))
 //   .catch(console.error);
@@ -39,8 +38,9 @@ app.use(express.urlencoded({extended: false}));
 app.use('/auth', require('./routes/authRoutes'));
 app.use('/players', require('./routes/playerRoutes'));
 app.use('/transactions', require('./routes/transactionRoutes'));
-app.use('/leaderboard', require('./routes/leaderboardRoutes'))
-app.use('/admin', require('./routes/adminRoutes'))
+app.use('/leaderboard', require('./routes/leaderboardRoutes'));
+app.use('/admin', require('./routes/adminRoutes'));
+app.use('/episode', require('./routes/episodeRoutes'));
 
 if(process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../client/dist')));

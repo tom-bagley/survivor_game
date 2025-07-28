@@ -1,0 +1,56 @@
+.page {
+  font-size: 1rem;
+  width: 100%;
+  min-height: 100vh; 
+  background-image: url('/homepage3.png');
+  background-repeat: no-repeat;
+  background-attachment: scroll;
+  background-size: cover;
+  padding-top: 10px;
+
+  display: flex; 
+  justify-content: center; 
+  align-items: center;     
+}
+
+.clock-container {
+  background-color: rgb(14, 14, 14);
+  opacity: 0.8;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 1000px;
+  margin-right: 20rem;
+  margin-left: 20rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  color: white;
+  margin-top: 10px;
+  justify-content: center; 
+  align-items: center;     
+  text-align: center;      
+}
+
+.clock-timer {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.clock-unit {
+  text-align: center;
+}
+
+.clock-number {
+  font-size: 3rem;
+  font-weight: bold;
+}
+
+.clock-label {
+  font-size: 1rem;
+  color: #ccc;
+  margin-top: 0.25rem;
+}
