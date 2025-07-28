@@ -13,7 +13,6 @@ app.use(cors({
   credentials: true 
 }));
 
-
 //database connection
 mongoose.connect(process.env.MONGO_URL)
 .then(() => console.log('Database Connected'))
