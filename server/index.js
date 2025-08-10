@@ -7,6 +7,9 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 const recordStockPrices = require('./jobs/recordPricesJob');
 const updateLiveLeaderboard = require('./jobs/recordLeaderboardJob');
+const  isWednesday8PMEastern  = require('./jobs/checkEpisodeStatusJobs');
+const  checkEpisodeStatus  = require('./jobs/checkEpisodeStatusJobs');
+const  startEpisodeAuto  = require('./jobs/checkEpisodeStatusJobs');
 
 app.use(cors({
   origin: 'http://localhost:5173', 
@@ -28,6 +31,31 @@ mongoose.connect(process.env.MONGO_URL)
 // updateLiveLeaderboard()
 //   .then(() => console.log('Leaderboard updated'))
 //   .catch(console.error);
+
+// Run immediately at startup
+checkEpisodeStatus()
+  .then(() => console.log("Initial episode status check complete"))
+  .catch(console.error);
+
+// Schedule to run every minute
+setInterval(checkEpisodeStatus, 60 * 1000);
+
+// Check every minute
+setInterval(async () => {
+  try {
+    if (isWednesday8PMEastern()) {
+      await startEpisodeAuto();
+    }
+    await checkEpisodeStatus();
+  } catch (err) {
+    console.error("Scheduler error:", err);
+  }
+}, 60 * 1000);
+
+// Run immediately on startup
+(async () => {
+  await checkEpisodeStatus(); // catch any overdue episodes
+})();
 
 //middleware
 app.use(express.json());
