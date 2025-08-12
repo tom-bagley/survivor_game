@@ -1,4 +1,5 @@
 const episodeSettings = require('../models/episodeSettings');
+const User = require('../models/user');
 
 const fetchOnAirStatus = async (req, res) => {
   try {
@@ -47,8 +48,29 @@ const toggleOnAirStatus = async (req, res) => {
   }
 };
 
+const changeLastSeenEpisode = async (req, res) => {
+  const {id} = req.params;
+  try {
+    const user = await User.findById(id); 
+    const currentSettings = await episodeSettings.findById("episode_settings");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    user.last_seen_episode_id = currentSettings.episodeId;
+    
+    await user.save();
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+
+
 module.exports = {
     fetchOnAirStatus,
     toggleOnAirStatus,
-    fetchEpisodeEndTime
+    fetchEpisodeEndTime,
+    changeLastSeenEpisode
 }

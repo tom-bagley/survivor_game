@@ -27,32 +27,17 @@ const Login = () => {
         toast.error(responseData.error);
         return;
       }
-      const { showAnimation } = responseData;
       const profileRes = await axios.get("/auth/profile");
       const user = profileRes.data;
-      setUser(user);
-      if (showAnimation) {
-        playEpisodeAnimation(() => {
-          navigate('/dashboard');
-        });
-      } else {
-        navigate('/dashboard');
-      }
+      setUser(user); 
+      navigate('/dashboard');
+      
     } catch (error) {
       console.log(error);
       toast.error("Something went wrong. Please try again.");
     }
   };
 
-  function playEpisodeAnimation(onComplete) {
-    console.log("Playing episode animation!");
-    setTimeout(() => {
-      console.log("Animation complete!");
-      onComplete();
-    }, 3000);
-  }
-
-  
   return (
   <form onSubmit={loginUser} className="login-form">
     <div className="login-container">

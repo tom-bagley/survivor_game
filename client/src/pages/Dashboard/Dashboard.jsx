@@ -15,52 +15,87 @@ export default function Dashboard() {
   const [leaderboard, setLeaderboard] = useState({});
   const [loadingFinancials, setLoadingFinancials] = useState(true);
   const [season, setSeason] = useState([]);
-  const [week, setWeek] = useState([]);
+  const [week, setWeek] = useState(null);
   const [medianPrice, setMedianPrice] = useState([]);
   const [admin, setAdmin] = useState([]);
+  const [lastSeenWeek, setLastSeenWeek] = useState(null);
+  const [showAnimation, setShowAnimation] = useState(false);
 
   useEffect(() => {
     if (loading || !user?.id) return;
     async function getData() {
-    try {
-      const [
-        { data: financialData },
-        { data: pricesData },
-        { data: survivorPlayersData },
-        { data: leaderboardRank },
-        { data: seasonData },
-      ] = await Promise.all([
-        axios.get('/transactions/getportfolio', { params: { userId: user.id } }),
-        axios.get('/transactions/getprices'),
-        axios.get('/transactions/getprofile'),
-        axios.get(`/leaderboard/getleaderboard/${user.id}`),
-        axios.get('/admin/getcurrentseason'),
-      ]);
+      try {
+        const [
+          { data: financialData },
+          { data: pricesData },
+          { data: survivorPlayersData },
+          { data: leaderboardRank },
+          { data: seasonData },
+        ] = await Promise.all([
+          axios.get('/transactions/getportfolio', { params: { userId: user.id } }),
+          axios.get('/transactions/getprices'),
+          axios.get('/transactions/getprofile'),
+          axios.get(`/leaderboard/getleaderboard/${user.id}`),
+          axios.get('/admin/getcurrentseason'),
+        ]);
 
-      const survivorsMap = survivorPlayersData.reduce((acc, player) => {
-        acc[player.name] = player;
-        return acc;
-      }, {});
+        const survivorsMap = survivorPlayersData.reduce((acc, player) => {
+          acc[player.name] = player;
+          return acc;
+        }, {});
 
-      setAdmin(seasonData);
-      setWeek(seasonData.week);
-      setSeason(seasonData.season);
-      setMedianPrice(seasonData.price);
-      setBudget(financialData.budget);
-      setNetWorth(financialData.netWorth);
-      setSharesOwned(financialData.portfolio);
-      setPrices(pricesData);
-      setLeaderboard(leaderboardRank);
-      setSurvivorPlayerStats(survivorsMap);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoadingFinancials(false);
+        setAdmin(seasonData);
+        setWeek(seasonData.week);
+        setSeason(seasonData.season);
+        setMedianPrice(seasonData.price);
+        setBudget(financialData.budget);
+        setNetWorth(financialData.netWorth);
+        setSharesOwned(financialData.portfolio);
+        setPrices(pricesData);
+        setLeaderboard(leaderboardRank);
+        setSurvivorPlayerStats(survivorsMap);
+        setLastSeenWeek(financialData.last_seen_episode_id);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoadingFinancials(false);
+      }
     }
-  }
 
   getData();
   }, [loading, user]);
+
+  useEffect(() => {
+    const updateLastSeen = async () => {
+    if (loading || week == null || lastSeenWeek == null) return; 
+
+    if (lastSeenWeek !== week) {
+      setShowAnimation(true);
+      try {
+        await axios.put(`/episode/updatelastseenepisode/${user.id}`);
+      } catch (error) {
+        console.error("Failed to update last seen episode:", error);
+      }
+    }
+  };
+
+  updateLastSeen();
+  }, [loading, week, lastSeenWeek, user]);
+
+  useEffect(() => {
+    if (loading) return
+    if (showAnimation) {
+      playEpisodeAnimation(() => setShowAnimation(false));
+    }
+  }, [loading, showAnimation]);
+
+  function playEpisodeAnimation(onComplete) {
+    console.log("Playing episode animation!");
+    setTimeout(() => {
+      console.log("Animation complete!");
+      onComplete();
+    }, 3000);
+  }
 
   if (!user?.id) return <div style={{
         display: 'flex',
