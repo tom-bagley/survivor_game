@@ -64,6 +64,7 @@ const changeWeek = async (req, res) => {
       newPrice = price * (1 + percentageIncrement);
       settings.price = newPrice;
       episode.episodeId += 1;
+      episode.playersVotedOut = {};
       recordStockPrices()
       await settings.save();
       await episode.save();

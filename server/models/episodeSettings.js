@@ -11,7 +11,13 @@ const epidsodeSettingsSchema = new Schema({
     episodeId: {
         type: Number,
         default: 0
-    }
+    },
+    playersVotedOut: {
+        type: Map,
+        of: String,
+        default: {},
+    },
+
 }, {timestamps: true});
 
 const episodeSettings = mongoose.model('episodeSettings', epidsodeSettingsSchema);

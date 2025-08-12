@@ -97,25 +97,93 @@ export default function Dashboard() {
     }, 3000);
   }
 
-  if (!user?.id) return <div style={{
+  // For "Not Logged In"
+if (!user?.id) return (
+  <div style={{
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh',
+    fontFamily: 'sans-serif',
+    background: 'linear-gradient(135deg, #f8f9fa, #e9ecef)',
+    color: '#333',
+  }}>
+    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="#6c757d" viewBox="0 0 16 16">
+      <path d="M10 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/>
+      <path fillRule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-6a6 6 0 0 0-4.472 10.085C4.584 10.97 6.203 10 8 10s3.416.97 4.472 2.085A6 6 0 0 0 8 2z"/>
+    </svg>
+    <h1 style={{ fontSize: '2rem', marginTop: '1rem' }}>You’re not logged in</h1>
+    <p style={{ color: '#6c757d' }}>Please sign in to continue</p>
+  </div>
+);
+
+// For "Loading"
+if (loading || loadingFinancials) return (
+  <div style={{
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh',
+    fontFamily: 'sans-serif',
+    background: 'linear-gradient(135deg, #f8f9fa, #e9ecef)',
+  }}>
+    <div style={{
+      width: '48px',
+      height: '48px',
+      border: '4px solid #dee2e6',
+      borderTop: '4px solid #007bff',
+      borderRadius: '50%',
+      animation: 'spin 1s linear infinite',
+    }} />
+    <h1 style={{ fontSize: '1.5rem', marginTop: '1rem', color: '#007bff' }}>Loading...</h1>
+
+    <style>{`
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    `}</style>
+  </div>
+);
+
+if (showAnimation) {
+    return (
+      <div style={{
         display: 'flex',
+        flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
         height: '100vh',
-        fontSize: '2rem'
-    }}>
-        Not Logged In
-    </div>;
-
-  if (loading || loadingFinancials) return <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: '100vh',
-            fontSize: '2rem'
+        background: 'black',
+        color: 'white',
+        fontFamily: 'sans-serif',
+      }}>
+        <h1 style={{
+          fontSize: '3rem',
+          animation: 'fadeIn 1s ease-in-out'
         }}>
-            Loading!
-        </div>;
+          Episode 5: The Showdown
+        </h1>
+        <p style={{
+          opacity: 0.7,
+          animation: 'fadeIn 2s ease-in-out',
+          animationDelay: '1s',
+          animationFillMode: 'forwards'
+        }}>
+          Viewers: {budget} | Likes: {netWorth}
+        </p>
+
+        <style>{`
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
 
   const updatePortfolio = async (survivorPlayer, action) => {
     try {

@@ -1,6 +1,7 @@
 const Player = require('../models/players');
 const PriceWatch = require('../models/pricewatch');
 const adminSettings = require('../models/adminSettings')
+const episodeSettings = require('../models/episodeSettings')
 const { getTotalStockCount, calculateStockPrice } = require('./transactionControllers')
 
 const addPlayer = async (req, res) => {
@@ -60,6 +61,7 @@ const togglePlayerAvailability = async (req, res) => {
 
   try {
     const player = await Player.findById(id);
+    const episode = await episodeSettings.findById("episode_settings")
 
     if (!player) {
       return res.status(404).json({ error: 'Player not found' });
@@ -73,7 +75,12 @@ const togglePlayerAvailability = async (req, res) => {
 
     player.availability = !player.availability;
 
+    if (!player.availability) {
+      episode.playersVotedOut.set(player.id, player.name);
+    }
+
     await player.save();
+    await episode.save();
 
     res.json({ 
       message: `Player availability set to ${player.availability} successfully`,
