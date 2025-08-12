@@ -2,6 +2,7 @@ const User = require('../models/user');
 const Player = require('../models/players');
 const adminSettings = require('../models/adminSettings')
 const recordStockPrices = require('../jobs/recordPricesJob');
+const episodeSettings = require('../models/episodeSettings');
 
 const resetUsers = async (req, res) => {
   const { budget, initialSurvivorPrice } = req.body;
@@ -35,12 +36,15 @@ const changeSeason = async (req, res) => {
     const { season, initialPrice, percentageIncrement } = req.body;
     try {
       const settings = await adminSettings.findById("game_settings")
+      const episode = await episodeSettings.findById("episode_settings")
       settings.season = season;
       settings.week = 0;
       settings.price = initialPrice;
       settings.percentageIncrement = percentageIncrement;
       settings.onAir = false;
+      episode.episodeId = 0;
       await settings.save();
+      await episode.save();
 
       res.json({message: 'Season Changed Successfully'});
     } catch (err) {
@@ -53,13 +57,16 @@ const changeWeek = async (req, res) => {
     const { newWeek } = req.body;
     try {
       const settings = await adminSettings.findById("game_settings")
+      const episode = await episodeSettings.findById("episode_settings")
       settings.week = newWeek;
       price = settings.price;
       percentageIncrement = settings.percentageIncrement;
       newPrice = price * (1 + percentageIncrement);
       settings.price = newPrice;
+      episode.episodeId += 1;
       recordStockPrices()
       await settings.save();
+      await episode.save();
 
       res.json({message: 'Week Created Successfully'});
     } catch (err) {

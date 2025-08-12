@@ -7,7 +7,11 @@ const epidsodeSettingsSchema = new Schema({
         default: "episode_settings"
     },
     onAir: Boolean,
-    episodeEndTime: Date
+    episodeEndTime: Date,
+    episodeId: {
+        type: Number,
+        default: 0
+    }
 }, {timestamps: true});
 
 const episodeSettings = mongoose.model('episodeSettings', epidsodeSettingsSchema);

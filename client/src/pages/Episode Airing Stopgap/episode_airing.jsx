@@ -5,7 +5,7 @@ import {toast} from 'react-hot-toast';
 import './episode_airing.css'
 
 export default function Episode_Airing() {
-  const [timeLeft, setTimeLeft] = useState(3 * 60 * 60);
+  const [timeLeft, setTimeLeft] = useState(3 * 60);
   
   useEffect(() => {
   const fetchTimeLeft = async () => {

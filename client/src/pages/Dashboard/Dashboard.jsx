@@ -1,6 +1,5 @@
 import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../../../context/userContext";
-import { Navigate } from 'react-router-dom';
 import axios from "axios";
 import {toast} from 'react-hot-toast';
 import styles from './dashboard.module.css';
@@ -19,20 +18,6 @@ export default function Dashboard() {
   const [week, setWeek] = useState([]);
   const [medianPrice, setMedianPrice] = useState([]);
   const [admin, setAdmin] = useState([]);
-  const [onAir, setOnAir] = useState({});
-
-  useEffect(() => {
-    const fetchOnAirStatus = async () => {
-      try {
-        const res = await axios.get('/episode/onair-status');
-        setOnAir(res.data);
-      } catch (err) {
-        console.error("Failed to fetch onAir status:", err);
-      }
-    };
-
-    fetchOnAirStatus();
-  }, []);
 
   useEffect(() => {
     if (loading || !user?.id) return;
@@ -75,7 +60,7 @@ export default function Dashboard() {
   }
 
   getData();
-}, [loading, user]);
+  }, [loading, user]);
 
   if (!user?.id) return <div style={{
         display: 'flex',
@@ -87,7 +72,7 @@ export default function Dashboard() {
         Not Logged In
     </div>;
 
-  if (loading || loadingFinancials || onAir === null) return <div style={{
+  if (loading || loadingFinancials) return <div style={{
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -96,11 +81,6 @@ export default function Dashboard() {
         }}>
             Loading!
         </div>;
-
-  if (onAir) {
-    return <Navigate to="/on-air" replace />;
-  }
-
 
   const updatePortfolio = async (survivorPlayer, action) => {
     try {

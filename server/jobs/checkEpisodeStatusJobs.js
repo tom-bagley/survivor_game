@@ -1,12 +1,12 @@
 const { changeWeek } = require('../controllers/adminControllers');
-const episodeSettings = require('../models/liveleaderboard');
+const episodeSettings = require('../models/episodeSettings');
 
 async function startEpisodeAuto() {
   const currentSettings = await episodeSettings.findById("episode_settings");
   if (currentSettings?.onAir) return; // already on
 
   currentSettings.onAir = true;
-  currentSettings.episodeEndTime = new Date(Date.now() + 3 * 60 * 60 * 1000);
+  currentSettings.episodeEndTime = new Date(Date.now() + 3 * 60 * 1000);
   await currentSettings.save();
 
   await changeWeek()

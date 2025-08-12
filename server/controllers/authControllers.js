@@ -1,6 +1,7 @@
 const User = require('../models/user');
 const Player = require('../models/players');
 const PriceWatch = require('../models/pricewatch');
+const episodeSettings = require('../models/episodeSettings');
 const { hashPassword, comparePassword } = require('../helpers/auth');
 const jwt = require('jsonwebtoken');
 
@@ -60,37 +61,59 @@ const registerUser = async (req, res) => {
     }
 };
 
-//Login endpoint
 const loginUser = async (req, res) => {
     try {
-        const {email, password} = req.body;
+        const { email, password } = req.body;
 
-        //Check if user exists
-        const user = await User.findOne({email});
-        if(!user) {
-            return res.json({
-                error: 'No user found'
-            });
+        // Find the user
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ error: 'No user found' });
         }
 
-        //Check if passwords match
-        const match = await comparePassword(password, user.password)
-        if(match) {
-            jwt.sign({email: user.email, id: user._id, name: user.name, portfolio: user.portfolio, role: user.role}, process.env.JWT_SECRET, {}, (err, token) => {
-                if(err) throw err;
-                res.cookie('token', token).json(user)
-            })
+        // Compare passwords
+        const match = await comparePassword(password, user.password);
+        if (!match) {
+            return res.status(401).json({ error: 'Passwords do not match' });
         }
-        if(!match) {
-            res.json({
-                error: 'Passwords do not match'
-            })
+
+        // Get latest episode
+        const episode = await episodeSettings.findById("episode_settings")
+        const showAnimation = user.last_seen_episode_id !== episode.episodeId;
+        console.log(showAnimation)
+
+        // If new episode, update last_seen_episode_id
+        if (showAnimation) {
+            user.last_seen_episode_id = episode.episodeId;
+            await user.save();
         }
+
+        // Sign JWT
+        jwt.sign(
+            {
+                email: user.email,
+                id: user._id,
+                name: user.name,
+                portfolio: user.portfolio,
+                role: user.role
+            },
+            process.env.JWT_SECRET,
+            {},
+            (err, token) => {
+                if (err) throw err;
+                res.cookie('token', token).json({
+                    ...user.toObject(),
+                    showAnimation
+                });
+            }
+        );
 
     } catch (error) {
-        console.log(error)
+        console.error(error);
+        res.status(500).json({ error: 'Server error' });
     }
-}
+};
+
 
 const getProfile = (req, res) => {
     const {token} = req.cookies

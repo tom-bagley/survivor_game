@@ -38,7 +38,7 @@ checkEpisodeStatus()
   .catch(console.error);
 
 // Schedule to run every minute
-setInterval(checkEpisodeStatus, 60 * 1000);
+setInterval(checkEpisodeStatus, 6 * 1000);
 
 // Check every minute
 setInterval(async () => {

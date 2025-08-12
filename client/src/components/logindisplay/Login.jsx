@@ -14,29 +14,44 @@ const Login = () => {
   })
 
   const loginUser = async (e) => {
-    e.preventDefault()
-    const {email, password} = data
+    e.preventDefault();
+    const { email, password } = data;
     try { 
       const response = await axios.post('/auth/login', {
         email,
         password
       });
-      const { data: responseData } = response; 
-      if(responseData.error) {
-        toast.error(data.error)
+
+      const responseData = response.data;
+      if (responseData.error) {
+        toast.error(responseData.error);
+        return;
       }
-      else {
-        const profileRes = await axios.get("/auth/profile");
-        const user = profileRes.data;
-        console.log(user);
-        setUser(user);
+      const { showAnimation } = responseData;
+      const profileRes = await axios.get("/auth/profile");
+      const user = profileRes.data;
+      setUser(user);
+      if (showAnimation) {
+        playEpisodeAnimation(() => {
+          navigate('/dashboard');
+        });
+      } else {
         navigate('/dashboard');
-        
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
+      toast.error("Something went wrong. Please try again.");
     }
   };
+
+  function playEpisodeAnimation(onComplete) {
+    console.log("Playing episode animation!");
+    setTimeout(() => {
+      console.log("Animation complete!");
+      onComplete();
+    }, 3000);
+  }
+
   
   return (
   <form onSubmit={loginUser} className="login-form">

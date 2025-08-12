@@ -30,7 +30,7 @@ const toggleOnAirStatus = async (req, res) => {
     currentSettings.onAir = !currentSettings.onAir;
 
     if (currentSettings.onAir) {
-      currentSettings.episodeEndTime = new Date(Date.now() + 3 * 60 * 60 * 1000);
+      currentSettings.episodeEndTime = new Date(Date.now() + 3 * 60 * 1000);
     } else {
       currentSettings.episodeEndTime = null;
     }

@@ -24,6 +24,10 @@ const userSchema = new Schema({
     role: {
         type: String,
         default: 'user'
+    },
+    last_seen_episode_id: {
+        type: Number,
+        default: 0
     }
 })
 
