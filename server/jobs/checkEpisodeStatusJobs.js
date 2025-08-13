@@ -1,26 +1,25 @@
 const { changeWeek } = require('../controllers/adminControllers');
-const episodeSettings = require('../models/episodeSettings');
+const Episode = require('../models/episodeSettings');
 
 async function startEpisodeAuto() {
-  const currentSettings = await episodeSettings.findById("episode_settings");
-  if (currentSettings?.onAir) return; // already on
-
-  currentSettings.onAir = true;
-  currentSettings.episodeEndTime = new Date(Date.now() + 3 * 60 * 1000);
-  await currentSettings.save();
-
   await changeWeek()
+  const episode = await Episode.findOne({ isCurrentEpisode: true });
+  if (episode?.onAir) return; // already on
+
+  episode.onAir = true;
+  episode.episodeEndTime = new Date(Date.now() + 3 * 60 * 1000);
+  await episode.save();
   console.log("Episode automatically started for Wednesday 8PM Eastern");
 }
 
 async function checkEpisodeStatus() {
   try {
-    const settings = await episodeSettings.findById("episode_settings");
-    if (settings?.onAir && settings.episodeEndTime) {
-      if (new Date() >= settings.episodeEndTime) {
-        settings.onAir = false;
-        settings.episodeEndTime = null;
-        await settings.save();
+    const episode = await Episode.findOne({ isCurrentEpisode: true });
+    if (episode?.onAir && episode.episodeEndTime) {
+      if (new Date() >= episode.episodeEndTime) {
+        episode.onAir = false;
+        episode.episodeEndTime = null;
+        await episode.save();
         console.log("Episode automatically turned OFF — time limit reached");
       }
     }

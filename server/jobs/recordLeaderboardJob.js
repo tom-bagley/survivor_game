@@ -1,6 +1,5 @@
 const LiveLeaderboardCache = require('../models/liveleaderboard');
 const User = require('../models/user');
-const Player = require('../models/players');
 const { getTotalStockCount, calculateStockPrice, calculateNetWorth, calculatePrices } = require('../controllers/transactionControllers')
 
 async function updateLiveLeaderboard() {

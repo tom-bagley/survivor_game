@@ -1,7 +1,5 @@
 const User = require('../models/user');
-const Player = require('../models/players');
-const PriceWatch = require('../models/pricewatch');
-const episodeSettings = require('../models/episodeSettings');
+const Survivor = require('../models/survivors');
 const { hashPassword, comparePassword } = require('../helpers/auth');
 const jwt = require('jsonwebtoken');
 
@@ -35,12 +33,12 @@ const registerUser = async (req, res) => {
             });
         }
 
-        const players = await Player.find();
+        const survivors = await Survivor.find();
 
         const portfolio = {};
 
-        players.forEach(player => {
-            portfolio[player.name] = 0;
+        survivors.forEach(survivor => {
+            portfolio[survivor.name] = 0;
         });
 
         const hashedPassword = await hashPassword(password)

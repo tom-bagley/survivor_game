@@ -1,26 +1,26 @@
 const PriceWatch = require('../models/pricewatch');
-const Player = require('../models/players');
-const adminSettings = require('../models/adminSettings');
+const Survivor = require('../models/survivors');
+const Season = require('../models/seasonSettings');
 const { getTotalStockCount, calculateStockPrice } = require('../controllers/transactionControllers')
 
 async function recordStockPrices() {
-  const stockList = await Player.find({ availability: true });
+  const stockList = await Survivor.find({ availability: true });
 
-  for (const player of stockList) {
+  for (const survivor of stockList) {
     try {
-      const name = player.name;       
+      const name = survivor.name;       
       const total = await getTotalStockCount();
-      const availablePlayerCount = await Player.countDocuments({ availability: true });
-      const currentSettings = await adminSettings.findById("game_settings");
-      const currentMedianPrice = currentSettings.price;
-      const currentPrice = calculateStockPrice(player.count, total, availablePlayerCount, currentMedianPrice);
+      const availablePlayerCount = await Survivor.countDocuments({ availability: true });
+      const season = await Season.findOne({ isCurrentSeason: true });
+      const currentMedianPrice = season.currentPrice;
+      const currentPrice = calculateStockPrice(survivor.count, total, availablePlayerCount, currentMedianPrice);
       
       await PriceWatch.create({
         name: name,
         price: currentPrice,
         date: new Date(),
-        season: currentSettings?.season || 'Unknown Season',
-        week: currentSettings.week
+        season: season?.seasonName || 'Unknown Season',
+        week: season.week
       });
 
       // console.log(`✅ Saved ${name} at $${currentPrice}`);

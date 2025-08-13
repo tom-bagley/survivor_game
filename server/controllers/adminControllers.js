@@ -1,21 +1,21 @@
 const User = require('../models/user');
-const Player = require('../models/players');
-const adminSettings = require('../models/adminSettings')
+const Survivor = require('../models/survivors');
+const Season = require('../models/seasonSettings')
 const recordStockPrices = require('../jobs/recordPricesJob');
-const episodeSettings = require('../models/episodeSettings');
+const Episode = require('../models/episodeSettings');
 
 const resetUsers = async (req, res) => {
   const { budget, initialSurvivorPrice } = req.body;
   try {
     const users = await User.find();
-    const players = await Player.find();
+    const survivors = await Survivor.find();
 
     const defaultPortfolio = {};
-    for (const player of players) {
-      player.price = initialSurvivorPrice;
-      player.count = 0;
-      await player.save();
-      defaultPortfolio[player.name] = 0;
+    for (const survivor of survivors) {
+      survivor.price = initialSurvivorPrice;
+      survivor.count = 0;
+      await survivor.save();
+      defaultPortfolio[survivor.name] = 0;
     }
 
     for (const user of users) {
@@ -33,19 +33,23 @@ const resetUsers = async (req, res) => {
 };
 
 const changeSeason = async (req, res) => {
-    const { season, initialPrice, percentageIncrement } = req.body;
-    try {
-      const settings = await adminSettings.findById("game_settings")
-      const episode = await episodeSettings.findById("episode_settings")
-      settings.season = season;
-      settings.week = 0;
-      settings.price = initialPrice;
-      settings.percentageIncrement = percentageIncrement;
-      settings.onAir = false;
-      episode.episodeId = 0;
-      await settings.save();
-      await episode.save();
-
+    const { seasonName, initialPrice, percentageIncrement } = req.body;
+    console.log(seasonName)
+    try{
+      await Episode.updateMany({}, { isCurrentEpisode: false });
+      await Season.updateMany({}, { isCurrentSeason: false });
+      const season = await Season.create({
+        seasonName: seasonName,
+        currentWeek: 0,
+        currentPrice: initialPrice,
+        percentageIncrement: percentageIncrement,
+        isCurrentSeason: true
+      });
+      const episode = await Episode.create({
+        season: seasonName,
+        episodeNumber: 0,
+        isCurrentEpisode: true,
+      });
       res.json({message: 'Season Changed Successfully'});
     } catch (err) {
         console.error(err)
@@ -56,18 +60,22 @@ const changeSeason = async (req, res) => {
 const changeWeek = async (req, res) => {
     const { newWeek } = req.body;
     try {
-      const settings = await adminSettings.findById("game_settings")
-      const episode = await episodeSettings.findById("episode_settings")
-      settings.week = newWeek;
-      price = settings.price;
-      percentageIncrement = settings.percentageIncrement;
-      newPrice = price * (1 + percentageIncrement);
-      settings.price = newPrice;
-      episode.episodeId += 1;
-      episode.playersVotedOut = {};
-      recordStockPrices()
-      await settings.save();
-      await episode.save();
+      await Episode.updateMany({}, { isCurrentEpisode: false });
+      const season = await Season.findOne({ isCurrentSeason: true });
+      
+      season.currentWeek = newWeek;
+      const price = season.currentPrice;
+      const percentageIncrement = season.percentageIncrement;
+      const newPrice = price * (1 + percentageIncrement);
+      season.currentPrice = newPrice;
+      
+      const episode = await Episode.create({
+        episodeNumber: newWeek,
+        season: season.seasonName,
+        isCurrentEpisode: true
+      })
+      await recordStockPrices()
+      await season.save();
 
       res.json({message: 'Week Created Successfully'});
     } catch (err) {
@@ -78,8 +86,8 @@ const changeWeek = async (req, res) => {
 
 const getCurrentSeason = async (req, res) => {
     try {
-        const currentSettings = await adminSettings.findById("game_settings")
-        return res.json(currentSettings);
+        const season = await Season.findOne({ isCurrentSeason: true });
+        return res.json(season);
     } catch (error) {
         console.error(error);
         return res.json({error: 'Failed to fetch current season'})
@@ -88,8 +96,8 @@ const getCurrentSeason = async (req, res) => {
 
 const fetchOnAirStatus = async (req, res) => {
   try {
-    const currentSettings = await adminSettings.findById("game_settings")
-    const onAirStatus = currentSettings.onAir;
+    const episode = await Episode.findOne({ isCurrentEpisode: true });
+    const onAirStatus = episode.onAir;
     return res.json(onAirStatus);
   } catch (error) {
     return res.json({error: 'Failed to fetch on air status'})
@@ -98,10 +106,10 @@ const fetchOnAirStatus = async (req, res) => {
 
 const toggleOnAirStatus = async (req, res) => {
   try {
-    const currentSettings = await adminSettings.findById("game_settings")
-    currentSettings.onAir = !currentSettings.onAir;
-    await currentSettings.save()
-    return res.json({ onAir: currentSettings.onAir });
+    const episode = await Episode.findOne({ isCurrentEpisode: true });
+    episode.onAir = !episode.onAir;
+    await episode.save()
+    return res.json({ onAir: episode.onAir });
   } catch (error) {
     return res.json({error: 'Failed to fetch on air status'})
   }

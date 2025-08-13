@@ -98,9 +98,10 @@ export default function Players() {
 
   const handleSeasonChange = async (e) => {
     e.preventDefault()
-    const { season, initialPrice, percentageIncrement } = data;
+    const { seasonName, initialPrice, percentageIncrement } = data;
+    console.log(seasonName)
     try {
-      const { data } = await axios.post('/admin/change-season', { season, initialPrice, percentageIncrement })
+      const { data } = await axios.post('/admin/change-season', { seasonName, initialPrice, percentageIncrement })
       if (data.error) {
         toast.error(data.error);
       } else {
@@ -226,8 +227,8 @@ export default function Players() {
             <input 
               type="text" 
               placeholder="Enter New Season" 
-              value={data.season} 
-              onChange={(e) => setData({...data, season: e.target.value})} 
+              value={data.seasonName} 
+              onChange={(e) => setData({...data, seasonName: e.target.value})} 
             />
 
             <input 

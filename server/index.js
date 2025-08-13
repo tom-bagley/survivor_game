@@ -10,6 +10,7 @@ const updateLiveLeaderboard = require('./jobs/recordLeaderboardJob');
 const  isWednesday8PMEastern  = require('./jobs/checkEpisodeStatusJobs');
 const  checkEpisodeStatus  = require('./jobs/checkEpisodeStatusJobs');
 const  startEpisodeAuto  = require('./jobs/checkEpisodeStatusJobs');
+const Season = require('./models/seasonSettings')
 
 app.use(cors({
   origin: 'http://localhost:5173', 
@@ -32,15 +33,8 @@ mongoose.connect(process.env.MONGO_URL)
 //   .then(() => console.log('Leaderboard updated'))
 //   .catch(console.error);
 
-// Run immediately at startup
-checkEpisodeStatus()
-  .then(() => console.log("Initial episode status check complete"))
-  .catch(console.error);
-
-// Schedule to run every minute
 setInterval(checkEpisodeStatus, 6 * 1000);
 
-// Check every minute
 setInterval(async () => {
   try {
     if (isWednesday8PMEastern()) {
@@ -52,10 +46,22 @@ setInterval(async () => {
   }
 }, 60 * 1000);
 
-// Run immediately on startup
 (async () => {
-  await checkEpisodeStatus(); // catch any overdue episodes
+  await checkEpisodeStatus(); 
 })();
+
+async function createInitialSeason() {
+  const season = new Season({
+    name: 'Season 1',
+    isCurrentSeason: true,
+    currentWeek: 1,
+    currentPrice: 5,
+    percentageIncrement: 0.1
+  });
+  await season.save();
+}
+
+createInitialSeason();
 
 //middleware
 app.use(express.json());
@@ -63,7 +69,7 @@ app.use(cookieParser());
 app.use(express.urlencoded({extended: false}));
 
 app.use('/auth', require('./routes/authRoutes'));
-app.use('/players', require('./routes/playerRoutes'));
+app.use('/players', require('./routes/survivorRoutes'));
 app.use('/transactions', require('./routes/transactionRoutes'));
 app.use('/leaderboard', require('./routes/leaderboardRoutes'));
 app.use('/admin', require('./routes/adminRoutes'));

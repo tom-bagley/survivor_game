@@ -2,21 +2,31 @@ const mongoose = require('mongoose')
 const {Schema} = mongoose
 
 const epidsodeSettingsSchema = new Schema({
-    _id: {
-        type: String,
-        default: "episode_settings"
+    onAir: {
+        type: Boolean,
+        default: false,
     },
-    onAir: Boolean,
-    episodeEndTime: Date,
-    episodeId: {
+    episodeEndTime: {
+        type: Date,
+        default: null,
+    },
+    episodeNumber: {
         type: Number,
         default: 0
     },
-    playersVotedOut: {
+    survivorsVotedOut: {
         type: Map,
         of: String,
         default: {},
     },
+    season: {
+        type: String,
+        default: null,
+    },
+    isCurrentEpisode: {
+        type: Boolean,
+        default: false,
+    }
 
 }, {timestamps: true});
 

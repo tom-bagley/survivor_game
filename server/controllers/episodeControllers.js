@@ -1,10 +1,10 @@
-const episodeSettings = require('../models/episodeSettings');
+const Episode = require('../models/episodeSettings');
 const User = require('../models/user');
 
 const fetchOnAirStatus = async (req, res) => {
   try {
-    const currentSettings = await episodeSettings.findById("episode_settings")
-    const onAirStatus = currentSettings.onAir;
+    const episode = await Episode.findOne({ isCurrentEpisode: true });
+    const onAirStatus = episode.onAir;
     return res.json(onAirStatus);
   } catch (error) {
     return res.json({error: 'Failed to fetch on air status'})
@@ -13,8 +13,8 @@ const fetchOnAirStatus = async (req, res) => {
 
 const fetchEpisodeEndTime = async (req, res) => {
     try {
-        const currentSettings = await episodeSettings.findById("episode_settings")
-        const endTime = currentSettings.episodeEndTime;
+        const episode = await Episode.findOne({ isCurrentEpisode: true });
+        const endTime = episode.episodeEndTime;
         return res.json(endTime)
     } catch (error) {
         return res.json({error: 'Failed to fetch episode end time'})
@@ -23,24 +23,24 @@ const fetchEpisodeEndTime = async (req, res) => {
 
 const toggleOnAirStatus = async (req, res) => {
   try {
-    const currentSettings = await episodeSettings.findById("episode_settings");
-    if (!currentSettings) {
+    const episode = await Episode.findOne({ isCurrentEpisode: true });
+    if (!episode) {
       return res.json({ error: 'episode_settings document not found' });
     }
 
-    currentSettings.onAir = !currentSettings.onAir;
+    episode.onAir = !episode.onAir;
 
-    if (currentSettings.onAir) {
-      currentSettings.episodeEndTime = new Date(Date.now() + 3 * 60 * 1000);
+    if (episode.onAir) {
+      episode.episodeEndTime = new Date(Date.now() + 3 * 60 * 1000);
     } else {
-      currentSettings.episodeEndTime = null;
+      episode.episodeEndTime = null;
     }
 
-    await currentSettings.save();
+    await episode.save();
 
     return res.json({ 
-      onAir: currentSettings.onAir, 
-      episodeEndTime: currentSettings.episodeEndTime 
+      onAir: episode.onAir, 
+      episodeEndTime: episode.episodeEndTime 
     });
   } catch (error) {
     console.error(error);
@@ -52,12 +52,12 @@ const changeLastSeenEpisode = async (req, res) => {
   const {id} = req.params;
   try {
     const user = await User.findById(id); 
-    const currentSettings = await episodeSettings.findById("episode_settings");
+    const episode = await Episode.findOne({ isCurrentEpisode: true });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    user.last_seen_episode_id = currentSettings.episodeId;
+    user.last_seen_episode_id = episode.episodeNumber;
     
     await user.save();
 
