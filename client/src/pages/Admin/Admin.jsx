@@ -99,13 +99,12 @@ export default function Players() {
   const handleSeasonChange = async (e) => {
     e.preventDefault()
     const { seasonName, initialPrice, percentageIncrement } = data;
-    console.log(seasonName)
     try {
       const { data } = await axios.post('/admin/change-season', { seasonName, initialPrice, percentageIncrement })
       if (data.error) {
         toast.error(data.error);
       } else {
-        setSeason(season)
+        setSeason(seasonName)
         setWeek(0);
         setPrice(initialPrice);
         setIncrement(percentageIncrement);
@@ -151,9 +150,9 @@ export default function Players() {
     async function getCurrentSeason () {
       try {
         const { data: currentSeason } = await axios.get('/admin/getcurrentseason');
-        setSeason(currentSeason.season);
-        setWeek(currentSeason.week);
-        setPrice(currentSeason.price);
+        setSeason(currentSeason.seasonName);
+        setWeek(currentSeason.currentWeek);
+        setPrice(currentSeason.currentPrice);
         setIncrement(currentSeason.percentageIncrement);
       } catch (error) {
         console.log(error)

@@ -2,6 +2,7 @@ const User = require('../models/user');
 const Survivor = require('../models/survivors');
 const Season = require('../models/seasonSettings')
 const recordStockPrices = require('../jobs/recordPricesJob');
+const { startEpisode } = require('../jobs/checkEpisodeStatusJobs');
 const Episode = require('../models/episodeSettings');
 
 const resetUsers = async (req, res) => {
@@ -34,7 +35,6 @@ const resetUsers = async (req, res) => {
 
 const changeSeason = async (req, res) => {
     const { seasonName, initialPrice, percentageIncrement } = req.body;
-    console.log(seasonName)
     try{
       await Episode.updateMany({}, { isCurrentEpisode: false });
       await Season.updateMany({}, { isCurrentSeason: false });
@@ -58,25 +58,24 @@ const changeSeason = async (req, res) => {
 }
 
 const changeWeek = async (req, res) => {
-    const { newWeek } = req.body;
     try {
       await Episode.updateMany({}, { isCurrentEpisode: false });
       const season = await Season.findOne({ isCurrentSeason: true });
       
-      season.currentWeek = newWeek;
+      season.currentWeek = season.currentWeek + 1;
       const price = season.currentPrice;
       const percentageIncrement = season.percentageIncrement;
       const newPrice = price * (1 + percentageIncrement);
       season.currentPrice = newPrice;
       
       const episode = await Episode.create({
-        episodeNumber: newWeek,
+        episodeNumber: season.currentWeek,
         season: season.seasonName,
         isCurrentEpisode: true
       })
-      await recordStockPrices()
+      await recordStockPrices();
+      await startEpisode();
       await season.save();
-
       res.json({message: 'Week Created Successfully'});
     } catch (err) {
         console.error(err)

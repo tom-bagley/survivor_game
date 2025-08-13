@@ -4,6 +4,7 @@ const Season = require('../models/seasonSettings');
 const { getTotalStockCount, calculateStockPrice } = require('../controllers/transactionControllers')
 
 async function recordStockPrices() {
+  console.log('here')
   const stockList = await Survivor.find({ availability: true });
 
   for (const survivor of stockList) {

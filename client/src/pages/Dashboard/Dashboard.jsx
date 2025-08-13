@@ -45,9 +45,9 @@ export default function Dashboard() {
         }, {});
 
         setAdmin(seasonData);
-        setWeek(seasonData.week);
-        setSeason(seasonData.season);
-        setMedianPrice(seasonData.price);
+        setWeek(seasonData.currentWeek);
+        setSeason(seasonData.seasonName);
+        setMedianPrice(seasonData.currentPrice);
         setBudget(financialData.budget);
         setNetWorth(financialData.netWorth);
         setSharesOwned(financialData.portfolio);
