@@ -4,6 +4,7 @@ import axios from "axios";
 import {toast} from 'react-hot-toast';
 import styles from './dashboard.module.css';
 import Display from '../../components/dashboardDisplay/dashboardDisplay';
+import EliminationSequence from "../../components/EliminationSequence";
 
 export default function Dashboard() {
   const { user, loading } = useContext(UserContext);
@@ -89,18 +90,24 @@ export default function Dashboard() {
   }, [loading, week, lastSeenWeek, user]);
 
   useEffect(() => {
-    if (loading) return
+    if (loading) return;
     if (showAnimation) {
-      playEpisodeAnimation(() => setShowAnimation(false));
+      playEpisodeAnimation(() => setShowAnimation(false), Object.keys(eliminatedSurvivors).length);
     }
-  }, [loading, showAnimation]);
+  }, [loading, showAnimation, eliminatedSurvivors]);
 
-  function playEpisodeAnimation(onComplete) {
+  function playEpisodeAnimation(onComplete, survivorCount) {
     console.log("Playing episode animation!");
+    
+    const SURVIVOR_STAGE_DELAY = 3000;
+    const FINAL_STAGE_DELAY = 3000;
+    
+    const totalTime = (survivorCount * SURVIVOR_STAGE_DELAY) + FINAL_STAGE_DELAY;
+
     setTimeout(() => {
       console.log("Animation complete!");
       onComplete();
-    }, 6000);
+    }, totalTime);
   }
 
   // For "Not Logged In"
@@ -153,63 +160,6 @@ if (loading || loadingFinancials) return (
   </div>
 );
 
-if (showAnimation && week > 0) {
-  console.log("Rendering eliminated survivors:", eliminatedSurvivors);
-  console.log("Keys:", Object.keys(eliminatedSurvivors));
-    return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        background: 'black',
-        color: 'white',
-        fontFamily: 'sans-serif',
-      }}>
-        <h1 style={{
-          fontSize: '3rem',
-          animation: 'fadeIn 1s ease-in-out'
-        }}>
-          Player Eliminated
-        </h1>
-        <div style={{
-          opacity: 0.7,
-          animation: 'fadeIn 2s ease-in-out',
-          animationDelay: '1s',
-          animationFillMode: 'forwards'
-        }}>
-          Previous Net Worth: {prevNetWorth} | Current NetWorth: {netWorth}
-          {Object.keys(eliminatedSurvivors).map((survivorId) => {
-          const survivorName = eliminatedSurvivors[survivorId]; // get the name from eliminatedSurvivors
-          const survivor = survivorPlayerStats[survivorName];    // now lookup by name
-
-          console.log("Looking up survivor:", survivorName, survivor);
-
-          return (
-            <div key={survivorId}>
-              <img 
-                src={survivor.profile_pic} 
-                alt={survivorName} 
-                style={{ width: '500px', height: '500px', objectFit: 'cover', borderRadius: '4px' }} 
-              />
-              <span>{survivorName}</span>
-            </div>
-          );
-        })}
-        </div>
-
-        <style>{`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}</style>
-      </div>
-    );
-  }
-
-
   const updatePortfolio = async (survivorPlayer, action) => {
     try {
       const endpoint = week === 0 
@@ -259,6 +209,22 @@ if (showAnimation && week > 0) {
   }).format(netWorth);
 
   return (
+    <>
+      {showAnimation && (
+      <EliminationSequence
+        // showAnimation={showAnimation}
+        week={week}
+        eliminatedSurvivors={eliminatedSurvivors}
+        survivorPlayerStats={survivorPlayerStats}
+        sharesOwned={sharesOwned}
+        prices={prices}
+        medianPrice={medianPrice}
+        prevNetWorth={prevNetWorth}
+        netWorth={netWorth}
+      />
+      )}
+    
+    
     <div className = {styles.body}>
        <div className= {styles.header}>
         <h1>Welcome, {user.name}!</h1>
@@ -303,6 +269,7 @@ if (showAnimation && week > 0) {
         })}
       </div> 
     </div>
+    </>
   );
 
   

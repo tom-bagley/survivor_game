@@ -99,6 +99,9 @@ async function getTotalStockCount() {
         }
     }
     ]);
+    if (totalStockCount.length === 0) {
+        return 1
+    };
     const total = totalStockCount[0].total;
     return total;
 }

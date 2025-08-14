@@ -31,7 +31,7 @@ mongoose.connect(process.env.MONGO_URL)
 //   .then(() => console.log('Leaderboard updated'))
 //   .catch(console.error);
 
-// setInterval(checkEpisodeStatus, 6 * 1000);
+setInterval(checkEpisodeStatus, 6 * 1000);
 
 // setInterval(async () => {
 //   try {
@@ -45,9 +45,9 @@ mongoose.connect(process.env.MONGO_URL)
 //   }
 // }, 3* 60 * 1000);
 
-// (async () => {
-//   await checkEpisodeStatus(); 
-// })();
+(async () => {
+  await checkEpisodeStatus(); 
+})();
 
 //middleware
 app.use(express.json());
