@@ -9,6 +9,7 @@ export default function Dashboard() {
   const { user, loading } = useContext(UserContext);
   const [budget, setBudget] = useState(null);
   const [netWorth, setNetWorth] = useState(null);
+  const [prevNetWorth, setPrevNetWorth] = useState(null);
   const [sharesOwned, setSharesOwned] = useState({});
   const [survivorPlayerStats, setSurvivorPlayerStats] = useState({});
   const [prices, setPrices] = useState({});
@@ -20,6 +21,7 @@ export default function Dashboard() {
   const [admin, setAdmin] = useState([]);
   const [lastSeenWeek, setLastSeenWeek] = useState(null);
   const [showAnimation, setShowAnimation] = useState(false);
+  const [eliminatedSurvivors, setEliminatedSurvivors] = useState([]);
 
   useEffect(() => {
     if (loading || !user?.id) return;
@@ -31,12 +33,14 @@ export default function Dashboard() {
           { data: survivorPlayersData },
           { data: leaderboardRank },
           { data: seasonData },
+          { data: episodeData },
         ] = await Promise.all([
           axios.get('/transactions/getportfolio', { params: { userId: user.id } }),
           axios.get('/transactions/getprices'),
           axios.get('/transactions/getprofile'),
           axios.get(`/leaderboard/getleaderboard/${user.id}`),
           axios.get('/admin/getcurrentseason'),
+          axios.get('/episode/getcurrentepisode'),
         ]);
 
         const survivorsMap = survivorPlayersData.reduce((acc, player) => {
@@ -48,13 +52,15 @@ export default function Dashboard() {
         setWeek(seasonData.currentWeek);
         setSeason(seasonData.seasonName);
         setMedianPrice(seasonData.currentPrice);
-        setBudget(financialData.budget);
-        setNetWorth(financialData.netWorth);
-        setSharesOwned(financialData.portfolio);
+        setBudget(financialData.user.budget);
+        setNetWorth(financialData.user.netWorth);
+        setSharesOwned(financialData.user.portfolio);
         setPrices(pricesData);
         setLeaderboard(leaderboardRank);
         setSurvivorPlayerStats(survivorsMap);
-        setLastSeenWeek(financialData.last_seen_episode_id);
+        setLastSeenWeek(financialData.user.last_seen_episode_id);
+        setEliminatedSurvivors(episodeData.survivorsVotedOut);
+        setPrevNetWorth(financialData.prevNetWorth);
       } catch (error) {
         console.error(error);
       } finally {
@@ -94,7 +100,7 @@ export default function Dashboard() {
     setTimeout(() => {
       console.log("Animation complete!");
       onComplete();
-    }, 3000);
+    }, 6000);
   }
 
   // For "Not Logged In"
@@ -147,7 +153,9 @@ if (loading || loadingFinancials) return (
   </div>
 );
 
-if (showAnimation) {
+if (showAnimation && week > 0) {
+  console.log("Rendering eliminated survivors:", eliminatedSurvivors);
+  console.log("Keys:", Object.keys(eliminatedSurvivors));
     return (
       <div style={{
         display: 'flex',
@@ -163,16 +171,33 @@ if (showAnimation) {
           fontSize: '3rem',
           animation: 'fadeIn 1s ease-in-out'
         }}>
-          Episode 5: The Showdown
+          Player Eliminated
         </h1>
-        <p style={{
+        <div style={{
           opacity: 0.7,
           animation: 'fadeIn 2s ease-in-out',
           animationDelay: '1s',
           animationFillMode: 'forwards'
         }}>
-          Viewers: {budget} | Likes: {netWorth}
-        </p>
+          Previous Net Worth: {prevNetWorth} | Current NetWorth: {netWorth}
+          {Object.keys(eliminatedSurvivors).map((survivorId) => {
+          const survivorName = eliminatedSurvivors[survivorId]; // get the name from eliminatedSurvivors
+          const survivor = survivorPlayerStats[survivorName];    // now lookup by name
+
+          console.log("Looking up survivor:", survivorName, survivor);
+
+          return (
+            <div key={survivorId}>
+              <img 
+                src={survivor.profile_pic} 
+                alt={survivorName} 
+                style={{ width: '500px', height: '500px', objectFit: 'cover', borderRadius: '4px' }} 
+              />
+              <span>{survivorName}</span>
+            </div>
+          );
+        })}
+        </div>
 
         <style>{`
           @keyframes fadeIn {

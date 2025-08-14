@@ -48,7 +48,7 @@ const changeSeason = async (req, res) => {
       const episode = await Episode.create({
         season: seasonName,
         episodeNumber: 0,
-        isCurrentEpisode: true,
+        isCurrentEpisode: true
       });
       res.json({message: 'Season Changed Successfully'});
     } catch (err) {
@@ -59,16 +59,27 @@ const changeSeason = async (req, res) => {
 
 const changeWeek = async (req, res) => {
     try {
+      const previousEpisode = await Episode.findOne({ isCurrentEpisode: true });
       await Episode.updateMany({}, { isCurrentEpisode: false });
       const season = await Season.findOne({ isCurrentSeason: true });
+      const survivors = await Survivor.find({ availability: true });
       
       season.currentWeek = season.currentWeek + 1;
       const price = season.currentPrice;
       const percentageIncrement = season.percentageIncrement;
       const newPrice = price * (1 + percentageIncrement);
       season.currentPrice = newPrice;
+
+      const portfolio = {}
+      survivors.forEach(survivor => {
+            portfolio[survivor.name] = survivor.count;
+        });
+
+      previousEpisode.finalStockTotals = portfolio;
+      previousEpisode.finalClosingPrice = price;
+      await previousEpisode.save();
       
-      const episode = await Episode.create({
+      const NewEpisode = await Episode.create({
         episodeNumber: season.currentWeek,
         season: season.seasonName,
         isCurrentEpisode: true

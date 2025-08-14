@@ -8,7 +8,6 @@ const path = require('path');
 const recordStockPrices = require('./jobs/recordPricesJob');
 const updateLiveLeaderboard = require('./jobs/recordLeaderboardJob');
 const  { checkEpisodeStatus, startEpisode, isWednesday8PMEastern }  = require('./jobs/checkEpisodeStatusJobs');
-const Season = require('./models/seasonSettings')
 const { changeWeek } = require('./controllers/adminControllers');
 
 app.use(cors({
@@ -26,42 +25,29 @@ mongoose.connect(process.env.MONGO_URL)
 //   .catch(console.error);
 
 // //Schedule to run every minute
-// setInterval(recordStockPrices, 60 * 1000);
+// setInterval(recordStockPrices, 10 * 1000);
 
 // updateLiveLeaderboard()
 //   .then(() => console.log('Leaderboard updated'))
 //   .catch(console.error);
 
-setInterval(checkEpisodeStatus, 6 * 1000);
+// setInterval(checkEpisodeStatus, 6 * 1000);
 
 // setInterval(async () => {
 //   try {
-//     if (isWednesday8PMEastern()) {
+//     // if (isWednesday8PMEastern()) {
 //       await changeWeek();
 //       await startEpisode();
-//     }
+//     // }
 //     await checkEpisodeStatus();
 //   } catch (err) {
 //     console.error("Scheduler error:", err);
 //   }
-// }, 60 * 1000);
+// }, 3* 60 * 1000);
 
-(async () => {
-  await checkEpisodeStatus(); 
-})();
-
-async function createInitialSeason() {
-  const season = new Season({
-    name: 'Season 1',
-    isCurrentSeason: true,
-    currentWeek: 1,
-    currentPrice: 5,
-    percentageIncrement: 0.1
-  });
-  await season.save();
-}
-
-createInitialSeason();
+// (async () => {
+//   await checkEpisodeStatus(); 
+// })();
 
 //middleware
 app.use(express.json());

@@ -9,8 +9,8 @@ function AppLayout() {
   useEffect(() => {
     const fetchOnAirStatus = async () => {
       try {
-        const res = await axios.get('/episode/onair-status');
-        setOnAir(res.data);
+        const res = await axios.get('/episode/getcurrentepisode');
+        setOnAir(res.data.onAir);
       } catch (err) {
         console.error("Failed to fetch onAir status:", err);
       }

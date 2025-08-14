@@ -1,11 +1,10 @@
 const Episode = require('../models/episodeSettings');
 const User = require('../models/user');
 
-const fetchOnAirStatus = async (req, res) => {
+const fetchCurrentEpisodeStats = async (req, res) => {
   try {
     const episode = await Episode.findOne({ isCurrentEpisode: true });
-    const onAirStatus = episode.onAir;
-    return res.json(onAirStatus);
+    return res.json(episode);
   } catch (error) {
     return res.json({error: 'Failed to fetch on air status'})
   }
@@ -20,33 +19,6 @@ const fetchEpisodeEndTime = async (req, res) => {
         return res.json({error: 'Failed to fetch episode end time'})
     }
 }
-
-const toggleOnAirStatus = async (req, res) => {
-  try {
-    const episode = await Episode.findOne({ isCurrentEpisode: true });
-    if (!episode) {
-      return res.json({ error: 'episode_settings document not found' });
-    }
-
-    episode.onAir = !episode.onAir;
-
-    if (episode.onAir) {
-      episode.episodeEndTime = new Date(Date.now() + 3 * 60 * 1000);
-    } else {
-      episode.episodeEndTime = null;
-    }
-
-    await episode.save();
-
-    return res.json({ 
-      onAir: episode.onAir, 
-      episodeEndTime: episode.episodeEndTime 
-    });
-  } catch (error) {
-    console.error(error);
-    return res.json({ error: 'Failed to toggle on-air status' });
-  }
-};
 
 const changeLastSeenEpisode = async (req, res) => {
   const {id} = req.params;
@@ -69,8 +41,7 @@ const changeLastSeenEpisode = async (req, res) => {
 
 
 module.exports = {
-    fetchOnAirStatus,
-    toggleOnAirStatus,
+    fetchCurrentEpisodeStats,
     fetchEpisodeEndTime,
     changeLastSeenEpisode
 }

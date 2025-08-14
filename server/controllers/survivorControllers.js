@@ -62,6 +62,7 @@ const toggleSurvivorAvailability = async (req, res) => {
   try {
     const survivor = await Survivor.findById(id);
     const episode = await Episode.findOne({ isCurrentEpisode: true });
+    const season = await Season.findOne({ isCurrentSeason: true });
 
     if (!survivor) {
       return res.status(404).json({ error: 'survivor not found' });
@@ -69,14 +70,18 @@ const toggleSurvivorAvailability = async (req, res) => {
 
     const total = await getTotalStockCount();
     const availableSurvivorCount = await Survivor.countDocuments({ availability: true });
-    const currentPrice = calculateStockPrice(survivor.count, total, availableSurvivorCount);
+    const currentPrice = calculateStockPrice(survivor.count, total, availableSurvivorCount, season.currentPrice);
 
     survivor.price = currentPrice;
 
     survivor.availability = !survivor.availability;
 
+    if (!episode.survivorsVotedOut) {
+        episode.survivorsVotedOut = [];
+    }
+
     if (!survivor.availability) {
-      episode.survivorsVotedOut.set(survivor.id, survivor.name);
+      episode.survivorsVotedOut.push(survivor.name);
     }
 
     await survivor.save();

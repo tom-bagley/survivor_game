@@ -4,7 +4,6 @@ const Season = require('../models/seasonSettings');
 const { getTotalStockCount, calculateStockPrice } = require('../controllers/transactionControllers')
 
 async function recordStockPrices() {
-  console.log('here')
   const stockList = await Survivor.find({ availability: true });
 
   for (const survivor of stockList) {
@@ -21,7 +20,7 @@ async function recordStockPrices() {
         price: currentPrice,
         date: new Date(),
         season: season?.seasonName || 'Unknown Season',
-        week: season.week
+        week: season.currentWeek
       });
 
       // console.log(`✅ Saved ${name} at $${currentPrice}`);

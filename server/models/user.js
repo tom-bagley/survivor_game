@@ -28,7 +28,7 @@ const userSchema = new Schema({
     last_seen_episode_id: {
         type: Number,
         default: 0
-    }
+    },
 })
 
 const UserModel = mongoose.model('User', userSchema);

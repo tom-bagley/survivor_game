@@ -2,6 +2,7 @@ const User = require('../models/user');
 const Survivor = require('../models/survivors');
 const PriceWatch = require('../models/pricewatch');
 const Season = require('../models/seasonSettings');
+const Episode = require('../models/episodeSettings')
 
 const calculatePrices = async () => {
     try {
@@ -108,6 +109,7 @@ const updatePortfolio = async (req, res) => {
     const { userId, survivorPlayer, action } = req.body;
     try {
         const user = await User.findById(userId);
+        console.log(user)
         const survivor = await Survivor.findOne({ name: survivorPlayer });
         if (!user || !survivor) {
             return res.status(404).json({ error: 'User or player not found' });
@@ -117,7 +119,7 @@ const updatePortfolio = async (req, res) => {
         const currentBudget = user.budget;
         const availableSurvivorCount = await Survivor.countDocuments({ availability: true });
         const season = await Season.findOne({ isCurrentSeason: true });
-        const currentMedianPrice = season.price;
+        const currentMedianPrice = season.currentPrice;
 
         const total = await getTotalStockCount();
         const currentPrice = calculateStockPrice(survivor.count, total, availableSurvivorCount, currentMedianPrice);
@@ -261,6 +263,49 @@ const handlePreseasonTransaction = (budget, userStockCount, survivorStockCount, 
     return { updatedBudget: null }; // Invalid action
 };
 
+const calculatePrevNetWorth = async (user) => {
+    const episode = await Episode.findOne({ isCurrentEpisode: true });
+    const episodeNumber = episode.episodeNumber
+
+    if (episodeNumber === 1) {
+        return 1000
+    }
+
+    const lastEpisode = await Episode.findOne({
+        season: episode.season,
+        episodeNumber: episodeNumber - 1,
+    });
+    if (!lastEpisode) {
+        console.log('fail') 
+        return user.netWorth;
+    }
+    
+    const totalStockCount = Array.from(lastEpisode.finalStockTotals.values())
+        .reduce((sum, count) => sum + count, 0);
+    
+    const length = lastEpisode.finalStockTotals.size;
+
+    const survivorPlayerPrices = {};
+
+    
+
+    for (const [name, total] of lastEpisode.finalStockTotals.entries()) {
+        const price = calculateStockPrice(
+            total,
+            totalStockCount,
+            length,
+            lastEpisode.finalClosingPrice
+        );
+        survivorPlayerPrices[name] = price;
+    }
+
+
+    return [...user.portfolio.entries()].reduce(
+        (netWorth, [survivor, quantity]) => netWorth + (survivorPlayerPrices[survivor] || 0) * quantity,
+        user.budget
+    );
+};
+
 
 const getPortfolio = async (req, res) => {
     const {userId} = req.query;
@@ -274,9 +319,13 @@ const getPortfolio = async (req, res) => {
             }
           }
         user.netWorth = await calculateNetWorth(user);
+        prevNetWorth = await calculatePrevNetWorth(user);
         await user.save(); 
 
-        res.json(user);
+        res.json({
+            user,
+            prevNetWorth
+        });
     } catch (error) {
         console.log(error);
     }

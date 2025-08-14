@@ -15,9 +15,9 @@ const epidsodeSettingsSchema = new Schema({
         default: 0
     },
     survivorsVotedOut: {
-        type: Map,
+        type: Array,
         of: String,
-        default: {},
+        default: [],
     },
     season: {
         type: String,
@@ -26,6 +26,14 @@ const epidsodeSettingsSchema = new Schema({
     isCurrentEpisode: {
         type: Boolean,
         default: false,
+    },
+    finalStockTotals: {
+        type: Map,
+        of: Number,
+        default: {},
+    },
+    finalClosingPrice: {
+        type: Number
     }
 
 }, {timestamps: true});
