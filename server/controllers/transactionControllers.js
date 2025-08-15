@@ -112,7 +112,6 @@ const updatePortfolio = async (req, res) => {
     const { userId, survivorPlayer, action } = req.body;
     try {
         const user = await User.findById(userId);
-        console.log(user)
         const survivor = await Survivor.findOne({ name: survivorPlayer });
         if (!user || !survivor) {
             return res.status(404).json({ error: 'User or player not found' });

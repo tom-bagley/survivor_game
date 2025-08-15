@@ -20,30 +20,30 @@ mongoose.connect(process.env.MONGO_URL)
 .then(() => console.log('Database Connected'))
 .catch((err) => console.log('Database not Connected', err))
 
-// recordStockPrices()
-//   .then(() => console.log("Initial price recording done"))
-//   .catch(console.error);
+recordStockPrices()
+  .then(() => console.log("Initial price recording done"))
+  .catch(console.error);
 
-// //Schedule to run every minute
-// setInterval(recordStockPrices, 10 * 1000);
+//Schedule to run every minute
+setInterval(recordStockPrices, 10 * 1000);
 
-// updateLiveLeaderboard()
-//   .then(() => console.log('Leaderboard updated'))
-//   .catch(console.error);
+updateLiveLeaderboard()
+  .then(() => console.log('Leaderboard updated'))
+  .catch(console.error);
 
 setInterval(checkEpisodeStatus, 6 * 1000);
 
-// setInterval(async () => {
-//   try {
-//     // if (isWednesday8PMEastern()) {
-//       await changeWeek();
-//       await startEpisode();
-//     // }
-//     await checkEpisodeStatus();
-//   } catch (err) {
-//     console.error("Scheduler error:", err);
-//   }
-// }, 3* 60 * 1000);
+setInterval(async () => {
+  try {
+    // if (isWednesday8PMEastern()) {
+      await changeWeek();
+      await startEpisode();
+    // }
+    await checkEpisodeStatus();
+  } catch (err) {
+    console.error("Scheduler error:", err);
+  }
+}, 1* 60 * 1000);
 
 (async () => {
   await checkEpisodeStatus(); 

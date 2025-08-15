@@ -40,7 +40,8 @@ const Display = ({ name, profilePhotoUrl, shares, price, holdingsValue, buyStock
             data={historical_prices} 
             latestWeek={String(week)} 
             latestSeason={season} 
-            medianPrice={medianPrice} 
+            medianPrice={medianPrice}
+            eliminated={eliminated} 
           />
         )}
       </div>
