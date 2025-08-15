@@ -31,19 +31,25 @@ updateLiveLeaderboard()
   .then(() => console.log('Leaderboard updated'))
   .catch(console.error);
 
+setInterval(() => {
+  updateLiveLeaderboard()
+    .then(() => console.log('Leaderboard updated'))
+    .catch(console.error);
+}, 60000); // 60,000 ms = 1 minute
+
 setInterval(checkEpisodeStatus, 6 * 1000);
 
-setInterval(async () => {
-  try {
-    // if (isWednesday8PMEastern()) {
-      await changeWeek();
-      await startEpisode();
-    // }
-    await checkEpisodeStatus();
-  } catch (err) {
-    console.error("Scheduler error:", err);
-  }
-}, 1* 60 * 1000);
+// setInterval(async () => {
+//   try {
+//     // if (isWednesday8PMEastern()) {
+//       await changeWeek();
+//       await startEpisode();
+//     // }
+//     await checkEpisodeStatus();
+//   } catch (err) {
+//     console.error("Scheduler error:", err);
+//   }
+// }, 1* 60 * 1000);
 
 (async () => {
   await checkEpisodeStatus(); 
