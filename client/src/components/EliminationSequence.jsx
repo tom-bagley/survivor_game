@@ -1,123 +1,182 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 
-function EliminationSequence({
-  // showAnimation,
+export default function EliminationSequence({
   week,
-  eliminatedSurvivors,
-  survivorPlayerStats,
-  sharesOwned,
-  prices,
-  medianPrice,
-  prevNetWorth,
-  netWorth,
+  eliminatedSurvivors = {},
+  survivorPlayerStats = {},
+  sharesOwned = {},
+  prices = {},
+  medianPrice = 0,
+  prevNetWorth = 0,
+  netWorth = 0,
+  onFinish, // optional: called when closed
 }) {
-  const [stageIndex, setStageIndex] = useState(0);
-
-  const SURVIVOR_STAGE_DELAY = 3000;
-  const FINAL_STAGE_DELAY = 60000;
-
+  // Build ordered list from eliminatedSurvivors object
   const survivorList = useMemo(
-    () => Object.keys(eliminatedSurvivors).map((id) => eliminatedSurvivors[id]),
+    () => Object.keys(eliminatedSurvivors).map((id) => eliminatedSurvivors[id]).filter(Boolean),
     [eliminatedSurvivors]
   );
 
-  const totalStages = survivorList.length + 2;
-  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const totalStages = Math.max(1, survivorList.length + 1); // survivors + final net worth
+  const [stageIndex, setStageIndex] = useState(0);
 
-  useEffect(() => {
-    // if (!showAnimation || week <= 0) return;
-
-    let cancelled = false;
-
-    const runSequence = async () => {
-      for (let i = 0; i < totalStages; i++) {
-        console.log(i)
-        if (cancelled) break;
-        setStageIndex(i);
-        const isFinal = i === totalStages - 1;
-        await sleep(isFinal ? FINAL_STAGE_DELAY : SURVIVOR_STAGE_DELAY);
-      }
-    };
-
-    runSequence();
-
-    return () => {
-      cancelled = true;
-    };
+  // Navigation
+  const nextStage = useCallback(() => {
+    setStageIndex((i) => Math.min(i + 1, totalStages - 1));
   }, [totalStages]);
 
-  // if (!showAnimation || week <= 0) return null;
+  const close = useCallback(() => {
+    if (onFinish) onFinish();
+  }, [onFinish]);
+
+  // Keyboard: Esc to close, Space/Enter to advance
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        close();
+      }
+      if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        nextStage();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [close, nextStage]);
+
+  const formatUSD = (n) =>
+    `$${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const renderSurvivorStage = (name) => {
-    const survivor = survivorPlayerStats[name];
+    const survivor = survivorPlayerStats[name] || {};
     const shares = sharesOwned[name] || 0;
-    const price = week === 0 ? medianPrice : prices[name];
+    const price = week === 0 ? Number(medianPrice) : Number(prices[name] || 0);
     const holdingsValue = shares * price;
 
     return (
-      <div className="fade-in" style={{ textAlign: "center" }}>
-        <h1>
-          Eliminated: {survivor.name}
+      <div className="animate-fadein text-center">
+        <h1 className="font-heading text-3xl sm:text-4xl tracking-tight">
+          Eliminated: {survivor.name || name}
         </h1>
-        <img
-          src={survivor.profile_pic}
-          alt={name}
-          style={{
-            width: 500,
-            height: 500,
-            objectFit: "cover",
-            borderRadius: 4,
-            marginBottom: "1rem",
-          }}
-        />
-        <div style={{ fontSize: "1.5rem" }}>
-          Money Lost: {holdingsValue.toFixed(2)}
+
+        <div className="mt-6 mx-auto w-full max-w-sm">
+          <div className="relative rounded-2xl overflow-hidden ring-1 ring-white/10 bg-black/30 aspect-[3/4]">
+            {survivor.profile_pic ? (
+              <img
+                src={survivor.profile_pic}
+                alt={survivor.name || name}
+                className="h-full w-full object-cover object-top"
+              />
+            ) : (
+              <div className="h-full w-full grid place-items-center text-white/50">No image</div>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-5 text-xl">
+          Money Lost: <span className="font-semibold text-red-flame">{formatUSD(holdingsValue)}</span>
         </div>
       </div>
     );
   };
 
   const renderNetWorthStage = () => (
-    <div
-      className="fade-in"
-      style={{ fontSize: "1.5rem", textAlign: "center" }}
-    >
-      Previous Net Worth: {prevNetWorth.toFixed(2)}
-      <br />
-      Current Net Worth: {netWorth.toFixed(2)}
+    <div className="animate-fadein text-center">
+      <h1 className="font-heading text-3xl sm:text-4xl tracking-tight">Portfolio Update</h1>
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto">
+        <div className="rounded-xl bg-black/30 ring-1 ring-white/10 px-4 py-3">
+          <div className="text-white/70 text-sm">Previous Net Worth</div>
+          <div className="text-xl font-semibold">{formatUSD(prevNetWorth)}</div>
+        </div>
+        <div className="rounded-xl bg-black/30 ring-1 ring-white/10 px-4 py-3">
+          <div className="text-white/70 text-sm">Current Net Worth</div>
+          <div className="text-xl font-semibold">{formatUSD(netWorth)}</div>
+        </div>
+      </div>
+      <p className="mt-4 text-white/60 text-sm">Press <kbd>Esc</kbd> to close.</p>
     </div>
   );
 
-  return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-        background: "black",
-        color: "white",
-        fontFamily: "sans-serif",
-      }}
-    >
-      {stageIndex < survivorList.length
-        ? renderSurvivorStage(survivorList[stageIndex])
-        : renderNetWorthStage()}
+  const showingSurvivor = stageIndex < survivorList.length;
+  const content = showingSurvivor
+    ? renderSurvivorStage(survivorList[stageIndex])
+    : renderNetWorthStage();
 
+  // Nothing to show?
+  if (!totalStages) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/90 text-white">
+      {/* glow */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-primary blur-3xl opacity-30" />
+        <div className="absolute -bottom-24 -right-16 h-80 w-80 rounded-full bg-accent blur-3xl opacity-25" />
+      </div>
+
+      <div className="relative z-10 h-full w-full flex flex-col">
+        {/* top bar */}
+        <div className="flex items-center justify-between px-4 sm:px-6 pt-4">
+          <div className="text-xs text-white/60">Week {week ?? "—"}</div>
+          <button
+            type="button"
+            onClick={close}
+            className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-primary/70"
+            aria-label="Close"
+          >
+            Close
+          </button>
+        </div>
+
+        {/* main content */}
+        <div className="flex-1 px-6 sm:px-8 py-6 grid place-items-center">{content}</div>
+
+        {/* progress + controls */}
+        <div className="px-6 sm:px-8 pb-6">
+          <div className="flex items-center justify-center gap-2">
+            {Array.from({ length: totalStages }).map((_, i) => (
+              <span
+                key={i}
+                className={[
+                  "h-2 w-2 rounded-full transition-all",
+                  i === stageIndex ? "bg-primary scale-100" : "bg-white/20 scale-90",
+                ].join(" ")}
+              />
+            ))}
+          </div>
+          <div className="mt-4 flex items-center justify-center gap-3">
+            {showingSurvivor && (
+              <button
+                type="button"
+                onClick={nextStage}
+                className="rounded-lg bg-primary text-black font-semibold px-4 py-2 hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-primary/70"
+              >
+                Next
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={close}
+              className="rounded-lg bg-white/10 text-white px-4 py-2 hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/70"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* tiny CSS for entrance */}
       <style>{`
-        @keyframes fadeIn {
+        @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        .fade-in {
-          animation: fadeIn 1s ease-in-out forwards;
-        }
+        .animate-fadein { animation: fadeInUp .6s ease-out both; }
       `}</style>
     </div>
   );
 }
 
-export default EliminationSequence;
+
 
 

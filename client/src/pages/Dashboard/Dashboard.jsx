@@ -1,9 +1,8 @@
 import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../../../context/userContext";
 import axios from "axios";
-import {toast} from 'react-hot-toast';
-import styles from './dashboard.module.css';
-import Display from '../../components/dashboardDisplay/dashboardDisplay';
+import { toast } from "react-hot-toast";
+import Display from "../../components/dashboardDisplay/dashboardDisplay";
 import EliminationSequence from "../../components/EliminationSequence";
 
 export default function Dashboard() {
@@ -36,15 +35,15 @@ export default function Dashboard() {
           { data: seasonData },
           { data: episodeData },
         ] = await Promise.all([
-          axios.get('/transactions/getportfolio', { params: { userId: user.id } }),
-          axios.get('/transactions/getprices'),
-          axios.get('/transactions/getprofile'),
+          axios.get("/transactions/getportfolio", { params: { userId: user.id } }),
+          axios.get("/transactions/getprices"),
+          axios.get("/transactions/getprofile"),
           axios.get(`/leaderboard/getleaderboard/${user.id}`),
-          axios.get('/admin/getcurrentseason'),
-          axios.get('/episode/getcurrentepisode'),
+          axios.get("/admin/getcurrentseason"),
+          axios.get("/episode/getcurrentepisode"),
         ]);
 
-        const survivorsMap = survivorPlayersData.reduce((acc, player) => {
+        const survivorsMap = (survivorPlayersData || []).reduce((acc, player) => {
           acc[player.name] = player;
           return acc;
         }, {});
@@ -69,106 +68,65 @@ export default function Dashboard() {
       }
     }
 
-  getData();
+    getData();
   }, [loading, user]);
 
   useEffect(() => {
     const updateLastSeen = async () => {
-    if (loading || week == null || lastSeenWeek == null) return; 
+      if (loading || week == null || lastSeenWeek == null) return;
 
-    if (lastSeenWeek !== week) {
-      setShowAnimation(true);
-      try {
-        await axios.put(`/episode/updatelastseenepisode/${user.id}`);
-      } catch (error) {
-        console.error("Failed to update last seen episode:", error);
+      if (lastSeenWeek !== week) {
+        setShowAnimation(true);
+        try {
+          await axios.put(`/episode/updatelastseenepisode/${user.id}`);
+        } catch (error) {
+          console.error("Failed to update last seen episode:", error);
+        }
       }
-    }
-  };
+    };
 
-  updateLastSeen();
+    updateLastSeen();
   }, [loading, week, lastSeenWeek, user]);
 
-  useEffect(() => {
-    if (loading) return;
-    if (showAnimation) {
-      playEpisodeAnimation(() => setShowAnimation(false), Object.keys(eliminatedSurvivors).length);
-    }
-  }, [loading, showAnimation, eliminatedSurvivors]);
+  // Not logged in
+  if (!user?.id)
+    return (
+      <div className="min-h-screen bg-black-bg text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-16 w-16 rounded-full border-2 border-white/20 grid place-items-center text-white/70">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M10 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0z" />
+              <path
+                fillRule="evenodd"
+                d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-6a6 6 0 0 0-4.472 10.085C4.584 10.97 6.203 10 8 10s3.416.97 4.472 2.085A6 6 0 0 0 8 2z"
+              />
+            </svg>
+          </div>
+          <h1 className="font-heading text-2xl">You’re not logged in</h1>
+          <p className="text-white/60 mt-1">Please sign in to continue</p>
+        </div>
+      </div>
+    );
 
-  function playEpisodeAnimation(onComplete, survivorCount) {
-    console.log("Playing episode animation!");
-    
-    const SURVIVOR_STAGE_DELAY = 3000;
-    const FINAL_STAGE_DELAY = 3000;
-    
-    const totalTime = (survivorCount * SURVIVOR_STAGE_DELAY) + FINAL_STAGE_DELAY;
+  // Loading
+  if (loading || loadingFinancials)
+    return (
+      <div className="min-h-screen bg-black-bg text-white grid place-items-center">
+        <div className="flex flex-col items-center">
+          <div className="h-12 w-12 rounded-full border-4 border-white/10 border-t-primary animate-spin" />
+          <h1 className="mt-4 font-heading text-xl text-primary">Loading…</h1>
+        </div>
+      </div>
+    );
 
-    setTimeout(() => {
-      console.log("Animation complete!");
-      onComplete();
-    }, totalTime);
-  }
-
-  // For "Not Logged In"
-if (!user?.id) return (
-  <div style={{
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100vh',
-    fontFamily: 'sans-serif',
-    background: 'linear-gradient(135deg, #f8f9fa, #e9ecef)',
-    color: '#333',
-  }}>
-    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="#6c757d" viewBox="0 0 16 16">
-      <path d="M10 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/>
-      <path fillRule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-6a6 6 0 0 0-4.472 10.085C4.584 10.97 6.203 10 8 10s3.416.97 4.472 2.085A6 6 0 0 0 8 2z"/>
-    </svg>
-    <h1 style={{ fontSize: '2rem', marginTop: '1rem' }}>You’re not logged in</h1>
-    <p style={{ color: '#6c757d' }}>Please sign in to continue</p>
-  </div>
-);
-
-// For "Loading"
-if (loading || loadingFinancials) return (
-  <div style={{
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100vh',
-    fontFamily: 'sans-serif',
-    background: 'linear-gradient(135deg, #f8f9fa, #e9ecef)',
-  }}>
-    <div style={{
-      width: '48px',
-      height: '48px',
-      border: '4px solid #dee2e6',
-      borderTop: '4px solid #007bff',
-      borderRadius: '50%',
-      animation: 'spin 1s linear infinite',
-    }} />
-    <h1 style={{ fontSize: '1.5rem', marginTop: '1rem', color: '#007bff' }}>Loading...</h1>
-
-    <style>{`
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-    `}</style>
-  </div>
-);
-
-  const updatePortfolio = async (survivorPlayer, action) => {
+  const updatePortfolio = async (survivorPlayer, amount, action) => {
     try {
-      const endpoint = week === 0 
-        ? '/transactions/updateportfoliopreseason' 
-        : '/transactions/updateportfolio';
+      const endpoint = week === 0 ? "/transactions/updateportfoliopreseason" : "/transactions/updateportfolio";
 
       const { data } = await axios.put(endpoint, {
         userId: user.id,
         survivorPlayer,
+        amount,
         action,
       });
 
@@ -176,106 +134,132 @@ if (loading || loadingFinancials) return (
         toast.error(data.error);
       } else {
         resetPrices();
-        // getProfilePics();
         setSharesOwned(data.portfolio);
         setBudget(data.budget);
         setNetWorth(data.netWorth);
       }
     } catch (error) {
-      toast.error('test');
+      toast.error("Something went wrong updating your portfolio.");
     }
   };
 
-  const buyStock = (survivorPlayer) => updatePortfolio(survivorPlayer, 'buy');
-  const sellStock = (survivorPlayer) => updatePortfolio(survivorPlayer, 'sell');
+  const buyStock = (survivorPlayer, amount) => updatePortfolio(survivorPlayer, amount, "buy");
+  const sellStock = (survivorPlayer, amount) => updatePortfolio(survivorPlayer, amount, "sell");
 
   const resetPrices = async () => {
     try {
-      const {data} = await axios.get('/transactions/getprices');
+      const { data } = await axios.get("/transactions/getprices");
       setPrices(data);
     } catch (error) {
       console.log(error);
     }
-  }
+  };
 
-  const formattedBudget = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(budget);
-
-  const formattedNetWorth = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(netWorth);
+  const formattedBudget = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(budget);
+  const formattedNetWorth = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(netWorth);
 
   return (
     <>
-      {showAnimation && (
-      <EliminationSequence
-        // showAnimation={showAnimation}
-        week={week}
-        eliminatedSurvivors={eliminatedSurvivors}
-        survivorPlayerStats={survivorPlayerStats}
-        sharesOwned={sharesOwned}
-        prices={prices}
-        medianPrice={medianPrice}
-        prevNetWorth={prevNetWorth}
-        netWorth={netWorth}
-      />
+      {showAnimation && Number(week) > 0 && (
+        <EliminationSequence
+          week={week}
+          eliminatedSurvivors={eliminatedSurvivors}
+          survivorPlayerStats={survivorPlayerStats}
+          sharesOwned={sharesOwned}
+          prices={prices}
+          medianPrice={medianPrice}
+          prevNetWorth={prevNetWorth}
+          netWorth={netWorth}
+          onFinish={() => setShowAnimation(false)}
+        />
       )}
-    
-    
-    <div className = {styles.body}>
-       <div className= {styles.header}>
-        <h1>Welcome, {user.name}!</h1>
-        <div className= {styles["financial-info"]}>
-          <h2>Your Budget: {formattedBudget}</h2>
-          <h2>Your Net Worth: {formattedNetWorth}</h2>
-          <h2>Your Rank: {leaderboard}th</h2>
+
+      <div className="min-h-screen bg-black-bg text-white">
+        <div className="mx-auto max-w-[1400px] px-5 sm:px-8 lg:px-10 py-10">
+          {/* Header */}
+          <header className="mb-10">
+            <div className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-6">
+              <h1 className="font-heading text-4xl lg:text-5xl tracking-tight">
+                Welcome, <span className="text-accent">{user.name}</span>!
+              </h1>
+
+              {/* Financial summary */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="rounded-2xl bg-black/30 ring-1 ring-white/10 px-5 py-4">
+                  <div className="text-xs text-white/60">Budget</div>
+                  <div className="text-2xl font-semibold">{formattedBudget}</div>
+                </div>
+                <div className="rounded-2xl bg-black/30 ring-1 ring-white/10 px-5 py-4">
+                  <div className="text-xs text-white/60">Net Worth</div>
+                  <div className="text-2xl font-semibold">{formattedNetWorth}</div>
+                </div>
+                <div className="rounded-2xl bg-black/30 ring-1 ring-white/10 px-5 py-4">
+                  <div className="text-xs text-white/60">Rank</div>
+                  <div className="text-2xl font-semibold">{leaderboard}th</div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Portfolio Title */}
+<div className="mb-4">
+  <h2 className="font-heading text-2xl">Your Portfolio</h2>
+</div>
+
+{/* Masonry columns: 1 column mobile, 2 columns desktop */}
+{/* Masonry columns: 1 column mobile, 2 columns desktop */}
+<div className="columns-1 sm:columns-2 gap-6 [column-fill:_balance]">
+  {Object.keys(sharesOwned)
+    // sort: active first, eliminated last
+    .sort((a, b) => {
+      const survivorA = survivorPlayerStats[a];
+      const survivorB = survivorPlayerStats[b];
+      const activeA = survivorA?.availability ? 1 : 0;
+      const activeB = survivorB?.availability ? 1 : 0;
+      return activeB - activeA; // active (1) comes before eliminated (0)
+    })
+    .map((survivorPlayer) => {
+      const survivor = survivorPlayerStats[survivorPlayer];
+      if (!survivor) return null;
+
+      const profile_pic = survivor.profile_pic;
+      const shares = sharesOwned[survivorPlayer];
+      const price = prices[survivorPlayer];
+      const displayPrice = week === 0 ? medianPrice : price;
+      const holdingsValue = shares * displayPrice;
+      const eliminated = !survivor.availability;
+      const historical_prices = survivor.historicalprices;
+
+      return (
+        <div key={survivorPlayer} className="break-inside-avoid mb-6">
+          <Display
+            name={survivorPlayer}
+            profilePhotoUrl={profile_pic}
+            shares={shares}
+            price={displayPrice}
+            holdingsValue={holdingsValue}
+            buyStock={buyStock}
+            sellStock={sellStock}
+            eliminated={eliminated}
+            season={season}
+            week={week}
+            historical_prices={historical_prices}
+            medianPrice={medianPrice}
+          />
+        </div>
+      );
+    })}
+</div>
+
+
         </div>
       </div>
-      <div>
-        <h2 className={styles["portfolio-title"]}>Your Portfolio</h2>
-      </div>
-      <div className={styles["grid-container"]}>
-        {Object.keys(sharesOwned).map((survivorPlayer) => {
-          const survivor = survivorPlayerStats[survivorPlayer];
-
-          const profile_pic = survivor.profile_pic
-          const shares = sharesOwned[survivorPlayer];
-          const price = prices[survivorPlayer];
-          const displayPrice = week === 0 ? medianPrice : price;
-          const holdingsValue = shares * displayPrice;
-          const eliminated = !survivor.availability;
-          const historical_prices = survivor.historicalprices
-  
-          return (
-            <Display
-              key={survivorPlayer}
-              name={survivorPlayer}
-              profilePhotoUrl={profile_pic}
-              shares={shares}
-              price={week === 0 ? medianPrice : price}
-              holdingsValue={holdingsValue}
-              buyStock={buyStock}
-              sellStock={sellStock}
-              eliminated={eliminated}
-              season={season}
-              week={week}
-              historical_prices={historical_prices}
-              medianPrice={medianPrice}
-            />
-          );
-        })}
-      </div> 
-    </div>
     </>
   );
-
-  
-  
-  
 }
+
+
+
 
 
 

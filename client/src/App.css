@@ -1,50 +1,32 @@
-/* GLOBAL RESETS */
-html, body, #root {
-  margin: 0;
-  padding: 0;
-  height: 100%;
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Oswald:wght@400;700&display=swap');
+
+@theme {
+  --font-body: Inter, sans-serif;
+  --font-heading: Oswald, sans-serif;
+
+  --color-primary: #F15A24;
+  --color-accent: #FFC83D;
+  --color-green-dark: #2C5E3F;
+  --color-red-flame: #E63917;
+  --color-charcoal: #2A2A2A;
+  --color-black-bg: #0E0E0E;
 }
 
-/* ROOT THEME */
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  html, body, #root { height: 100%; }
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #4e2525;
-}
+  body {
+    @apply font-body bg-black-bg text-white antialiased;
+  }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+  h1, h2, h3, h4 {
+    @apply font-heading tracking-tight;
   }
 }
 
-/* GLOBAL ELEMENT STYLES */
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
 
-h2, h3 {
-  margin: 10px 0;
-}
 
 
 

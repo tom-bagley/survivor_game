@@ -1,49 +1,70 @@
-import { useState, useEffect } from "react"
-import axios from 'axios';
-import {toast} from 'react-hot-toast';
-import Display from '../components/playerdisplay/playerdisplay';
+import { useEffect, useState } from "react";
+import axios from "axios";
+import Introduction from "../components/playerintroduction/playerintroduction";
 
 export default function DisplayPlayers() {
-    const [players, setPlayers] = useState([]);
+  const [players, setPlayers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    const displayPlayers = async () => {
-        try {
-          const {data} = await axios.get('/players/allplayers');
-          setPlayers(data);
-        } catch (error) {
-          console.log(error);
-        }
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchPlayers() {
+      try {
+        const { data } = await axios.get("/players/allplayers");
+        if (!cancelled) setPlayers(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
 
-    useEffect(() => {
-        displayPlayers();
-    }, []);
+    fetchPlayers();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-
-
+  if (loading) {
     return (
-        <div>
-            <h1>Meet the Cast</h1>
-        <div className="grid-container">
-  {Object.keys(players).map((key) => {
-    const player = players[key];
-    const { name, profile_pic, age, Hometown, Current_Residence, Occupation } = player;
-
-    return (
-      <Display
-        key={key}
-        name={name}
-        profilePhotoUrl={profile_pic}
-        age={age}
-        Hometown={Hometown}
-        Current_Residence={Current_Residence}
-        Occupation={Occupation}
-      />
+      <div className="min-h-screen bg-black-bg text-white grid place-items-center">
+        <div className="flex items-center gap-3">
+          <div className="h-6 w-6 rounded-full border-4 border-white/10 border-t-primary animate-spin" />
+          <span className="text-white/80">Loading cast…</span>
+        </div>
+      </div>
     );
-  })}
-</div>
+  }
 
+  return (
+    <div className="min-h-screen bg-black-bg text-white">
+      <div className="mx-auto max-w-[90rem] px-5 sm:px-8 lg:px-10 py-10">
+        <header className="mb-8">
+          <h1 className="font-heading text-3xl sm:text-4xl tracking-tight">Meet the Cast</h1>
+        </header>
 
+        {players.length === 0 ? (
+          <div className="rounded-2xl bg-charcoal/80 ring-1 ring-white/10 p-6 text-center text-white/70">
+            No players found.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {players.map((p) => (
+              <Introduction
+                key={p._id || p.name}               // stable key
+                name={p.name}
+                profilePhotoUrl={p.profile_pic}
+                age={p.age}
+                Hometown={p.Hometown}
+                Current_Residence={p.Current_Residence}
+                Occupation={p.Occupation}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
-    )
+  );
 }
+

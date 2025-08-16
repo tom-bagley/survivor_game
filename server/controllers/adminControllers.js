@@ -97,6 +97,7 @@ const changeWeek = async (req, res) => {
 const getCurrentSeason = async (req, res) => {
     try {
         const season = await Season.findOne({ isCurrentSeason: true });
+        console.log(season)
         return res.json(season);
     } catch (error) {
         console.error(error);

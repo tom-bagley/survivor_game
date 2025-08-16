@@ -109,7 +109,7 @@ async function getTotalStockCount() {
 
 
 const updatePortfolio = async (req, res) => {
-    const { userId, survivorPlayer, action } = req.body;
+    const { userId, survivorPlayer, amount, action } = req.body;
     try {
         const user = await User.findById(userId);
         const survivor = await Survivor.findOne({ name: survivorPlayer });
@@ -126,15 +126,15 @@ const updatePortfolio = async (req, res) => {
         const total = await getTotalStockCount();
         const currentPrice = calculateStockPrice(survivor.count, total, availableSurvivorCount, currentMedianPrice);
         if (action === 'buy') {
-            if (currentBudget < currentPrice) {
+            if (currentBudget < (currentPrice*amount)) {
                 return res.json({ error: 'Not enough funds' });
             }
-            await handleBuy(user, survivor, survivorPlayer, currentPrice);
+            await handleBuy(user, survivor, survivorPlayer, currentPrice, amount);
         } else if (action === 'sell') {
             if (currentUserSurvivorCount <= 0) {
                 return res.json({ error: 'No stock to sell' });
             }
-            await handleSell(user, survivor, survivorPlayer, availableSurvivorCount, currentMedianPrice);
+            await handleSell(user, survivor, survivorPlayer, availableSurvivorCount, currentMedianPrice, amount);
         } else {
             return res.json({ error: 'Invalid action' });
         }
@@ -152,19 +152,19 @@ const updatePortfolio = async (req, res) => {
 };
 
 // Helper function to handle buying logic
-const handleBuy = async (user, survivor, stock, currentPrice) => {
-    user.portfolio.set(stock, (user.portfolio.get(stock) || 0) + 1);
-    user.budget -= currentPrice;
-    survivor.count += 1;
+const handleBuy = async (user, survivor, stock, currentPrice, amount) => {
+    user.portfolio.set(stock, (user.portfolio.get(stock) || 0) + amount);
+    user.budget -= (currentPrice*amount);
+    survivor.count += amount;
 };
 
 // Helper function to handle selling logic
-const handleSell = async (user, survivor, stock, availableSurvivorCount, currentMedianPrice) => {
-    user.portfolio.set(stock, user.portfolio.get(stock) - 1);
-    survivor.count -= 1;
+const handleSell = async (user, survivor, stock, availableSurvivorCount, currentMedianPrice, amount) => {
+    user.portfolio.set(stock, user.portfolio.get(stock) - amount);
+    survivor.count -= amount;
     const total = await getTotalStockCount();
     const currentPrice = calculateStockPrice(survivor.count, total, availableSurvivorCount, currentMedianPrice);
-    user.budget += currentPrice;
+    user.budget += (currentPrice*amount);
     
 };
 
@@ -192,7 +192,8 @@ const calculateNetWorth = async (user) => {
 
 
 const updatePortfolioPreseason = async (req, res) => {
-    const { userId, survivorPlayer, action } = req.body;
+    const { userId, survivorPlayer, action, amount } = req.body;
+    console.log(amount)
     try {
         const user = await User.findById(userId);
         const survivor = await Survivor.findOne({ name: survivorPlayer });
@@ -213,7 +214,8 @@ const updatePortfolioPreseason = async (req, res) => {
             currentUserSurvivorCount,
             currentSurvivorCount,
             action,
-            price
+            price,
+            amount
         );
 
         if (updatedBudget === null) {
@@ -240,26 +242,26 @@ const updatePortfolioPreseason = async (req, res) => {
 };
 
 // Helper function for preseason transactions
-const handlePreseasonTransaction = (budget, userStockCount, survivorStockCount, action, price) => {
+const handlePreseasonTransaction = (budget, userStockCount, survivorStockCount, action, price, amount) => {
     const stockPrice = price; // Fixed preseason price
 
     if (action === 'buy') {
-        if (budget <= 0) {
+        if ((amount * stockPrice) > budget) {
             return { updatedBudget: null }; // Not enough funds
         }
         return {
-            updatedSurvivorCount: survivorStockCount + 1,
-            updatedBudget: budget - stockPrice,
-            updatedUserSurvivorCount: userStockCount + 1
+            updatedSurvivorCount: survivorStockCount + amount,
+            updatedBudget: budget - (stockPrice * amount),
+            updatedUserSurvivorCount: userStockCount + amount
         };
     } else if (action === 'sell') {
-        if (userStockCount <= 0) {
+        if (userStockCount < amount) {
             return { updatedBudget: null }; // No stock to sell
         }
         return {
-            updatedSurvivorCount: survivorStockCount - 1,
-            updatedBudget: budget + stockPrice,
-            updatedUserSurvivorCount: userStockCount - 1
+            updatedSurvivorCount: survivorStockCount - amount,
+            updatedBudget: budget + (stockPrice * amount),
+            updatedUserSurvivorCount: userStockCount - amount
         };
     }
     return { updatedBudget: null }; // Invalid action
