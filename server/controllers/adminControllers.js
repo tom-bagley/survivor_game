@@ -14,7 +14,7 @@ const resetUsers = async (req, res) => {
     const defaultPortfolio = {};
     for (const survivor of survivors) {
       survivor.price = initialSurvivorPrice;
-      survivor.count = 0;
+      survivor.count = 500;
       await survivor.save();
       defaultPortfolio[survivor.name] = 0;
     }
@@ -97,7 +97,6 @@ const changeWeek = async (req, res) => {
 const getCurrentSeason = async (req, res) => {
     try {
         const season = await Season.findOne({ isCurrentSeason: true });
-        console.log(season)
         return res.json(season);
     } catch (error) {
         console.error(error);

@@ -12,7 +12,7 @@ const survivorSchema = new Schema({
     },
     count: {
         type: Number,
-        default: 0,
+        default: 500,
     },
     availability: {
         type: Boolean,

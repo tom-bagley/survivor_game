@@ -106,47 +106,40 @@ export default function Home() {
         </header>
 
 
-        {/* Two-Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left: Login Card */}
-          <section
-            className="rounded-2xl bg-charcoal/80 ring-1 ring-white/10 shadow-xl p-6 lg:p-8"
-            aria-labelledby="login-title"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <span className="inline-flex items-center rounded-full bg-primary/20 text-primary px-3 py-1 text-xs font-semibold">
-                Free to join
-              </span>
-            </div>
-            <Login />
-          </section>
+{/* One-Column Layout */}
+<div className="grid grid-cols-1 gap-8">
+  {/* Rotating Player Display */}
+  <section
+    className="rounded-2xl bg-charcoal/80 ring-1 ring-white/10 shadow-xl p-6 lg:p-8 min-h-[700px]"
+    aria-labelledby="spotlight-title"
+  >
+    <div
+      className={[
+        "transition-opacity duration-500",
+        isFading ? "opacity-0" : "opacity-100",
+      ].join(" ")}
+    >
+      {isPreseason ? (
+        <Introduction
+          name={player?.name}
+          profilePhotoUrl={player?.profile_pic}
+        />
+      ) : (
+        <Display
+          key={player?.name}
+          {...player}
+          profilePhotoUrl={player?.profile_pic}
+          isFading={isFading}
+          eliminated={!player?.availability}
+          week={week}
+          season={season}
+          medianPrice={medianPrice}
+        />
+      )}
+    </div>
+  </section>
+</div>
 
-          {/* Right: Rotating Player Display */}
-          <section
-  className="rounded-2xl bg-charcoal/80 ring-1 ring-white/10 shadow-xl p-6 lg:p-8 min-h-[700px]"
-  aria-labelledby="spotlight-title"
->
-  <div className={["transition-opacity duration-500", isFading ? "opacity-0" : "opacity-100"].join(" ")}>
-    {isPreseason ? (
-      <Introduction 
-        name={player?.name}
-        profilePhotoUrl={player?.profile_pic}
-      />
-    ) : (
-      <Display
-        key={player?.name}
-        {...player}
-        profilePhotoUrl={player?.profile_pic}
-        isFading={isFading}
-        eliminated={!player?.availability}
-        week={week}
-        season={season}
-        medianPrice={medianPrice}
-      />
-    )}
-  </div>
-</section>
-        </div>
 
         {/* (Optional) Rules block — uncomment if you want it visible */}
         {false && (

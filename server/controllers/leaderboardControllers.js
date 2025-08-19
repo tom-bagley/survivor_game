@@ -11,23 +11,31 @@ const getLeaderboard = async (req, res) => {
     }
 };
 
+// GET /leaderboard/getleaderboard/:id
 const getUserPlaceOnLeaderboard = async (req, res) => {
-    try {
-        const {id} = req.params;
-
-        const leaderboard = await LiveLeaderboardCache.findById("live_leaderboard");
-        
-        const entry = leaderboard.entries.find(player => player.user_id === id);
-        if (!entry) {
-            return res.status(404).json({ error: 'Player not found in leaderboard'})
-        }
-        const rank = entry.rank;
-        res.json(rank);
-    } catch (error) {
-        console.error(error);
-        return res.json({ error: 'Failed to fetch place on leaderboard'})
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ error: "Missing user id param" });
     }
-}
+
+    const leaderboard = await LiveLeaderboardCache.findById("live_leaderboard").lean();
+
+    if (!leaderboard || !Array.isArray(leaderboard.entries)) {
+      return res.status(200).json({ rank: null });
+    }
+
+    const entry = leaderboard.entries.find(
+      (p) => String(p.user_id) === String(id)
+    );
+
+    return res.status(200).json({ rank: entry ? entry.rank : null });
+  } catch (error) {
+    console.error("getUserPlaceOnLeaderboard error:", error);
+    return res.status(500).json({ error: "Failed to fetch place on leaderboard" });
+  }
+};
+
 
 module.exports = {
     getLeaderboard,

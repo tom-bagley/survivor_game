@@ -14,6 +14,9 @@ import DisplayPlayers from './pages/DisplayPlayers';
 import Leaderboard from './pages/Leaderboard/Leaderboard'
 import Episode_Airing from './pages/Episode Airing Stopgap/episode_airing';
 import AppLayout from './components/AppLayout';
+import Login from './pages/Login';
+import Logout from './pages/Logout';
+import Rules from './pages/Rules';
 
 if (process.env.NODE_ENV === 'production') {
   axios.defaults.baseURL = 'https://survivorseason48stockgame.onrender.com';
@@ -55,6 +58,8 @@ function App() {
     <Toaster position='bottom-right' toastOptions={{duration: 2000}} />
     <Routes>
       <Route path='/' element={<Home />} />
+      <Route path='/login' element={<Login />} />
+      <Route path='/logout' element={<Logout />} />
       <Route path='/register' element={<Register />} />
       <Route path='/displayplayers' element={<DisplayPlayers />}/>
       <Route path='/leaderboard' element={<Leaderboard />} />
@@ -70,6 +75,7 @@ function App() {
           </RequireAdmin>
         }
       />
+      <Route path='/rules' element={<Rules />} />
 
     </Routes>
     </UserContextProvider>

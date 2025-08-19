@@ -18,8 +18,6 @@ export default function Navbar() {
           {/* Left: Brand */}
           <div className="flex items-center gap-3">
             <Link to="/" className="flex items-center gap-2">
-              {/* If you have a logo img, uncomment: */}
-              {/* <img src="/logo.png" alt="" className="h-7 w-7 rounded" /> */}
               <span className="font-heading text-lg tracking-tight">
                 <span className="text-primary">Survivor</span>{" "}
                 <span className="text-accent">Stock Exchange</span>
@@ -30,7 +28,9 @@ export default function Navbar() {
           {/* Desktop nav */}
           <ul className="hidden md:flex items-center gap-2">
             <li>
-              <NavLink to="/" className={getLink} end>Home</NavLink>
+              <NavLink to="/rules" className={getLink} end onClick={() => setOpen(false)}>
+                Rules
+              </NavLink>
             </li>
             <li>
               <NavLink to="/displayplayers" className={getLink}>
@@ -42,6 +42,7 @@ export default function Navbar() {
                 Leaderboard
               </NavLink>
             </li>
+
             {user?.role === "admin" && (
               <li>
                 <NavLink to="/admin" className={getLink}>
@@ -49,11 +50,31 @@ export default function Navbar() {
                 </NavLink>
               </li>
             )}
-            <li>
-              <NavLink to="/dashboard" className={getLink}>
-                Your Stock Portfolio
-              </NavLink>
-            </li>
+
+            {/* Only show if logged in */}
+            {user && (
+              <>
+                <li>
+                  <NavLink to="/dashboard" className={getLink}>
+                    Your Stock Portfolio
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/logout" className={getLink}>
+                    Logout
+                  </NavLink>
+                </li>
+              </>
+            )}
+
+            {/* Only show if logged out */}
+            {!user && (
+              <li>
+                <NavLink to="/login" className={getLink}>
+                  Login/Sign Up
+                </NavLink>
+              </li>
+            )}
           </ul>
 
           {/* Mobile toggle */}
@@ -64,7 +85,6 @@ export default function Navbar() {
             onClick={() => setOpen((v) => !v)}
             className="md:hidden inline-flex items-center justify-center rounded-lg p-2 text-white/90 hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-primary/60"
           >
-            {/* Icon: hamburger / close */}
             <svg className={`h-6 w-6 ${open ? "hidden" : "block"}`} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
               <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
@@ -84,6 +104,11 @@ export default function Navbar() {
             </NavLink>
           </li>
           <li>
+            <NavLink to="/rules" className={getLink} end onClick={() => setOpen(false)}>
+              Rules
+            </NavLink>
+          </li>
+          <li>
             <NavLink to="/displayplayers" className={getLink} onClick={() => setOpen(false)}>
               Season 50 Players
             </NavLink>
@@ -93,6 +118,7 @@ export default function Navbar() {
               Leaderboard
             </NavLink>
           </li>
+
           {user?.role === "admin" && (
             <li>
               <NavLink to="/admin" className={getLink} onClick={() => setOpen(false)}>
@@ -100,14 +126,36 @@ export default function Navbar() {
               </NavLink>
             </li>
           )}
-          <li>
-            <NavLink to="/dashboard" className={getLink} onClick={() => setOpen(false)}>
-              Your Stock Portfolio
-            </NavLink>
-          </li>
+
+          {/* Show when logged in */}
+          {user && (
+            <>
+              <li>
+                <NavLink to="/dashboard" className={getLink} onClick={() => setOpen(false)}>
+                  Your Stock Portfolio
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/logout" className={getLink} onClick={() => setOpen(false)}>
+                  Logout
+                </NavLink>
+              </li>
+            </>
+          )}
+
+          {/* Show when logged out */}
+          {!user && (
+            <li>
+              <NavLink to="/login" className={getLink} onClick={() => setOpen(false)}>
+                Login/Sign Up
+              </NavLink>
+            </li>
+          )}
         </ul>
       </div>
     </nav>
   );
 }
+
+
 

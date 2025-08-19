@@ -74,11 +74,11 @@ const getProfile = async (req, res) => {
 
 function calculateStockPrice (currentSurvivorCount, totalSurvivorCount, availableSurvivorCount, currentMedianPrice) {
     if (currentSurvivorCount === 0) {
-        return 0;
+        return 0.01;
     }
     try {
         let result = currentMedianPrice + (((availableSurvivorCount * (currentSurvivorCount / totalSurvivorCount)) - 1) * currentMedianPrice);
-        result = Math.max(0, Math.min(result, currentMedianPrice * 2));
+        result = Math.max(0.01, Math.min(result, currentMedianPrice * 2));
         return result;
     } catch (error) {
         return 1;
@@ -131,9 +131,13 @@ const updatePortfolio = async (req, res) => {
             }
             await handleBuy(user, survivor, survivorPlayer, currentPrice, amount);
         } else if (action === 'sell') {
-            if (currentUserSurvivorCount <= 0) {
+            if (currentUserSurvivorCount === 0) {
                 return res.json({ error: 'No stock to sell' });
             }
+            else if ((currentUserSurvivorCount - amount) < 0) {
+                return res.json({error: 'Not enough stock to sell'})
+            }
+
             await handleSell(user, survivor, survivorPlayer, availableSurvivorCount, currentMedianPrice, amount);
         } else {
             return res.json({ error: 'Invalid action' });

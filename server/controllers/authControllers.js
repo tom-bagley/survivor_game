@@ -1,13 +1,8 @@
 const User = require('../models/user');
 const Survivor = require('../models/survivors');
-const { hashPassword, comparePassword } = require('../helpers/auth');
+const { hashPassword, comparePassword, generateVerificationToken } = require('../helpers/auth');
 const jwt = require('jsonwebtoken');
-
-const test =  (req, res) => {
-    console.log('rest')
-    res.json('changed text twice')
-}
-
+const { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail, sendRestSuccessEmail } = require('../resend/email');
 
 //Register endpoint
 const registerUser = async (req, res) => {
@@ -42,11 +37,15 @@ const registerUser = async (req, res) => {
         });
 
         const hashedPassword = await hashPassword(password)
+        const verificationToken = generateVerificationToken();
+        console.log(verificationToken)
         //Create user in database
         const user = await User.create({
             name,
             email, 
             password: hashedPassword,
+            verificationToken,
+            verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000,
             portfolio,
             role: 'user'
         });
@@ -54,6 +53,8 @@ const registerUser = async (req, res) => {
             if(err) throw err;
             res.cookie('token', token).json(user)
         })
+
+        await sendVerificationEmail(user.email, verificationToken);
     } catch (error) {
         console.log(error)
     }
@@ -74,17 +75,27 @@ const loginUser = async (req, res) => {
 
         //Check if passwords match
         const match = await comparePassword(password, user.password)
-        if(match) {
-            jwt.sign({email: user.email, id: user._id, name: user.name, portfolio: user.portfolio, role: user.role}, process.env.JWT_SECRET, {}, (err, token) => {
-                if(err) throw err;
-                res.cookie('token', token).json(user)
-            })
-        }
+
         if(!match) {
             res.json({
                 error: 'Passwords do not match'
             })
         }
+
+        const isVerified = user.isVerified;
+
+        if(!isVerified) {
+            res.json({
+                error: 'Email is not verified'
+            })
+        }
+        if(match && isVerified) {
+            jwt.sign({email: user.email, id: user._id, name: user.name, portfolio: user.portfolio, role: user.role}, process.env.JWT_SECRET, {}, (err, token) => {
+                if(err) throw err;
+                res.cookie('token', token).json(user)
+            })
+        }
+        
 
     } catch (error) {
         console.log(error)
@@ -104,11 +115,90 @@ const getProfile = (req, res) => {
     }
 }
 
+const logoutUser = async (req, res) => {
+    res.clearCookie("token");
+    res.status(200).json({success: true, message: "Logged out successfully"})
+}
+
+const verifyEmail = async (req, res) => {
+    const { code } = req.body;
+    try {
+        const user = await User.findOne({
+            verificationToken: code,
+            verificationTokenExpiresAt: { $gt: Date.now() },
+        })
+        if(!user) {
+            return res.status(400).json({ success: false, message: "Invalid or expired verification code"})
+        }
+        user.isVerified = true;
+        user.verificationToken = undefined;
+        user.verificationTokenExpiresAt = undefined;
+        await user.save();
+
+        await sendWelcomeEmail(user.email, user.name)
+    } catch (error) {
+
+    }
+}
+
+const forgotPassword = async (req, res) => {
+    const { email } = req.body;
+    try {
+        const user = await User.findOne({email});
+        if (!user) {
+            return res.status(400).json({success: false, message: "User not found"})
+        }
+        const resetPasswordToken = crypto.randomBytes(32).toString("hex")
+        const resetPasswordExpiresAt = Date.now() + 1 * 60 * 60 * 1000;
+
+        user.resetPasswordToken = resetPasswordToken;
+        user.resetPasswordExpiresAt = resetPasswordExpiresAt;
+
+        await user.save();
+
+        await sendPasswordResetEmail(user.email, `${process.env.CLIENT_URL}/reset-password/${resetPasswordToken}`);
+
+        res.status(200).json({success: true, message: "Reset password email sent successfully"})
+    } catch (error) {
+        console.log("error sending password reset email", error)
+        res.status(400).json({success: false, message: error.message})
+    }
+}
+
+const resetPassword = async (req, res) => {
+    try {
+        const { token } = req.params;
+        const { password } = req.body;
+        const user = await User.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpiresAt: { $gt: Date.now() }
+        })
+        if (!user) {
+            return res.status(400).json({success: false, message: "Invalid or expired reset token"});
+        }
+        const hashedPassword = await hashPassword(password)
+        user.password = hashedPassword;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpiresAt = undefined;
+        await user.save();
+
+        await sendRestSuccessEmail(user.email)
+
+        res.status(200).json({ success: true, message: "Password reset successfully"});
+    } catch (error) {
+        console.log("error reseting password", error);
+        res.status(400).json({ success: false, message: error.message});
+    }
+}
+
 
 
 module.exports = {
-    test,
     registerUser,
     loginUser,
     getProfile,
+    logoutUser,
+    verifyEmail,
+    forgotPassword,
+    resetPassword
 }
