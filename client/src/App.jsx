@@ -19,8 +19,9 @@ import Logout from './pages/Logout';
 import Rules from './pages/Rules';
 
 if (process.env.NODE_ENV === 'production') {
-  axios.defaults.baseURL = 'https://survivorseason48stockgame.onrender.com';
-} else {
+  axios.defaults.baseURL = 'https://survivorstockexchange.com';
+}
+ else {
   axios.defaults.baseURL = 'http://localhost:8000'; 
 }
 
