@@ -122,6 +122,7 @@ const logoutUser = async (req, res) => {
 
 const verifyEmail = async (req, res) => {
     const { code } = req.body;
+    console.log(code)
     try {
         const user = await User.findOne({
             verificationToken: code,
@@ -136,6 +137,7 @@ const verifyEmail = async (req, res) => {
         await user.save();
 
         await sendWelcomeEmail(user.email, user.name)
+        res.status(200).json({ success: true, message: "Verification successful and email sent"})
     } catch (error) {
 
     }

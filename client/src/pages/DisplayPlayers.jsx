@@ -52,7 +52,7 @@ export default function DisplayPlayers() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {players.map((p) => (
               <Introduction
-                key={p._id || p.name}               // stable key
+                key={p._id || p.name}               
                 name={p.name}
                 profilePhotoUrl={p.profile_pic}
                 age={p.age}
