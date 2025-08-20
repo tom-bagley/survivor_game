@@ -37,11 +37,11 @@ export default function Navbar() {
                 Meet the Cast
               </NavLink>
             </li>
-            <li>
+            {/* <li>
               <NavLink to="/leaderboard" className={getLink}>
                 Leaderboard
               </NavLink>
-            </li>
+            </li> */}
 
             {user?.role === "admin" && (
               <li>
