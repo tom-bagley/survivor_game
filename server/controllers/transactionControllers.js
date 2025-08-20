@@ -276,7 +276,7 @@ const calculatePrevNetWorth = async (user) => {
     const episodeNumber = episode.episodeNumber
 
     if (episodeNumber === 1) {
-        return 1000
+        return 500
     }
 
     const lastEpisode = await Episode.findOne({
@@ -284,7 +284,6 @@ const calculatePrevNetWorth = async (user) => {
         episodeNumber: episodeNumber - 1,
     });
     if (!lastEpisode) {
-        console.log('fail') 
         return user.netWorth;
     }
     

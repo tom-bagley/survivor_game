@@ -123,6 +123,11 @@ export default function Home() {
         <Introduction
           name={player?.name}
           profilePhotoUrl={player?.profile_pic}
+          age={player?.age}
+          Hometown={player?.Hometown}
+          Current_Residence={player?.Current_Residence}
+          Occupation={player?.Occupation}
+          homepage={true}
         />
       ) : (
         <Display

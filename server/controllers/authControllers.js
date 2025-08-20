@@ -49,7 +49,7 @@ const registerUser = async (req, res) => {
             portfolio,
             role: 'user'
         });
-        jwt.sign({email: user.email, id: user._id, name: user.name, portfolio: user.portfolio, role: user.role}, process.env.JWT_SECRET, {}, (err, token) => {
+        jwt.sign({sub: user._id}, process.env.JWT_SECRET, {}, (err, token) => {
             if(err) throw err;
             res.cookie('token', token).json(user)
         })
@@ -91,7 +91,7 @@ const loginUser = async (req, res) => {
         //     })
         // }
         if(match && isVerified) {
-            jwt.sign({email: user.email, id: user._id, name: user.name, portfolio: user.portfolio, role: user.role}, process.env.JWT_SECRET, {}, (err, token) => {
+            jwt.sign({sub: user._id}, process.env.JWT_SECRET, {}, (err, token) => {
                 if(err) throw err;
                 res.cookie('token', token).json(user)
             })
@@ -104,16 +104,27 @@ const loginUser = async (req, res) => {
 }
 
 
-const getProfile = (req, res) => {
-    const {token} = req.cookies
-    if(token) {
-        jwt.verify(token, process.env.JWT_SECRET, {}, (err, user) => {
-            if(err) throw err;
-            res.json(user)
-        })
-    } else {
-        res.json(null)
-    }
+const getProfile = async (req, res) => {
+  const token = req.cookies?.token;
+  if (!token) return res.status(200).json(null);
+
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(payload.sub)
+      .select('_id name email role') 
+      .lean();
+
+    if (!user) return res.status(200).json(null);
+
+    return res.json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    });
+  } catch (e) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
 }
 
 const logoutUser = async (req, res) => {
@@ -194,6 +205,19 @@ const resetPassword = async (req, res) => {
     }
 }
 
+const resetUsername = async (req, res) => {
+    try {
+        const { newUsername, id } = req.body;
+        const user = await User.findOne({ _id: id })
+        user.name = newUsername;
+        await user.save();
+        res.status(200).json({ success: true, message: "Username reset successfully"})
+    } catch (error) {
+        console.log("error resetting username", error)
+        res.status(400).json({ success: false, message: error.message})
+    }
+}
+
 
 
 module.exports = {
@@ -203,5 +227,6 @@ module.exports = {
     logoutUser,
     verifyEmail,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    resetUsername
 }

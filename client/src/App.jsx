@@ -17,6 +17,7 @@ import AppLayout from './components/AppLayout';
 import Login from './pages/Login';
 import Logout from './pages/Logout';
 import Rules from './pages/Rules';
+import ChangeUsername from './pages/ChangeUsername';
 
 if (process.env.NODE_ENV === 'production') {
   axios.defaults.baseURL = 'https://survivorstockexchange.com';
@@ -77,6 +78,7 @@ function App() {
         }
       />
       <Route path='/rules' element={<Rules />} />
+      <Route path='/change-username' element={<ChangeUsername />} />
 
     </Routes>
     </UserContextProvider>

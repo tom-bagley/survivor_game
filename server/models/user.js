@@ -23,11 +23,11 @@ const userSchema = new Schema({
     },
     budget: {
         type: Number,
-        default: 10000
+        default: 500
     },
     netWorth: {
         type: Number,
-        default: 10000
+        default: 500
     },
     role: {
         type: String,
