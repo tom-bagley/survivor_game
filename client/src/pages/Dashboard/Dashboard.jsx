@@ -158,6 +158,13 @@ export default function Dashboard() {
   const formattedBudget = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(budget);
   const formattedNetWorth = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(netWorth);
 
+  function ordinal(n) {
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  }
+  const rankValue = leaderboard && typeof leaderboard === 'object' ? leaderboard.rank : leaderboard;
+
   return (
     <>
       {showAnimation && Number(week) > 0 && (
@@ -195,7 +202,9 @@ export default function Dashboard() {
                 </div>
                 <div className="rounded-2xl bg-black/30 ring-1 ring-white/10 px-5 py-4">
                   <div className="text-xs text-white/60">Rank</div>
-                  <div className="text-2xl font-semibold">{leaderboard}th</div>
+                  <div className="text-2xl font-semibold">
+                    {rankValue != null ? ordinal(rankValue) : '—'}
+                  </div>
                 </div>
               </div>
             </div>

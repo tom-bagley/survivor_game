@@ -34,7 +34,7 @@ export default function Navbar() {
             </li>
             <li>
               <NavLink to="/displayplayers" className={getLink}>
-                Season 50 Players
+                Meet the Cast
               </NavLink>
             </li>
             <li>
