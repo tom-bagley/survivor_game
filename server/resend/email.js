@@ -1,5 +1,5 @@
 const { resend } = require('./config')
-const { verificationTokenEmailTemplate, welcomeEmail } = require('./email-template')
+const { verificationTokenEmailTemplate, welcomeEmail, resetPasswordLinkEmail, passwordResetSuccessfulEmail } = require('./email-template')
 
 const sendVerificationEmail = async (email, verificationToken) => {
     console.log(email, verificationToken)
@@ -33,10 +33,11 @@ const sendWelcomeEmail = async (email, name) => {
 const sendPasswordResetEmail = async (email, resetURL) => {
     try {
         const { data, error } = await resend.emails.send({
-            from: "Acme <onboarding@resend.dev>",
+            from: 'Survivor Stock Exchange <no-reply@mail.survivorstockexchange.com>',
             to: [email],
             subject: "Reset Your Password",
-            html: `Click <a href="${resetURL}">here</a> to reset your password`,
+            html: resetPasswordLinkEmail.replace(/{resetURL}/g, resetURL)
+
         });
     } catch (error) {
         console.log("error sending password reset email", error)
@@ -47,10 +48,10 @@ const sendPasswordResetEmail = async (email, resetURL) => {
 const sendRestSuccessEmail = async (email) => {
     try {
         const { data, error } = await resend.emails.send({
-            from: "Acme <onboarding@resend.dev>",
+            from: "Survivor Stock Exchange <no-reply@mail.survivorstockexchange.com>",
             to: [email],
             subject: "Password Reset Was Successful",
-            html: `Your password was reset successfully`,
+            html: passwordResetSuccessfulEmail,
         });
     } catch (error) {
         console.log("error sending password reset successful email", error)

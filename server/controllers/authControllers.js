@@ -1,7 +1,9 @@
 const User = require('../models/user');
 const Survivor = require('../models/survivors');
+const Season = require('../models/seasonSettings');
 const { hashPassword, comparePassword, generateVerificationToken } = require('../helpers/auth');
 const jwt = require('jsonwebtoken');
+const crypto = require('node:crypto');
 const { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail, sendRestSuccessEmail } = require('../resend/email');
 
 //Register endpoint
@@ -38,7 +40,8 @@ const registerUser = async (req, res) => {
 
         const hashedPassword = await hashPassword(password)
         const verificationToken = generateVerificationToken();
-        console.log(verificationToken)
+        
+        const season = await Season.findOne({ isCurrentSeason: true });
         //Create user in database
         const user = await User.create({
             name,
@@ -47,9 +50,10 @@ const registerUser = async (req, res) => {
             verificationToken,
             verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000,
             portfolio,
-            role: 'user'
+            role: 'user',
+            last_seen_episode_id: season.currentWeek,
         });
-        jwt.sign({sub: user._id}, process.env.JWT_SECRET, {}, (err, token) => {
+        jwt.sign({sub: user._id, role: user.role}, process.env.JWT_SECRET, {}, (err, token) => {
             if(err) throw err;
             res.cookie('token', token).json(user)
         })
@@ -91,7 +95,7 @@ const loginUser = async (req, res) => {
         //     })
         // }
         if(match && isVerified) {
-            jwt.sign({sub: user._id}, process.env.JWT_SECRET, {}, (err, token) => {
+            jwt.sign({sub: user._id, role: user.role}, process.env.JWT_SECRET, {}, (err, token) => {
                 if(err) throw err;
                 res.cookie('token', token).json(user)
             })
@@ -157,6 +161,7 @@ const verifyEmail = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
     const { email } = req.body;
+    console.log(email)
     try {
         const user = await User.findOne({email});
         if (!user) {
@@ -170,7 +175,7 @@ const forgotPassword = async (req, res) => {
 
         await user.save();
 
-        await sendPasswordResetEmail(user.email, `survivorstockexhange.com/reset-password/${resetPasswordToken}`);
+        await sendPasswordResetEmail(user.email, `http://localhost:5173/reset-password/${resetPasswordToken}`);
 
         res.status(200).json({success: true, message: "Reset password email sent successfully"})
     } catch (error) {

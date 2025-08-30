@@ -197,7 +197,6 @@ const calculateNetWorth = async (user) => {
 
 const updatePortfolioPreseason = async (req, res) => {
     const { userId, survivorPlayer, action, amount } = req.body;
-    console.log(amount)
     try {
         const user = await User.findById(userId);
         const survivor = await Survivor.findOne({ name: survivorPlayer });

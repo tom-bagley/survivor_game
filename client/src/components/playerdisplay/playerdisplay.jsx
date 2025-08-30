@@ -39,6 +39,7 @@ export default function Display({ name, profilePhotoUrl, isFading, eliminated, w
       className={[
         // card shell
         "rounded-2xl bg-charcoal/80 ring-1 ring-white/10 shadow-xl p-5 sm:p-6 transition-opacity duration-500",
+        "max-w-3xl mx-auto",
         isFading ? "opacity-0" : "opacity-100",
         eliminated ? "grayscale" : "",
       ].join(" ")}
@@ -78,43 +79,43 @@ export default function Display({ name, profilePhotoUrl, isFading, eliminated, w
           )}
         </div>
       </div>
+      {/* Content: avatar*/}
+<div className="flex flex-col md:flex-row items-start gap-4 w-full">
+  <div
+    className={[
+      "mx-auto md:mx-0",
+      "relative w-40 sm:w-48 md:w-56 max-w-[300px]",
+      "aspect-square md:aspect-[3/4] rounded-2xl overflow-hidden ring-2 shadow-lg", // was aspect-square
+      eliminated
+        ? "ring-red-flame/40"
+        : isGood
+        ? "ring-green-dark/50"
+        : "ring-red-flame/50",
+    ].join(" ")}
+  >
+    <img
+      src={profilePhotoUrl}
+      alt={`${name} headshot`}
+      className="absolute inset-0 h-full w-full object-cover object-top"
+    />
+    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+  </div>
 
-      {/* Content: avatar + chart */}
-      {/* Content: avatar above chart */}
-      <div className="flex flex-col items-center gap-5">
-        {/* Avatar */}
-        <div
-          className={[
-            "relative aspect-square w-40 sm:w-48 max-w-[260px] mx-auto rounded-2xl overflow-hidden",
-            "ring-2",
-            eliminated
-              ? "ring-red-flame/40"
-              : isGood
-              ? "ring-green-dark/50"
-              : "ring-red-flame/50",
-            "shadow-lg",
-          ].join(" ")}
-        >
-          <img
-            src={profilePhotoUrl}
-            alt={`${name} headshot`}
-            className="h-full w-full object-cover object-top"
-          />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-        </div>
 
-        {/* Chart */}
-        <div className="w-full">
-          <StockChart
-            data={priceData}
-            latestWeek={String(week)}
-            latestSeason={season}
-            medianPrice={medianPrice}
-            eliminated={eliminated}
-            homepage={true}
-          />
-        </div>
-      </div>
+
+  {/* Chart (right) */}
+  <div className="flex-1 min-w-0 w-full md:w-auto">
+    <StockChart
+      data={priceData}
+      latestWeek={String(week)}
+      latestSeason={season}
+      medianPrice={medianPrice}
+      eliminated={eliminated}
+      homepage={true}
+    />
+  </div>
+</div>
+
 
     </div>
   );

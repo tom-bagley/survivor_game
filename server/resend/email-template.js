@@ -372,5 +372,133 @@ const welcomeEmail = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional/
   </body>
 </html>
 `
+const resetPasswordLinkEmail = `<!doctype html>
+<html lang="en" style="margin:0;padding:0;">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="x-apple-disable-message-reformatting">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Password Reset</title>
+  </head>
+  <body style="margin:0;padding:0;background:#0b0b0d;color:#ffffff;-webkit-font-smoothing:antialiased;">
+    <!-- Full width wrapper -->
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#0b0b0d;margin:0;padding:24px 0;">
+      <tr>
+        <td align="center">
+          
+          <!-- Container -->
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;max-width:600px;background:#141417;border-radius:16px;border:1px solid #26262b;">
+            <!-- Header / Logo -->
+            <tr>
+              <td align="center" style="padding:28px 24px 8px 24px;">
+                <img src="survivorstockexchange.com/logo.jpg" alt="Survivor Stock Game" width="120" height="auto" style="display:block;border:0;outline:none;text-decoration:none;height:auto;max-width:100%;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.35));">
+              </td>
+            </tr>
 
-module.exports = {verificationTokenEmailTemplate, welcomeEmail}
+            <!-- Title -->
+            <tr>
+              <td align="center" style="padding:0 24px 8px 24px;">
+                <h1 style="margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:24px;line-height:32px;font-weight:700;color:#e6e6ea;">
+                  Reset your password
+                </h1>
+              </td>
+            </tr>
+
+            <!-- Intro copy -->
+            <tr>
+              <td align="center" style="padding:0 32px 20px 32px;">
+                <p style="margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:15px;line-height:22px;color:#b7b7c1;">
+                  We received a request to reset your Survivor Stock Game password. Click the button below to choose a new one.
+                </p>
+              </td>
+            </tr>
+
+            <!-- CTA Button -->
+            <tr>
+              <td align="center" style="padding:8px 24px 12px 24px;">
+                <!--[if mso]>
+                <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="{resetURL}" style="height:44px;v-text-anchor:middle;width:260px;" arcsize="12%" stroke="f" fillcolor="#36e3ff">
+                  <w:anchorlock/>
+                  <center style="color:#000000;font-family:Segoe UI,Arial,sans-serif;font-size:16px;font-weight:700;">
+                    Reset Password
+                  </center>
+                </v:roundrect>
+                <![endif]-->
+                <a href="{resetURL}" target="_blank"
+                   style="background:#36e3ff;color:#000000;display:inline-block;font-family:Inter,Segoe UI,Arial,sans-serif;
+                          font-weight:700;font-size:16px;line-height:44px;text-decoration:none;border-radius:8px;
+                          padding:0 24px;min-width:220px;text-align:center;">
+                  Reset Password
+                </a>
+              </td>
+            </tr>
+
+            <!-- Expiration / Help text -->
+            <tr>
+              <td align="center" style="padding:0 32px 18px 32px;">
+                <p style="margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:13px;line-height:20px;color:#8f8f99;">
+                  This link will expire after a short time. If you didn’t request this, you can safely ignore this email.
+                </p>
+              </td>
+            </tr>
+
+            
+
+          </table>
+
+          <!-- Footer -->
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;max-width:600px;margin-top:12px;">
+            <tr>
+              <td align="center" style="padding:8px 24px;color:#6f6f79;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:12px;line-height:18px;">
+                © ${new Date().getFullYear()} Survivor Stock Game
+              </td>
+            </tr>
+          </table>
+
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+`
+
+const passwordResetSuccessfulEmail = `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Password Reset Successful</title>
+  </head>
+  <body style="margin:0; padding:0; background-color:#111; font-family: Arial, sans-serif; color: #fff;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: auto; background-color:#1a1a1a; border-radius:8px; overflow:hidden;">
+      
+      <!-- Logo -->
+      <tr>
+        <td align="center" style="padding: 20px; background-color:#000;">
+          <img src="survivorstockexchange.com/logo.jpg" alt="Survivor Stock Game Logo" style="max-width:200px; height:auto; display:block; margin:0 auto;" />
+        </td>
+      </tr>
+
+      <!-- Main content -->
+      <tr>
+        <td style="padding: 30px;">
+          <h1 style="color:#00eaff; font-size:24px; margin-top:0; text-align:center;">Password Reset Successful</h1>
+          <p style="font-size:16px; line-height:1.5; text-align:center; color:#ccc;">
+            Hello,<br /><br />
+            This is a confirmation that your password was changed successfully.<br />
+          </p>
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td style="padding: 20px; text-align:center; font-size:12px; color:#555;">
+          Survivor Stock Game
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+`
+
+
+module.exports = {verificationTokenEmailTemplate, welcomeEmail, resetPasswordLinkEmail, passwordResetSuccessfulEmail}

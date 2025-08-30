@@ -21,6 +21,9 @@ const survivorSchema = new Schema({
     profile_pic: {
         type: String,
     },
+    youtube_interview: {
+        type: String,
+    },
     age: String,
     Hometown: String,
     Current_Residence: String,

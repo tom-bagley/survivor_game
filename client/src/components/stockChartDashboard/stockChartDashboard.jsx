@@ -93,7 +93,7 @@ const StockChart = ({
 
       {/* Chart card */}
       <div className="rounded-xl bg-black/30 ring-1 ring-white/10 p-2 w-full">
-        <div className="h-[250px] md:h-[400px] lg:h-[300px]">
+        <div className="h-[250px] md:h-[300px] lg:h-[300px]">
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={filteredData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
               <defs>

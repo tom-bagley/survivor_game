@@ -84,9 +84,9 @@ const Login = () => {
         <div className="mt-4 flex items-center justify-between text-sm">
           <div className="text-white/70">
             Forgot{" "}
-            <a href="#" className="text-accent hover:underline">
+            <Link to='/change-password' className="text-accent hover:underline">
               password?
-            </a>
+            </Link>
           </div>
           <div className="text-white/70">
             New to the game?{" "}

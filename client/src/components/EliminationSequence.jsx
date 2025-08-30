@@ -9,15 +9,18 @@ export default function EliminationSequence({
   medianPrice = 0,
   prevNetWorth = 0,
   netWorth = 0,
-  onFinish, // optional: called when closed
+  onFinish, 
 }) {
-  // Build ordered list from eliminatedSurvivors object
+  
   const survivorList = useMemo(
-    () => Object.keys(eliminatedSurvivors).map((id) => eliminatedSurvivors[id]).filter(Boolean),
+    () =>
+      Object.keys(eliminatedSurvivors)
+        .map((id) => eliminatedSurvivors[id])
+        .filter(Boolean),
     [eliminatedSurvivors]
   );
 
-  const totalStages = Math.max(1, survivorList.length + 1); // survivors + final net worth
+  const totalStages = Math.max(1, survivorList.length + 1); 
   const [stageIndex, setStageIndex] = useState(0);
 
   // Navigation
@@ -29,7 +32,7 @@ export default function EliminationSequence({
     if (onFinish) onFinish();
   }, [onFinish]);
 
-  // Keyboard: Esc to close, Space/Enter to advance
+  
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") {
@@ -46,7 +49,10 @@ export default function EliminationSequence({
   }, [close, nextStage]);
 
   const formatUSD = (n) =>
-    `$${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    `$${Number(n || 0).toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
 
   const renderSurvivorStage = (name) => {
     const survivor = survivorPlayerStats[name] || {};
@@ -55,13 +61,13 @@ export default function EliminationSequence({
     const holdingsValue = shares * price;
 
     return (
-      <div className="animate-fadein text-center">
-        <h1 className="font-heading text-3xl sm:text-4xl tracking-tight">
+      <div className="animate-fadein text-center w-full max-w-xl">
+        <h1 className="font-heading text-2xl sm:text-3xl tracking-tight">
           Eliminated: {survivor.name || name}
         </h1>
 
-        <div className="mt-6 mx-auto w-full max-w-sm">
-          <div className="relative rounded-2xl overflow-hidden ring-1 ring-white/10 bg-black/30 aspect-[3/4]">
+        <div className="mt-4 mx-auto w-full max-w-[260px] sm:max-w-sm">
+          <div className="relative rounded-2xl overflow-hidden ring-1 ring-white/10 bg-black/30 h-64 sm:h-80">
             {survivor.profile_pic ? (
               <img
                 src={survivor.profile_pic}
@@ -69,22 +75,29 @@ export default function EliminationSequence({
                 className="h-full w-full object-cover object-top"
               />
             ) : (
-              <div className="h-full w-full grid place-items-center text-white/50">No image</div>
+              <div className="h-full w-full grid place-items-center text-white/50">
+                No image
+              </div>
             )}
           </div>
         </div>
 
-        <div className="mt-5 text-xl">
-          Money Lost: <span className="font-semibold text-red-flame">{formatUSD(holdingsValue)}</span>
+        <div className="mt-4 text-lg sm:text-xl">
+          Money Lost:{" "}
+          <span className="font-semibold text-red-flame">
+            {formatUSD(holdingsValue)}
+          </span>
         </div>
       </div>
     );
   };
 
   const renderNetWorthStage = () => (
-    <div className="animate-fadein text-center">
-      <h1 className="font-heading text-3xl sm:text-4xl tracking-tight">Portfolio Update</h1>
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto">
+    <div className="animate-fadein text-center w-full max-w-xl">
+      <h1 className="font-heading text-2xl sm:text-3xl tracking-tight">
+        Portfolio Update
+      </h1>
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto">
         <div className="rounded-xl bg-black/30 ring-1 ring-white/10 px-4 py-3">
           <div className="text-white/70 text-sm">Previous Net Worth</div>
           <div className="text-xl font-semibold">{formatUSD(prevNetWorth)}</div>
@@ -94,7 +107,9 @@ export default function EliminationSequence({
           <div className="text-xl font-semibold">{formatUSD(netWorth)}</div>
         </div>
       </div>
-      <p className="mt-4 text-white/60 text-sm">Press <kbd>Esc</kbd> to close.</p>
+      <p className="mt-3 text-white/60 text-sm">
+        Press <kbd>Esc</kbd> to close.
+      </p>
     </div>
   );
 
@@ -114,7 +129,7 @@ export default function EliminationSequence({
         <div className="absolute -bottom-24 -right-16 h-80 w-80 rounded-full bg-accent blur-3xl opacity-25" />
       </div>
 
-      <div className="relative z-10 h-full w-full flex flex-col">
+      <div className="relative z-10 h-[100dvh] w-full flex flex-col">
         {/* top bar */}
         <div className="flex items-center justify-between px-4 sm:px-6 pt-4">
           <div className="text-xs text-white/60">Week {week ?? "—"}</div>
@@ -128,11 +143,13 @@ export default function EliminationSequence({
           </button>
         </div>
 
-        {/* main content */}
-        <div className="flex-1 px-6 sm:px-8 py-6 grid place-items-center">{content}</div>
+        {/* main content (scrollable) */}
+        <div className="flex-1 px-4 sm:px-8 py-4 overflow-y-auto">
+          <div className="min-h-full grid place-items-center">{content}</div>
+        </div>
 
-        {/* progress + controls */}
-        <div className="px-6 sm:px-8 pb-6">
+        {/* progress + controls (fixed within modal) */}
+        <div className="px-4 sm:px-8 pb-4 sm:pb-6 pt-2 [padding-bottom:calc(env(safe-area-inset-bottom)+1rem)] bg-transparent">
           <div className="flex items-center justify-center gap-2">
             {Array.from({ length: totalStages }).map((_, i) => (
               <span
@@ -176,6 +193,7 @@ export default function EliminationSequence({
     </div>
   );
 }
+
 
 
 

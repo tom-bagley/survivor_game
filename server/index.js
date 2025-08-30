@@ -37,7 +37,7 @@ mongoose.connect(process.env.MONGO_URL)
 //     .catch(console.error);
 // }, 60000); // 60,000 ms = 1 minute
 
-// setInterval(checkEpisodeStatus, 6 * 1000);
+setInterval(checkEpisodeStatus, 6 * 1000);
 
 // // setInterval(async () => {
 // //   try {
@@ -51,9 +51,9 @@ mongoose.connect(process.env.MONGO_URL)
 // //   }
 // // }, 1* 60 * 1000);
 
-// (async () => {
-//   await checkEpisodeStatus(); 
-// })();
+(async () => {
+  await checkEpisodeStatus(); 
+})();
 
 //middleware
 app.use(express.json());

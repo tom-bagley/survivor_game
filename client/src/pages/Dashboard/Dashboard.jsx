@@ -22,6 +22,9 @@ export default function Dashboard() {
   const [lastSeenWeek, setLastSeenWeek] = useState(null);
   const [showAnimation, setShowAnimation] = useState(false);
   const [eliminatedSurvivors, setEliminatedSurvivors] = useState([]);
+  const [displayOrder, setDisplayOrder] = useState([]);
+  const [appliedSort, setAppliedSort] = useState("stock");
+  const [isSortStale, setIsSortStale] = useState(false);  
 
   useEffect(() => {
     if (loading || !user?.id) return;
@@ -87,6 +90,75 @@ export default function Dashboard() {
 
     updateLastSeen();
   }, [loading, week, lastSeenWeek, user]);
+
+const stockOrder = (mode) => {
+  const keys = Object.keys(sharesOwned);
+
+  // Split active vs eliminated
+  const active = [];
+  const eliminated = [];
+
+  keys.forEach((k) => {
+    const survivor = survivorPlayerStats[k];
+    const shares = sharesOwned[k] ?? 0;
+    const priceNow = week === 0 ? (medianPrice ?? 0) : (prices[k] ?? 0);
+    const value = shares * priceNow;
+
+    if (survivor?.availability) {
+      active.push({ k, shares, value });
+    } else {
+      eliminated.push({ k, shares, value });
+    }
+  });
+
+  // Sort active players according to mode
+  if (mode === "value") {
+    active.sort((a, b) => {
+      if (b.value !== a.value) return b.value - a.value;
+      return a.k.localeCompare(b.k);
+    });
+  } else {
+    // "stock"
+    active.sort((a, b) => {
+      if (b.shares !== a.shares) return b.shares - a.shares;
+      return a.k.localeCompare(b.k);
+    });
+  }
+
+  // Keep eliminated players at bottom (sorted by name here)
+  eliminated.sort((a, b) => a.k.localeCompare(b.k));
+
+  // Merge back together
+  return [...active.map(x => x.k), ...eliminated.map(x => x.k)];
+};
+
+
+useEffect(() => {
+  const keys = Object.keys(sharesOwned);
+
+  setDisplayOrder((prev) => {
+    if (!prev || prev.length === 0) {
+      
+      return stockOrder(appliedSort);
+    }
+    const setKeys = new Set(keys);
+    const still = prev.filter((k) => setKeys.has(k));       
+    const setPrev = new Set(still);
+    const added = keys.filter((k) => !setPrev.has(k));      
+    return [...still, ...added];
+  });
+}, [sharesOwned]);
+
+useEffect(() => {
+  if (!displayOrder.length) return;
+
+  const ideal = stockOrder(appliedSort);
+  const same =
+    ideal.length === displayOrder.length &&
+    ideal.every((k, i) => k === displayOrder[i]);
+
+  setIsSortStale(!same);  
+}, [sharesOwned, prices, week, medianPrice, appliedSort, displayOrder, survivorPlayerStats]);
 
   // Not logged in
   if (!user?.id)
@@ -165,6 +237,14 @@ export default function Dashboard() {
   }
   const rankValue = leaderboard && typeof leaderboard === 'object' ? leaderboard.rank : leaderboard;
 
+  
+
+
+
+
+
+
+
   return (
     <>
       {showAnimation && Number(week) > 0 && (
@@ -192,72 +272,89 @@ export default function Dashboard() {
 
               {/* Financial summary */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="rounded-2xl bg-black/30 ring-1 ring-white/10 px-5 py-4">
-                  <div className="text-xs text-white/60">Budget</div>
-                  <div className="text-2xl font-semibold">{formattedBudget}</div>
-                </div>
-                <div className="rounded-2xl bg-black/30 ring-1 ring-white/10 px-5 py-4">
-                  <div className="text-xs text-white/60">Net Worth</div>
-                  <div className="text-2xl font-semibold">{formattedNetWorth}</div>
-                </div>
+                {Number(week) > 0 && (
                 <div className="rounded-2xl bg-black/30 ring-1 ring-white/10 px-5 py-4">
                   <div className="text-xs text-white/60">Rank</div>
                   <div className="text-2xl font-semibold">
                     {rankValue != null ? ordinal(rankValue) : '—'}
                   </div>
                 </div>
+                )}
+                {Number(week) > 0 && (
+                <div className="rounded-2xl bg-black/30 ring-1 ring-white/10 px-5 py-4">
+                  <div className="text-xs text-white/60">Net Worth</div>
+                  <div className="text-2xl font-semibold">{formattedNetWorth}</div>
+                </div>
+                )}
+                <div className="rounded-2xl bg-black/30 ring-1 ring-white/10 px-5 py-4">
+                  <div className="text-xs text-white/60">Budget</div>
+                  <div className="text-2xl font-semibold">{formattedBudget}</div>
+                </div>
               </div>
             </div>
           </header>
 
           {/* Portfolio Title */}
-<div className="mb-4">
+
+{/* Portfolio Title + Sort Buttons */}
+<div className="mb-4 flex items-center justify-between">
   <h2 className="font-heading text-2xl">Your Portfolio</h2>
+
+  <div className="flex items-center gap-2">
+    <span className="text-sm text-white/60">Sort by:</span>
+
+    <button
+      type="button"
+      onClick={() => {
+        setDisplayOrder(stockOrder("stock")); 
+        setAppliedSort("stock");
+        setIsSortStale(false);
+      }}
+      aria-pressed={appliedSort === "stock" && !isSortStale}
+      className={`rounded-xl px-3 py-1.5 text-sm ring-1 transition
+        ${appliedSort === "stock" && !isSortStale
+          ? "bg-yellow-500/20 text-yellow-300 ring-yellow-300/40"
+          : "bg-black/30 text-white ring-white/10 hover:bg-white/5"}`}
+    >
+      Most Shares
+    </button>
+  </div>
 </div>
 
-{/* Masonry columns: 1 column mobile, 2 columns desktop */}
-{/* Masonry columns: 1 column mobile, 2 columns desktop */}
-<div className="columns-1 sm:columns-2 gap-6 [column-fill:_balance]">
-  {Object.keys(sharesOwned)
-    // sort: active first, eliminated last
-    .sort((a, b) => {
-      const survivorA = survivorPlayerStats[a];
-      const survivorB = survivorPlayerStats[b];
-      const activeA = survivorA?.availability ? 1 : 0;
-      const activeB = survivorB?.availability ? 1 : 0;
-      return activeB - activeA; // active (1) comes before eliminated (0)
-    })
-    .map((survivorPlayer) => {
-      const survivor = survivorPlayerStats[survivorPlayer];
-      if (!survivor) return null;
 
-      const profile_pic = survivor.profile_pic;
-      const shares = sharesOwned[survivorPlayer];
-      const price = prices[survivorPlayer];
-      const displayPrice = week === 0 ? medianPrice : price;
-      const holdingsValue = shares * displayPrice;
-      const eliminated = !survivor.availability;
-      const historical_prices = survivor.historicalprices;
 
-      return (
-        <div key={survivorPlayer} className="break-inside-avoid mb-6">
-          <Display
-            name={survivorPlayer}
-            profilePhotoUrl={profile_pic}
-            shares={shares}
-            price={displayPrice}
-            holdingsValue={holdingsValue}
-            buyStock={buyStock}
-            sellStock={sellStock}
-            eliminated={eliminated}
-            season={season}
-            week={week}
-            historical_prices={historical_prices}
-            medianPrice={medianPrice}
-          />
-        </div>
-      );
-    })}
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  {displayOrder.map((survivorPlayer) => {
+    const survivor = survivorPlayerStats[survivorPlayer];
+    if (!survivor) return null;
+
+    const profile_pic = survivor.profile_pic;
+    const shares = sharesOwned[survivorPlayer] ?? 0;
+    const price = prices[survivorPlayer] ?? 0;
+    const displayPrice = week === 0 ? (medianPrice ?? 0) : price;
+    const holdingsValue = shares * displayPrice;
+    const eliminated = !survivor.availability;
+    const historical_prices = survivor.historicalprices;
+
+    return (
+      <div key={survivorPlayer} className="h-full">
+        <Display
+          name={survivorPlayer}
+          profilePhotoUrl={profile_pic}
+          shares={shares}
+          price={displayPrice}
+          holdingsValue={holdingsValue}
+          buyStock={buyStock}
+          sellStock={sellStock}
+          eliminated={eliminated}
+          season={season}
+          week={week}
+          historical_prices={historical_prices}
+          medianPrice={medianPrice}
+        />
+      </div>
+    );
+  })}
 </div>
 
 

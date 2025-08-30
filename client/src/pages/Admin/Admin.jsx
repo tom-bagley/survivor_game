@@ -27,7 +27,7 @@ export default function Players() {
 
   const addPlayer = async (e) => {
     e.preventDefault();
-    const { name, profile_pic, age, Hometown, Current_Residence, Occupation } = data;
+    const { name, profile_pic, age, Hometown, Current_Residence, Occupation, Link } = data;
     try {
       const res = await axios.post("/admin/addplayer", {
         name,
@@ -36,6 +36,7 @@ export default function Players() {
         Hometown,
         Current_Residence,
         Occupation,
+        Link,
       });
       if (res.data?.error) return toast.error(res.data.error);
       setData((s) => ({
@@ -218,6 +219,12 @@ export default function Players() {
               placeholder="Occupation"
               value={data.Occupation}
               onChange={onChange("Occupation")}
+            />
+            <input
+              className="rounded-lg bg-black/30 text-white placeholder-white/40 ring-1 ring-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70"
+              placeholder="Link"
+              value={data.Link}
+              onChange={onChange("Link")}
             />
             <div className="sm:col-span-2 flex justify-end">
               <button

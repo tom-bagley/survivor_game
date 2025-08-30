@@ -109,10 +109,11 @@ export default function Home() {
 {/* One-Column Layout */}
 <div className="grid grid-cols-1 gap-8">
   {/* Rotating Player Display */}
-  <section
-    className="rounded-2xl bg-charcoal/80 ring-1 ring-white/10 shadow-xl p-6 lg:p-8 min-h-[700px]"
-    aria-labelledby="spotlight-title"
-  >
+<section
+  className="bg-transparent shadow-none ring-0 min-h-[580px]"
+  aria-labelledby="spotlight-title"
+>
+
     <div
       className={[
         "transition-opacity duration-500",

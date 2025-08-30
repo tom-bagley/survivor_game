@@ -30,31 +30,37 @@ export default function Display({
 
   return (
     <div
-      className={[
-        "rounded-2xl bg-charcoal/80 ring-1 ring-white/10 shadow-xl",
-        "px-4 py-5 sm:px-5",
-        "flex flex-col items-center text-center",
-        eliminated ? "grayscale" : "",
-      ].join(" ")}
-    >
+  className={[
+    "rounded-2xl bg-charcoal/80 ring-1 ring-white/10 shadow-xl",
+    "px-4 py-5 sm:px-5",
+    "flex flex-col items-center text-center",
+    eliminated ? "grayscale" : "",
+  ].join(" ")}
+>
       {/* Profile Image (smaller, shows full headshot) */}
-      <div className="w-full mb-4">
-        <div
-          className={[
-            "relative mx-auto rounded-xl overflow-hidden bg-black/20",
-            "max-w-[80%]",              // narrower than container
-            "aspect-[3/4] max-h-44",    // portrait ratio, shorter height
-            "ring-2",
-            eliminated
-              ? "ring-red-flame/40"
-              : isGood
-              ? "ring-green-dark/50"
-              : "ring-red-flame/50",
-          ].join(" ")}
-        >
-          <img src={profilePhotoUrl} alt="Profile" className="w-34 h-auto rounded-lg object-cover" />
-        </div>
-      </div>
+<div className="w-full mb-4">
+  <div
+    className={[
+      "relative mx-auto rounded-xl overflow-hidden bg-black/20",
+      "aspect-[3/4]", // keeps portrait ratio
+      "ring-2",
+      eliminated
+        ? "ring-red-flame/40"
+        : isGood
+        ? "ring-green-dark/50"
+        : "ring-red-flame/50",
+    ].join(" ")}
+    style={{ maxWidth: "150px" }} // fixed max width across devices
+  >
+    <img
+      src={profilePhotoUrl}
+      alt="Profile"
+      className="w-full h-full object-cover rounded-lg"
+    />
+  </div>
+</div>
+
+
 
       {/* Name & Details */}
       <h4 className="font-heading text-xl text-white tracking-tight flex items-center gap-2">

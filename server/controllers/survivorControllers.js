@@ -6,7 +6,7 @@ const { getTotalStockCount, calculateStockPrice } = require('./transactionContro
 
 const addSurvivor = async (req, res) => {
     try {
-        const { name, profile_pic, age, Hometown, Current_Residence, Occupation } = req.body;
+        const { name, profile_pic, age, Hometown, Current_Residence, Occupation, Link } = req.body;
         //Check if Survivor already added
         const exist = await Survivor.findOne({name});
         if(exist) {
@@ -23,6 +23,7 @@ const addSurvivor = async (req, res) => {
             Hometown,
             Current_Residence,
             Occupation,
+            youtube_interview: Link,
         });
 
         return res.json(survivor)
@@ -50,7 +51,6 @@ const deleteSurvivor = async (req, res) => {
         }
 
         res.json({message: 'Survivor deleted successfully'});
-        return res.json({ error: name }); 
     } catch (error) {
         console.log(error);
     }

@@ -59,6 +59,7 @@ export default function DisplayPlayers() {
                 Hometown={p.Hometown}
                 Current_Residence={p.Current_Residence}
                 Occupation={p.Occupation}
+                Link={p.youtube_interview}
                 homepage={false}
               />
             ))}
