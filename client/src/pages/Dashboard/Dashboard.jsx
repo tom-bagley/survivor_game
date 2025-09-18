@@ -23,7 +23,7 @@ export default function Dashboard() {
   const [showAnimation, setShowAnimation] = useState(false);
   const [eliminatedSurvivors, setEliminatedSurvivors] = useState([]);
   const [displayOrder, setDisplayOrder] = useState([]);
-  const [appliedSort, setAppliedSort] = useState("stock");
+  const [appliedSort, setAppliedSort] = useState("name");
   const [isSortStale, setIsSortStale] = useState(false);  
 
   useEffect(() => {
@@ -91,74 +91,77 @@ export default function Dashboard() {
     updateLastSeen();
   }, [loading, week, lastSeenWeek, user]);
 
-const stockOrder = (mode) => {
-  const keys = Object.keys(sharesOwned);
+  const stockOrder = (mode) => {
+    const keys = Object.keys(sharesOwned);
 
-  // Split active vs eliminated
-  const active = [];
-  const eliminated = [];
+    // Split active vs eliminated
+    const active = [];
+    const eliminated = [];
 
-  keys.forEach((k) => {
-    const survivor = survivorPlayerStats[k];
-    const shares = sharesOwned[k] ?? 0;
-    const priceNow = week === 0 ? (medianPrice ?? 0) : (prices[k] ?? 0);
-    const value = shares * priceNow;
+    keys.forEach((k) => {
+      const survivor = survivorPlayerStats[k];
+      const shares = sharesOwned[k] ?? 0;
+      const priceNow = week === 0 ? (medianPrice ?? 0) : (prices[k] ?? 0);
+      const value = shares * priceNow;
+      const name = survivor.name
+      console.log(name)
 
-    if (survivor?.availability) {
-      active.push({ k, shares, value });
+      if (survivor?.availability) {
+        active.push({ k, shares, value, name });
+      } else {
+        eliminated.push({ k, shares, value, name });
+      }
+    });
+
+    // Sort active players according to mode
+    
+    if (mode === "name") {
+      active.sort((a, b) => {
+        return a.name.localeCompare(b.name);
+      });
+
     } else {
-      eliminated.push({ k, shares, value });
+      // "stock"
+      active.sort((a, b) => {
+        if (b.shares !== a.shares) return b.shares - a.shares;
+        return a.k.localeCompare(b.k);
+      });
     }
-  });
 
-  // Sort active players according to mode
-  if (mode === "value") {
-    active.sort((a, b) => {
-      if (b.value !== a.value) return b.value - a.value;
-      return a.k.localeCompare(b.k);
+    // Keep eliminated players at bottom (sorted by name here)
+    eliminated.sort((a, b) => a.k.localeCompare(b.k));
+
+    // Merge back together
+    return [...active.map(x => x.k), ...eliminated.map(x => x.k)];
+  };
+
+
+  useEffect(() => {
+    const keys = Object.keys(sharesOwned);
+
+    setDisplayOrder((prev) => {
+      if (!prev || prev.length === 0) {
+        
+        return stockOrder("name");
+      }
+      const setKeys = new Set(keys);
+      const still = prev.filter((k) => setKeys.has(k));       
+      const setPrev = new Set(still);
+      const added = keys.filter((k) => !setPrev.has(k));      
+      return [...still, ...added];
     });
-  } else {
-    // "stock"
-    active.sort((a, b) => {
-      if (b.shares !== a.shares) return b.shares - a.shares;
-      return a.k.localeCompare(b.k);
-    });
-  }
+  }, [sharesOwned]);
 
-  // Keep eliminated players at bottom (sorted by name here)
-  eliminated.sort((a, b) => a.k.localeCompare(b.k));
+  useEffect(() => {
+    if (!displayOrder.length) return;
 
-  // Merge back together
-  return [...active.map(x => x.k), ...eliminated.map(x => x.k)];
-};
+    const ideal = stockOrder(appliedSort);
+    const same =
+      ideal.length === displayOrder.length &&
+      ideal.every((k, i) => k === displayOrder[i]);
 
-
-useEffect(() => {
-  const keys = Object.keys(sharesOwned);
-
-  setDisplayOrder((prev) => {
-    if (!prev || prev.length === 0) {
-      
-      return stockOrder(appliedSort);
-    }
-    const setKeys = new Set(keys);
-    const still = prev.filter((k) => setKeys.has(k));       
-    const setPrev = new Set(still);
-    const added = keys.filter((k) => !setPrev.has(k));      
-    return [...still, ...added];
-  });
-}, [sharesOwned]);
-
-useEffect(() => {
-  if (!displayOrder.length) return;
-
-  const ideal = stockOrder(appliedSort);
-  const same =
-    ideal.length === displayOrder.length &&
-    ideal.every((k, i) => k === displayOrder[i]);
-
-  setIsSortStale(!same);  
-}, [sharesOwned, prices, week, medianPrice, appliedSort, displayOrder, survivorPlayerStats]);
+    setIsSortStale(!same);  
+  }, [sharesOwned, prices, week, medianPrice, appliedSort, displayOrder, survivorPlayerStats]);
 
   // Not logged in
   if (!user?.id)
@@ -237,14 +240,6 @@ useEffect(() => {
   }
   const rankValue = leaderboard && typeof leaderboard === 'object' ? leaderboard.rank : leaderboard;
 
-  
-
-
-
-
-
-
-
   return (
     <>
       {showAnimation && Number(week) > 0 && (
@@ -294,68 +289,72 @@ useEffect(() => {
             </div>
           </header>
 
-          {/* Portfolio Title */}
+        {/* Portfolio Title + Sort Buttons */}
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="font-heading text-2xl">Your Portfolio</h2>
 
-{/* Portfolio Title + Sort Buttons */}
-<div className="mb-4 flex items-center justify-between">
-  <h2 className="font-heading text-2xl">Your Portfolio</h2>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-white/60">Sort by:</span>
 
-  <div className="flex items-center gap-2">
-    <span className="text-sm text-white/60">Sort by:</span>
+            <button
+              type="button"
+              onClick={() => {
+                if (appliedSort === "name") {
+                  setDisplayOrder(stockOrder("stock")); 
+                  setAppliedSort("stock")
+                  setIsSortStale(false);
+                } else {
+                  setDisplayOrder(stockOrder("name")); 
+                  setAppliedSort("name")
+                  setIsSortStale(true);
+                }
+              }}
+              aria-pressed={appliedSort === "stock" && !isSortStale}
+              className={`rounded-xl px-3 py-1.5 text-sm ring-1 transition
+                ${appliedSort === "stock" && !isSortStale
+                  ? "bg-yellow-500/20 text-yellow-300 ring-yellow-300/40"
+                  : "bg-black/30 text-white ring-white/10 hover:bg-white/5"}`}
+            >
+              Most Shares
+            </button>
+          </div>
+        </div>
 
-    <button
-      type="button"
-      onClick={() => {
-        setDisplayOrder(stockOrder("stock")); 
-        setAppliedSort("stock");
-        setIsSortStale(false);
-      }}
-      aria-pressed={appliedSort === "stock" && !isSortStale}
-      className={`rounded-xl px-3 py-1.5 text-sm ring-1 transition
-        ${appliedSort === "stock" && !isSortStale
-          ? "bg-yellow-500/20 text-yellow-300 ring-yellow-300/40"
-          : "bg-black/30 text-white ring-white/10 hover:bg-white/5"}`}
-    >
-      Most Shares
-    </button>
-  </div>
-</div>
 
 
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {displayOrder.map((survivorPlayer) => {
+              const survivor = survivorPlayerStats[survivorPlayer];
+              if (!survivor) return null;
 
-<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-  {displayOrder.map((survivorPlayer) => {
-    const survivor = survivorPlayerStats[survivorPlayer];
-    if (!survivor) return null;
+              const profile_pic = survivor.profile_pic;
+              const shares = sharesOwned[survivorPlayer] ?? 0;
+              const price = prices[survivorPlayer] ?? 0;
+              const displayPrice = week === 0 ? (medianPrice ?? 0) : price;
+              const holdingsValue = shares * displayPrice;
+              const eliminated = !survivor.availability;
+              const historical_prices = survivor.historicalprices;
 
-    const profile_pic = survivor.profile_pic;
-    const shares = sharesOwned[survivorPlayer] ?? 0;
-    const price = prices[survivorPlayer] ?? 0;
-    const displayPrice = week === 0 ? (medianPrice ?? 0) : price;
-    const holdingsValue = shares * displayPrice;
-    const eliminated = !survivor.availability;
-    const historical_prices = survivor.historicalprices;
-
-    return (
-      <div key={survivorPlayer} className="h-full">
-        <Display
-          name={survivorPlayer}
-          profilePhotoUrl={profile_pic}
-          shares={shares}
-          price={displayPrice}
-          holdingsValue={holdingsValue}
-          buyStock={buyStock}
-          sellStock={sellStock}
-          eliminated={eliminated}
-          season={season}
-          week={week}
-          historical_prices={historical_prices}
-          medianPrice={medianPrice}
-        />
-      </div>
-    );
-  })}
-</div>
+              return (
+                <div key={survivorPlayer} className="h-full">
+                  <Display
+                    name={survivorPlayer}
+                    profilePhotoUrl={profile_pic}
+                    shares={shares}
+                    price={displayPrice}
+                    holdingsValue={holdingsValue}
+                    buyStock={buyStock}
+                    sellStock={sellStock}
+                    eliminated={eliminated}
+                    season={season}
+                    week={week}
+                    historical_prices={historical_prices}
+                    medianPrice={medianPrice}
+                  />
+                </div>
+              );
+            })}
+          </div>
 
 
         </div>

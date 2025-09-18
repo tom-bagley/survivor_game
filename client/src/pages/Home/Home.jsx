@@ -109,10 +109,10 @@ export default function Home() {
 {/* One-Column Layout */}
 <div className="grid grid-cols-1 gap-8">
   {/* Rotating Player Display */}
-<section
+  <section
   className="bg-transparent shadow-none ring-0 min-h-[580px]"
-  aria-labelledby="spotlight-title"
->
+    aria-labelledby="spotlight-title"
+  >
 
     <div
       className={[

@@ -36,8 +36,6 @@ async function updateLiveLeaderboard() {
     { upsert: true }
   );
 
-  console.log('✅ Live leaderboard updated successfully');
-
 }
 
 module.exports = updateLiveLeaderboard;

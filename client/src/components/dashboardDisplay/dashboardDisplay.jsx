@@ -44,11 +44,13 @@ export default function Display({
       "relative mx-auto rounded-xl overflow-hidden bg-black/20",
       "aspect-[3/4]", // keeps portrait ratio
       "ring-2",
-      eliminated
-        ? "ring-red-flame/40"
-        : isGood
-        ? "ring-green-dark/50"
-        : "ring-red-flame/50",
+      week != 0
+        ? eliminated
+          ? "ring-red-flame/40"
+          : isGood
+          ? "ring-green-dark/50"
+          : "ring-red-flame/50"
+        : "ring-black/50" // fallback when week !== 0
     ].join(" ")}
     style={{ maxWidth: "150px" }} // fixed max width across devices
   >

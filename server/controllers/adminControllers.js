@@ -87,7 +87,6 @@ const changeWeek = async (req, res) => {
       await recordStockPrices();
       await startEpisode();
       await season.save();
-      res.json({message: 'Week Created Successfully'});
     } catch (err) {
         console.error(err)
         res.status(500).json({ error: 'Failed to create season '})
