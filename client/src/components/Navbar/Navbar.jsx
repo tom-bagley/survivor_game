@@ -194,16 +194,18 @@ export default function Navbar() {
               Meet the Cast
             </NavLink>
           </li>
-              <li>
-              <a 
-                href="https://discord.gg/9V66vjHP" 
-                className={getLink}
-                target="_blank" 
-                rel="noopener noreferrer"
-              >
-                Join Discord
-              </a>
-            </li>
+          <li>
+            <a
+              href="https://discord.gg/9V66vjHP"
+              className={typeof getLink === "function" ? getLink({ isActive: false }) : getLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setOpen(false)}
+            >
+              Join Discord
+            </a>
+          </li>
+
 
           {user?.role === "admin" && (
             <li>
