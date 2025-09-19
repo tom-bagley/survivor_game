@@ -72,6 +72,17 @@ export default function Navbar() {
               </li>
             )}
 
+            <li>
+              <a 
+                href="https://discord.gg/9V66vjHP" 
+                className={getLink}
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                Join Discord
+              </a>
+            </li>
+
             {user && (
               <>
 
