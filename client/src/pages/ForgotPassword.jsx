@@ -74,7 +74,7 @@ export default function ForgotPassword() {
 
           {sent && (
             <p className="mt-3 text-sm text-white/70">
-              If an account exists for that email, you’ll receive a message with a reset link shortly.
+              If an account exists for that email, you’ll receive a message with a reset link. This may take a few minutes.
             </p>
           )}
         </form>

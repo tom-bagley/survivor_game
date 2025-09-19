@@ -175,7 +175,7 @@ const forgotPassword = async (req, res) => {
 
         await user.save();
 
-        await sendPasswordResetEmail(user.email, `https://survivorstockexchange.com/${resetPasswordToken}`);
+        await sendPasswordResetEmail(user.email, `https://survivorstockexchange.com/reset-password/${resetPasswordToken}`);
 
         res.status(200).json({success: true, message: "Reset password email sent successfully"})
     } catch (error) {
