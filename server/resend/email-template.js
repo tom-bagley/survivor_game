@@ -373,17 +373,23 @@ const welcomeEmail = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional/
 </html>
 `
 const resetPasswordLinkEmail = `
-Reset Your Password
 
-We received a request to reset your Survivor Stock Game password. 
-Click the link below to choose a new one:
-
-{resetURL}
-
-This link will expire after a short time. 
-If you didn’t request this, you can safely ignore this email.
-
-© ${new Date().getFullYear()} Survivor Stock Game
+<!doctype html>
+<html lang="en">
+  <body>
+    <p>
+      We received a request to reset your Survivor Stock Game password. 
+      Click the link below to choose a new one:
+    </p>
+    <p>
+      <a href="{resetURL}">Reset Password</a>
+    </p>
+    <p>
+      This link will expire after a short time. 
+      If you didn’t request this, you can safely ignore this email.
+    </p>
+  </body>
+</html>
 `;
 
 const passwordResetSuccessfulEmail = `<!DOCTYPE html>
