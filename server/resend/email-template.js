@@ -378,7 +378,7 @@ const resetPasswordLinkEmail = `
 <html lang="en">
   <body>
     <p>
-      We received a request to reset your Survivor Stock Game password. 
+      We received a request to reset your Survivor Stock Exchange password. 
       Click the link below to choose a new one:
     </p>
     <p>
