@@ -58,7 +58,7 @@ const registerUser = async (req, res) => {
             res.cookie('token', token).json(user)
         })
 
-        await sendVerificationEmail(user.email, verificationToken);
+        // await sendVerificationEmail(user.email, verificationToken);
     } catch (error) {
         console.log(error)
     }
@@ -138,7 +138,7 @@ const logoutUser = async (req, res) => {
 
 const verifyEmail = async (req, res) => {
     const { code } = req.body;
-    console.log(code)
+    // console.log(code)
     try {
         const user = await User.findOne({
             verificationToken: code,
@@ -152,7 +152,7 @@ const verifyEmail = async (req, res) => {
         user.verificationTokenExpiresAt = undefined;
         await user.save();
 
-        await sendWelcomeEmail(user.email, user.name)
+        // await sendWelcomeEmail(user.email, user.name)
         res.status(200).json({ success: true, message: "Verification successful and email sent"})
     } catch (error) {
 
@@ -161,7 +161,7 @@ const verifyEmail = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
     const { email } = req.body;
-    console.log(email)
+    // console.log(email)
     try {
         const user = await User.findOne({email});
         if (!user) {
