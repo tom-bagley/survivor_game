@@ -1,7 +1,7 @@
 import './App.css'
 import {Routes, Route} from 'react-router-dom';
 import Navbar from '../src/components/Navbar/Navbar';
-import Home from './pages/Home/Home';
+// import Home from './pages/Home/Home';
 import Register from './pages/Register/Register';
 import axios from 'axios';
 import { Toaster } from 'react-hot-toast';
@@ -61,16 +61,15 @@ function App() {
     <Navbar />
     <Toaster position='bottom-right' toastOptions={{duration: 2000}} />
     <Routes>
-      <Route path='/' element={<Home />} />
+      <Route path='/' element={<AppLayout />}>
+        <Route path='dashboard' element={<Dashboard />} />
+        <Route path='on-air' element={<Episode_Airing />} />
+      </Route>
       <Route path='/login' element={<Login />} />
       <Route path='/logout' element={<Logout />} />
       <Route path='/register' element={<Register />} />
       <Route path='/displayplayers' element={<DisplayPlayers />}/>
       <Route path='/leaderboard' element={<Leaderboard />} />
-      <Route path='/' element={<AppLayout />}>
-        <Route path='dashboard' element={<Dashboard />} />
-        <Route path='on-air' element={<Episode_Airing />} />
-      </Route>
       <Route
         path='/admin'
         element={

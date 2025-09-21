@@ -6,7 +6,7 @@ import Display from "../../components/dashboardDisplay/dashboardDisplay";
 import EliminationSequence from "../../components/EliminationSequence";
 
 export default function Dashboard() {
-  const { user, loading } = useContext(UserContext);
+  const { user, updateUser, loading } = useContext(UserContext);
   const [budget, setBudget] = useState(null);
   const [netWorth, setNetWorth] = useState(null);
   const [prevNetWorth, setPrevNetWorth] = useState(null);
@@ -27,52 +27,95 @@ export default function Dashboard() {
   const [isSortStale, setIsSortStale] = useState(false);  
 
   useEffect(() => {
-    if (loading || !user?.id) return;
+    if (loading || !user) return; // wait for outer loading or user to exist
+    console.log(user)
+
+    let isMounted = true; // prevent state updates if unmounted
+
     async function getData() {
       try {
-        const [
-          { data: financialData },
-          { data: pricesData },
-          { data: survivorPlayersData },
-          { data: leaderboardRank },
-          { data: seasonData },
-          { data: episodeData },
-        ] = await Promise.all([
-          axios.get("/transactions/getportfolio", { params: { userId: user.id } }),
+        // Public requests for everyone
+        const publicRequests = [
           axios.get("/transactions/getprices"),
-          axios.get("/transactions/getprofile"),
-          axios.get(`/leaderboard/getleaderboard/${user.id}`),
           axios.get("/admin/getcurrentseason"),
           axios.get("/episode/getcurrentepisode"),
-        ]);
+          axios.get("/transactions/getprofile"), // public player list
+        ];
 
+        // Only real signed-in users call private endpoints
+        const privateRequests =
+          user.isGuest || !user.id
+            ? []
+            : [
+                axios.get("/transactions/getportfolio", { params: { userId: user.id } }),
+                axios.get(`/leaderboard/getleaderboard/${user.id}`),
+              ];
+
+        const results = await Promise.all([...publicRequests, ...privateRequests]);
+
+        // Map public results
+        const pricesData = results[0].data;
+        const seasonData = results[1].data;
+        const episodeData = results[2].data;
+        const survivorPlayersData = results[3].data || [];
+
+        // Map private results if any
+        let financialData = null;
+        let leaderboardRank = null;
+        if (privateRequests.length > 0) {
+          financialData = results[4].data;
+          leaderboardRank = results[5].data;
+        }
+
+        // Build survivors map
         const survivorsMap = (survivorPlayersData || []).reduce((acc, player) => {
           acc[player.name] = player;
           return acc;
         }, {});
 
+        if (!isMounted) return;
+
+        // Always set these
+        setPrices(pricesData);
         setAdmin(seasonData);
         setWeek(seasonData.currentWeek);
         setSeason(seasonData.seasonName);
         setMedianPrice(seasonData.currentPrice);
-        setBudget(financialData.user.budget);
-        setNetWorth(financialData.user.netWorth);
-        setSharesOwned(financialData.user.portfolio);
-        setPrices(pricesData);
-        setLeaderboard(leaderboardRank);
         setSurvivorPlayerStats(survivorsMap);
-        setLastSeenWeek(financialData.user.last_seen_episode_id);
         setEliminatedSurvivors(episodeData.survivorsVotedOut);
-        setPrevNetWorth(financialData.prevNetWorth);
+
+        if (!user.isGuest && financialData) {
+          // Real signed-in user
+          setBudget(financialData.user.budget);
+          setNetWorth(financialData.user.netWorth);
+          setSharesOwned(financialData.user.portfolio);
+          setLeaderboard(leaderboardRank);
+          setLastSeenWeek(financialData.user.last_seen_episode_id);
+          setPrevNetWorth(financialData.prevNetWorth);
+        } else {
+          // Guest or not signed in: sensible defaults
+          setBudget(user.budget);
+          setNetWorth(user.netWorth);
+          setSharesOwned(user.portfolio || {});
+          setLeaderboard([]);
+          setLastSeenWeek(null);
+          setPrevNetWorth(null);
+        }
       } catch (error) {
-        console.error(error);
+        console.error("getData error:", error);
       } finally {
-        setLoadingFinancials(false);
+        if (isMounted) setLoadingFinancials(false);
       }
     }
 
     getData();
+
+    return () => {
+      isMounted = false;
+    };
   }, [loading, user]);
+
+
 
   useEffect(() => {
     const updateLastSeen = async () => {
@@ -104,7 +147,6 @@ export default function Dashboard() {
       const priceNow = week === 0 ? (medianPrice ?? 0) : (prices[k] ?? 0);
       const value = shares * priceNow;
       const name = survivor.name
-      console.log(name)
 
       if (survivor?.availability) {
         active.push({ k, shares, value, name });
@@ -163,25 +205,25 @@ export default function Dashboard() {
     setIsSortStale(!same);  
   }, [sharesOwned, prices, week, medianPrice, appliedSort, displayOrder, survivorPlayerStats]);
 
-  // Not logged in
-  if (!user?.id)
-    return (
-      <div className="min-h-screen bg-black-bg text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto mb-4 h-16 w-16 rounded-full border-2 border-white/20 grid place-items-center text-white/70">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M10 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0z" />
-              <path
-                fillRule="evenodd"
-                d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-6a6 6 0 0 0-4.472 10.085C4.584 10.97 6.203 10 8 10s3.416.97 4.472 2.085A6 6 0 0 0 8 2z"
-              />
-            </svg>
-          </div>
-          <h1 className="font-heading text-2xl">You’re not logged in</h1>
-          <p className="text-white/60 mt-1">Please sign in to continue</p>
-        </div>
-      </div>
-    );
+  // // Not logged in
+  // if (!user?.id)
+  //   return (
+  //     <div className="min-h-screen bg-black-bg text-white flex items-center justify-center">
+  //       <div className="text-center">
+  //         <div className="mx-auto mb-4 h-16 w-16 rounded-full border-2 border-white/20 grid place-items-center text-white/70">
+  //           <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 16 16" fill="currentColor">
+  //             <path d="M10 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0z" />
+  //             <path
+  //               fillRule="evenodd"
+  //               d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-6a6 6 0 0 0-4.472 10.085C4.584 10.97 6.203 10 8 10s3.416.97 4.472 2.085A6 6 0 0 0 8 2z"
+  //             />
+  //           </svg>
+  //         </div>
+  //         <h1 className="font-heading text-2xl">You’re not logged in</h1>
+  //         <p className="text-white/60 mt-1">Please sign in to continue</p>
+  //       </div>
+  //     </div>
+  //   );
 
   // Loading
   if (loading || loadingFinancials)
@@ -195,26 +237,98 @@ export default function Dashboard() {
     );
 
   const updatePortfolio = async (survivorPlayer, amount, action) => {
-    try {
-      const endpoint = week === 0 ? "/transactions/updateportfoliopreseason" : "/transactions/updateportfolio";
+    if (!user) return;
 
-      const { data } = await axios.put(endpoint, {
-        userId: user.id,
-        survivorPlayer,
-        amount,
-        action,
-      });
+    // Guest buy/sell
+      const handleGuestUpdate = (survivorPlayer, amount, action) => {
+        let price
+        if (week === 0) {
+          price = 5
+        } else {
+          price = prices[survivorPlayer] || 0;
+        }
+        
+        const buySellAmount = action === "buy" ? amount : -amount;
+        const currentShares = sharesOwned[survivorPlayer] || 0;
 
-      if (data.error) {
-        toast.error(data.error);
-      } else {
-        resetPrices();
-        setSharesOwned(data.portfolio);
-        setBudget(data.budget);
-        setNetWorth(data.netWorth);
+        let newShares;
+
+        if (action === "buy") {
+          if (budget >= amount * price) { // assuming you have a `price` variable
+            newShares = currentShares + amount;
+          } else {
+            toast.error("Not enough funds");
+            return;
+          }
+        } else if (action === "sell") {
+          if (currentShares >= amount) {
+            newShares = currentShares - amount;
+          } else {
+            toast.error("No stock to sell.");
+            return;
+          }
+        }
+
+        // Update your sharesOwned with newShares here
+        setSharesOwned((prev) => ({
+          ...prev,
+          [survivorPlayer]: newShares,
+        }));
+
+        // Update budget if needed
+        if (action === "buy") {
+          setBudget((prev) => prev - amount * price);
+        } else if (action === "sell") {
+          setBudget((prev) => prev + amount * price);
+        }
+
+
+        const updatedPortfolio = { ...sharesOwned, [survivorPlayer]: newShares };
+        const updatedNetWorth = netWorth + buySellAmount * price;
+        const updatedBudget = budget - buySellAmount * price;
+
+        setSharesOwned(updatedPortfolio);
+        setNetWorth(updatedNetWorth);
+        setBudget(updatedBudget);
+
+        updateUser({
+          portfolio: updatedPortfolio,
+          budget: updatedBudget,
+          netWorth: updatedNetWorth,
+        });
+
+        // Persist locally
+        sessionStorage.setItem("guest_portfolio", JSON.stringify(updatedPortfolio));
+        sessionStorage.setItem("guest_netWorth", updatedNetWorth);
+        sessionStorage.setItem("guest_budget", updatedBudget);
       }
-    } catch (error) {
-      toast.error("Something went wrong updating your portfolio.");
+
+    if (user.isGuest) {
+      handleGuestUpdate(survivorPlayer, amount, action)
+    } else {
+
+      // --- Real user: API call ---
+      try {
+        const endpoint = week === 0 ? "/transactions/updateportfoliopreseason" : "/transactions/updateportfolio";
+
+        const { data } = await axios.put(endpoint, {
+          userId: user.id,
+          survivorPlayer,
+          amount,
+          action,
+        });
+
+        if (data.error) {
+          toast.error(data.error);
+        } else {
+          resetPrices();
+          setSharesOwned(data.portfolio);
+          setBudget(data.budget);
+          setNetWorth(data.netWorth);
+        }
+      } catch (error) {
+        toast.error("Something went wrong updating your portfolio.");
+      }
     }
   };
 
@@ -240,58 +354,68 @@ export default function Dashboard() {
   }
   const rankValue = leaderboard && typeof leaderboard === 'object' ? leaderboard.rank : leaderboard;
 
-  return (
-    <>
-      {showAnimation && Number(week) > 0 && (
-        <EliminationSequence
-          week={week}
-          eliminatedSurvivors={eliminatedSurvivors}
-          survivorPlayerStats={survivorPlayerStats}
-          sharesOwned={sharesOwned}
-          prices={prices}
-          medianPrice={medianPrice}
-          prevNetWorth={prevNetWorth}
-          netWorth={netWorth}
-          onFinish={() => setShowAnimation(false)}
-        />
-      )}
+return (
+  <>
+    {showAnimation && Number(week) > 0 && (
+      <EliminationSequence
+        week={week}
+        eliminatedSurvivors={eliminatedSurvivors}
+        survivorPlayerStats={survivorPlayerStats}
+        sharesOwned={sharesOwned}
+        prices={prices}
+        medianPrice={medianPrice}
+        prevNetWorth={prevNetWorth}
+        netWorth={netWorth}
+        onFinish={() => setShowAnimation(false)}
+      />
+    )}
 
-      <div className="min-h-screen bg-black-bg text-white">
-        <div className="mx-auto max-w-[1400px] px-5 sm:px-8 lg:px-10 py-10">
-          {/* Header */}
-          <header className="mb-10">
-            <div className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-6">
-              <h1 className="font-heading text-4xl lg:text-5xl tracking-tight">
-                Welcome, <span className="text-accent">{user.name}</span>!
-              </h1>
+    <div className="min-h-screen bg-black-bg text-white">
+      <div className="mx-auto max-w-[1400px] px-5 sm:px-8 lg:px-10 py-10">
+        {/* Header */}
+        <header className="mb-10">
+          <div className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-6">
+            <h1 className="font-heading text-4xl lg:text-5xl tracking-tight">
+              {user
+                ? user.isGuest
+                  ? "Your Portfolio"
+                  : <>Welcome, <span className="text-accent">{user.name}</span>!</>
+                : "Welcome to the site!"}
+            </h1>
 
-              {/* Financial summary */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {Number(week) > 0 && (
+            {/* Financial summary */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {Number(week) > 0 && (
                 <div className="rounded-2xl bg-black/30 ring-1 ring-white/10 px-5 py-4">
                   <div className="text-xs text-white/60">Rank</div>
                   <div className="text-2xl font-semibold">
                     {rankValue != null ? ordinal(rankValue) : '—'}
                   </div>
                 </div>
-                )}
-                {Number(week) > 0 && (
+              )}
+              {Number(week) > 0 && (
                 <div className="rounded-2xl bg-black/30 ring-1 ring-white/10 px-5 py-4">
                   <div className="text-xs text-white/60">Net Worth</div>
                   <div className="text-2xl font-semibold">{formattedNetWorth}</div>
                 </div>
-                )}
-                <div className="rounded-2xl bg-black/30 ring-1 ring-white/10 px-5 py-4">
-                  <div className="text-xs text-white/60">Budget</div>
-                  <div className="text-2xl font-semibold">{formattedBudget}</div>
-                </div>
-              </div>
+              )}
+              {/* <div className="rounded-2xl bg-black/30 ring-1 ring-white/10 px-5 py-4">
+                <div className="text-xs text-white/60">Budget</div>
+                <div className="text-2xl font-semibold">{formattedBudget}</div>
+              </div> */}
             </div>
-          </header>
+          </div>
+        </header>
 
         {/* Portfolio Title + Sort Buttons */}
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-heading text-2xl">Your Portfolio</h2>
+          <div className="rounded-2xl bg-black/30 ring-1 ring-white/10 px-5 py-4">
+                <div className="text-xs text-white/60">Budget</div>
+                <div className="text-2xl font-semibold">{formattedBudget}</div>
+              </div>
+          <h2 className="font-heading text-2xl">
+            {user && !user.isGuest ? "Your Portfolio" : ""}
+          </h2>
 
           <div className="flex items-center gap-2">
             <span className="text-sm text-white/60">Sort by:</span>
@@ -315,54 +439,73 @@ export default function Dashboard() {
                   ? "bg-yellow-500/20 text-yellow-300 ring-yellow-300/40"
                   : "bg-black/30 text-white ring-white/10 hover:bg-white/5"}`}
             >
-              Most Shares
+              Most Owned Shares
             </button>
           </div>
         </div>
-
-
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {displayOrder.map((survivorPlayer) => {
-              const survivor = survivorPlayerStats[survivorPlayer];
-              if (!survivor) return null;
-
-              const profile_pic = survivor.profile_pic;
-              const shares = sharesOwned[survivorPlayer] ?? 0;
-              const price = prices[survivorPlayer] ?? 0;
-              const displayPrice = week === 0 ? (medianPrice ?? 0) : price;
-              const holdingsValue = shares * displayPrice;
-              const eliminated = !survivor.availability;
-              const historical_prices = survivor.historicalprices;
-
-              return (
-                <div key={survivorPlayer} className="h-full">
-                  <Display
-                    name={survivorPlayer}
-                    profilePhotoUrl={profile_pic}
-                    shares={shares}
-                    price={displayPrice}
-                    holdingsValue={holdingsValue}
-                    buyStock={buyStock}
-                    sellStock={sellStock}
-                    eliminated={eliminated}
-                    season={season}
-                    week={week}
-                    historical_prices={historical_prices}
-                    medianPrice={medianPrice}
-                  />
-                </div>
-              );
-            })}
+        {/* Guest Info */}
+        {!user || user.isGuest ? (
+          <div className="mt-10 mb-6 p-6 bg-black/30 rounded-2xl text-center">
+            <h2 className="font-heading text-2xl mb-4">
+              Save Your Portfolio
+            </h2>
+            <p className="text-white/80 text-sm">
+              To save your portfolio, you must{" "}
+              <a href="/register" className="text-accent underline">
+                sign up
+              </a>
+              , or if you already have an account, you can{" "}
+              <a href="/login" className="text-accent underline">
+                login
+              </a>
+              .
+            </p>
           </div>
+        ) : null}
 
+        {/* Portfolio Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {displayOrder.map((survivorPlayer) => {
+            const survivor = survivorPlayerStats[survivorPlayer];
+            if (!survivor) return null;
 
+            const profile_pic = survivor.profile_pic;
+            const shares = sharesOwned[survivorPlayer] ?? 0;
+            const price = prices[survivorPlayer] ?? 0;
+            const displayPrice = week === 0 ? (medianPrice ?? 0) : price;
+            const holdingsValue = shares * displayPrice;
+            const eliminated = !survivor.availability;
+            const historical_prices = survivor.historicalprices;
+
+            return (
+              <div key={survivorPlayer} className="h-full">
+                <Display
+                  name={survivorPlayer}
+                  profilePhotoUrl={profile_pic}
+                  shares={shares}
+                  price={displayPrice}
+                  holdingsValue={holdingsValue}
+                  buyStock={buyStock}
+                  sellStock={sellStock}
+                  eliminated={eliminated}
+                  season={season}
+                  week={week}
+                  historical_prices={historical_prices}
+                  medianPrice={medianPrice}
+                />
+              </div>
+            );
+          })}
         </div>
-      </div>
-    </>
-  );
-}
 
+        
+
+      </div>
+    </div>
+  </>
+);
+
+}
 
 
 

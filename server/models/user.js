@@ -37,6 +37,10 @@ const userSchema = new Schema({
         type: Number,
         default: 0
     },
+    isGuest: {
+        type: Boolean,
+        default: false
+    }
 })
 
 const UserModel = mongoose.model('User', userSchema);

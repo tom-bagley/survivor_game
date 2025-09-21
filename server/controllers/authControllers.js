@@ -9,7 +9,7 @@ const { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail, sendRes
 //Register endpoint
 const registerUser = async (req, res) => {
     try {
-        const {name, email, password} = req.body;
+        const {name, email, password, portfolio, budget} = req.body;
         // Check if name was entered
         if(!name) {
             return res.json({
@@ -30,14 +30,6 @@ const registerUser = async (req, res) => {
             });
         }
 
-        const survivors = await Survivor.find();
-
-        const portfolio = {};
-
-        survivors.forEach(survivor => {
-            portfolio[survivor.name] = 0;
-        });
-
         const hashedPassword = await hashPassword(password)
         const verificationToken = generateVerificationToken();
         
@@ -49,11 +41,12 @@ const registerUser = async (req, res) => {
             password: hashedPassword,
             verificationToken,
             verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000,
+            budget,
             portfolio,
             role: 'user',
             last_seen_episode_id: season.currentWeek,
         });
-        jwt.sign({sub: user._id, role: user.role}, process.env.JWT_SECRET, {}, (err, token) => {
+        jwt.sign({sub: user._id, role: user.role, isGuest: user.isGuest}, process.env.JWT_SECRET, {}, (err, token) => {
             if(err) throw err;
             res.cookie('token', token).json(user)
         })
@@ -95,7 +88,7 @@ const loginUser = async (req, res) => {
         //     })
         // }
         if(match && isVerified) {
-            jwt.sign({sub: user._id, role: user.role}, process.env.JWT_SECRET, {}, (err, token) => {
+            jwt.sign({sub: user._id, role: user.role, isGuest: user.isGuest}, process.env.JWT_SECRET, {}, (err, token) => {
                 if(err) throw err;
                 res.cookie('token', token).json(user)
             })
@@ -115,7 +108,7 @@ const getProfile = async (req, res) => {
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(payload.sub)
-      .select('_id name email role') 
+      .select('_id name email role isGuest') 
       .lean();
 
     if (!user) return res.status(200).json(null);
@@ -125,6 +118,7 @@ const getProfile = async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      isGuest: user.isGuest
     });
   } catch (e) {
     return res.status(401).json({ error: 'Invalid or expired token' });

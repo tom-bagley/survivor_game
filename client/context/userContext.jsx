@@ -1,35 +1,68 @@
+import { useEffect, useRef, useState, createContext } from "react";
 import axios from "axios";
-import { createContext, useEffect, useState } from "react";
+import { useGuestUser } from "../src/hooks/useGuestUser";
 
 export const UserContext = createContext({});
 
 export function UserContextProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
+  const guestCreatedRef = useRef(false);
 
+  const { user: guestUser, setUser: updateGuest, loadingGuest } = useGuestUser();
+  const [user, setUser] = useState(null);
+
+  // 1️⃣ Fetch signed-in user
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const { data } = await axios.get("/auth/profile");
-        setUser(data); 
-      } catch (error) {
-        console.error("Error fetching user profile:", error);
-        setUser(null); 
+        setUser(data);
+      } catch {
+        setUser(null);
       } finally {
-        setLoading(false); 
+        setLoading(false);
       }
     };
-
     fetchUser();
   }, []);
 
+  // 2️⃣ Fallback to guest after signed-in check
+  useEffect(() => {
+    if (loading || loadingGuest) return;
+    if (user) return;
+    if (!guestUser || guestCreatedRef.current) return;
+
+    guestCreatedRef.current = true;
+    setUser(guestUser);
+  }, [loading, loadingGuest, user, guestUser]);
+
+  // 3️⃣ Generic updateUser works for both signed-in & guest
   const updateUser = (updates) => {
-    setUser((prev) => (prev ? { ...prev, ...updates } : prev));
+    setUser((prev) => {
+      const updated = prev ? { ...prev, ...updates } : prev;
+      if (!prev?.id || prev?.isGuest) {
+        updateGuest(updates);
+      }
+      return updated;
+    });
+  };
+
+  // 4️⃣ Explicitly set a signed-in user
+  const setRealUser = (realUser) => {
+    setUser(realUser);
   };
 
   return (
-    <UserContext.Provider value={{ user, setUser, loading, updateUser }}>
+    <UserContext.Provider
+      value={{ user, setUser: updateUser, setRealUser, loading, updateUser }}
+    >
       {children}
     </UserContext.Provider>
   );
 }
+
+
+
+
+
+

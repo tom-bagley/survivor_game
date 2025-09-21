@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../../context/userContext";
 
 export default function Register() {
-  const { setUser } = useContext(UserContext);
+  const { user,setUser } = useContext(UserContext);
   const navigate = useNavigate();
 
   const [data, setData] = useState({ name: "", email: "", password: "" });
@@ -17,8 +17,9 @@ export default function Register() {
   const registerUser = async (e) => {
     e.preventDefault();
     const { name, email, password } = data;
+    console.log(user)
 
-    // tiny client-side checks
+    // Tiny client-side checks
     if (!name || !email || !password) {
       toast.error("Please fill out all fields.");
       return;
@@ -30,14 +31,51 @@ export default function Register() {
 
     try {
       setSubmitting(true);
-      const res = await axios.post("/auth/register", { name, email, password });
+
+      // Prepare guest data if available
+      let guestData = {};
+      
+        guestData = {
+          portfolio: user.portfolio,
+          budget: user.budget,
+          netWorth: user.netWorth,
+          last_seen_episode_id: user.last_seen_episode_id,
+          prevNetWorth: user.prevNetWorth,
+        };
+      
+      console.log(guestData)
+      const portfolio = guestData.portfolio
+      const budget = guestData.budget
+
+      // Send registration + guest state to backend
+      const res = await axios.post("/auth/register", {
+        name,
+        email,
+        password,
+        portfolio,
+        budget
+      });
+
       if (res.data?.error) {
         toast.error(res.data.error);
         return;
       }
+
       toast.success("Register successful. Welcome!");
+
+      // Replace guest in context with real user returned by backend
       const profileRes = await axios.get("/auth/profile");
       setUser(profileRes.data);
+
+      // Clear guest storage
+      if (user?.isGuest) {
+        sessionStorage.removeItem("guest_user");
+
+        // Clear user from context before navigating
+        if (typeof replaceUser === "function") replaceUser(null);
+        else if (typeof setUser === "function") setUser(null);
+      }
+
       navigate("/dashboard");
     } catch (err) {
       console.error(err);
@@ -46,6 +84,7 @@ export default function Register() {
       setSubmitting(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-black-bg text-white grid place-items-center px-4 py-10">
