@@ -32,7 +32,6 @@ export function UserContextProvider({ children }) {
     if (loading || loadingGuest) return;
     if (user) return;
     if (!guestUser || guestCreatedRef.current) return;
-    console.log('creating guest')
 
     guestCreatedRef.current = true;
     setUser(guestUser);
