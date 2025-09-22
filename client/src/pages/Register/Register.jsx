@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -11,6 +11,10 @@ export default function Register() {
   const [data, setData] = useState({ name: "", email: "", password: "" });
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // useEffect(() => {
+  //   console.log(user)
+  // }, [user]);
 
   const onChange = (field) => (e) => setData((s) => ({ ...s, [field]: e.target.value.trimStart() }));
 

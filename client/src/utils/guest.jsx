@@ -34,7 +34,8 @@ export async function createGuest(overrides = {}) {
     portfolio: overrides.portfolio ?? portfolio,
     last_seen_episode_id: overrides.last_seen_episode_id ?? null,
     prevNetWorth: overrides.prevNetWorth ?? null,
-    role: "user"
+    role: "user",
+    email: ""
   };
   return guest;
 }

@@ -28,30 +28,31 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = async () => {
-  try {
-    // 1️⃣ Call backend logout endpoint
-    await axios.post("/auth/logout");
-  } catch (err) {
-    console.error("Error logging out:", err);
-  } finally {
-    // 2️⃣ Remove tokens
-    localStorage.removeItem("authToken");
-    sessionStorage.removeItem("authToken");
-    sessionStorage.removeItem("guest_user");
+    console.log('logging out')
+    try {
+      // 1️⃣ Call backend logout endpoint
+      await axios.post("/auth/logout");
+    } catch (err) {
+      console.error("Error logging out:", err);
+    } finally {
+      // 2️⃣ Remove tokens
+      localStorage.removeItem("authToken");
+      sessionStorage.removeItem("authToken");
+      sessionStorage.removeItem("guest_user");
 
-    // 3️⃣ Reset user to a fresh guest
-    if (typeof replaceUser === "function") {
-      const guest = await createGuest();
-      replaceUser(guest);
-    } else if (typeof setUser === "function") {
-      const guest = await createGuest();
-      setUser(guest);
+      // 3️⃣ Reset user to a fresh guest
+      if (typeof replaceUser === "function") {
+        const guest = await createGuest();
+        replaceUser(guest);
+      } else if (typeof setUser === "function") {
+        const guest = await createGuest();
+        setUser(guest);
+      }
+
+      // 4️⃣ Navigate to login
+      navigate("/login", { replace: true });
     }
-
-    // 4️⃣ Navigate to login
-    navigate("/login", { replace: true });
-  }
-};
+  };
 
 
   return (
