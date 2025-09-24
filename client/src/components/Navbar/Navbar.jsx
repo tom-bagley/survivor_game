@@ -4,8 +4,10 @@ import axios from "axios";
 import { UserContext } from "../../../context/userContext";
 import { createGuest } from "../../utils/guest";
 
+
 export default function Navbar() {
   const { user, setUser, replaceUser } = useContext(UserContext) || {};
+  const [week, setWeek] = useState(null);
   const [open, setOpen] = useState(false);                 // mobile menu
   const [profileOpen, setProfileOpen] = useState(false);   // desktop dropdown
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false); // mobile sub-menu
@@ -16,6 +18,18 @@ export default function Navbar() {
     "block px-4 py-2 rounded-lg font-medium hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-primary/60";
   const getLink = ({ isActive }) =>
     `${linkBase} ${isActive ? "text-accent" : "text-white/90"}`;
+
+  useEffect(() => {
+    async function checkWeek() {
+      try {
+        const { data: seasonData } = await axios.get('/admin/getcurrentseason');
+        setWeek(seasonData.currentWeek);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    checkWeek();
+  }, [])
 
   useEffect(() => {
     const onClick = (e) => {
@@ -98,6 +112,13 @@ export default function Navbar() {
               Join Discord
             </a>
           </li>
+          {Number(week) > 0 && (
+            <li>
+              <NavLink to="/leaderboard" className={getLink}>
+                Leaderboard
+              </NavLink>
+            </li>
+          )}
 
           {/* Profile / Login */}
           {user && !user.isGuest ? (
@@ -207,6 +228,13 @@ export default function Navbar() {
             Join Discord
           </a>
         </li>
+        {Number(week) > 0 && (
+            <li>
+              <NavLink to="/leaderboard" className={getLink}>
+                Leaderboard
+              </NavLink>
+            </li>
+          )}
         {user?.role === "admin" && (
           <li>
             <NavLink to="/admin" className={getLink} onClick={() => setOpen(false)}>

@@ -25,7 +25,7 @@ async function recordStockPrices() {
 
       // console.log(`✅ Saved ${name} at $${currentPrice}`);
     } catch (err) {
-      console.error(`❌ Error fetching ${player.name}:`, err.message);
+      console.error(`❌ Error fetching ${survivor.name}:`, err.message);
     }
   }
 }
