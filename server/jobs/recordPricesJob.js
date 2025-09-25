@@ -8,7 +8,7 @@ async function recordStockPrices() {
 
   for (const survivor of stockList) {
     try {
-      const name = survivor.name;       
+      const name = survivor.name;    
       const total = await getTotalStockCount();
       const availablePlayerCount = await Survivor.countDocuments({ availability: true });
       const season = await Season.findOne({ isCurrentSeason: true });

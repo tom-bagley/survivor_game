@@ -412,7 +412,7 @@ return (
 
         {/* Portfolio Title + Sort Buttons */}
         <div className="mb-4 flex items-center justify-between">
-          {Number(week < 1) && (
+          {week < 1 && (
           <div className="rounded-2xl bg-black/30 ring-1 ring-white/10 px-5 py-4">
               <div className="text-xs text-white/60">Budget</div>
               <div className="text-2xl font-semibold">{formattedBudget}</div>
