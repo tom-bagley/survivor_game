@@ -4,8 +4,10 @@ import axios from "axios";
 import { UserContext } from "../../../context/userContext";
 import { createGuest } from "../../utils/guest";
 
+
 export default function Navbar() {
   const { user, setUser, replaceUser } = useContext(UserContext) || {};
+  const [week, setWeek] = useState(null);
   const [open, setOpen] = useState(false);                 // mobile menu
   const [profileOpen, setProfileOpen] = useState(false);   // desktop dropdown
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false); // mobile sub-menu
@@ -18,6 +20,18 @@ export default function Navbar() {
     `${linkBase} ${isActive ? "text-accent" : "text-white/90"}`;
 
   useEffect(() => {
+    async function checkWeek() {
+      try {
+        const { data: seasonData } = await axios.get('/admin/getcurrentseason');
+        setWeek(seasonData.currentWeek);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    checkWeek();
+  }, [])
+
+  useEffect(() => {
     const onClick = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setProfileOpen(false);
@@ -28,30 +42,31 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = async () => {
-  try {
-    // 1️⃣ Call backend logout endpoint
-    await axios.post("/auth/logout");
-  } catch (err) {
-    console.error("Error logging out:", err);
-  } finally {
-    // 2️⃣ Remove tokens
-    localStorage.removeItem("authToken");
-    sessionStorage.removeItem("authToken");
-    sessionStorage.removeItem("guest_user");
+    console.log('logging out')
+    try {
+      // 1️⃣ Call backend logout endpoint
+      await axios.post("/auth/logout");
+    } catch (err) {
+      console.error("Error logging out:", err);
+    } finally {
+      // 2️⃣ Remove tokens
+      localStorage.removeItem("authToken");
+      sessionStorage.removeItem("authToken");
+      sessionStorage.removeItem("guest_user");
 
-    // 3️⃣ Reset user to a fresh guest
-    if (typeof replaceUser === "function") {
-      const guest = await createGuest();
-      replaceUser(guest);
-    } else if (typeof setUser === "function") {
-      const guest = await createGuest();
-      setUser(guest);
+      // 3️⃣ Reset user to a fresh guest
+      if (typeof replaceUser === "function") {
+        const guest = await createGuest();
+        replaceUser(guest);
+      } else if (typeof setUser === "function") {
+        const guest = await createGuest();
+        setUser(guest);
+      }
+
+      // 4️⃣ Navigate to login
+      navigate("/login", { replace: true });
     }
-
-    // 4️⃣ Navigate to login
-    navigate("/login", { replace: true });
-  }
-};
+  };
 
 
   return (
@@ -97,6 +112,13 @@ export default function Navbar() {
               Join Discord
             </a>
           </li>
+          {Number(week) > 0 && (
+            <li>
+              <NavLink to="/leaderboard" className={getLink}>
+                Leaderboard
+              </NavLink>
+            </li>
+          )}
 
           {/* Profile / Login */}
           {user && !user.isGuest ? (
@@ -206,6 +228,13 @@ export default function Navbar() {
             Join Discord
           </a>
         </li>
+        {Number(week) > 0 && (
+            <li>
+              <NavLink to="/leaderboard" className={getLink}>
+                Leaderboard
+              </NavLink>
+            </li>
+          )}
         {user?.role === "admin" && (
           <li>
             <NavLink to="/admin" className={getLink} onClick={() => setOpen(false)}>

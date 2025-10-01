@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../../../context/userContext";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import Display from "../../components/dashboardDisplay/dashboardDisplay";
@@ -28,7 +29,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (loading || !user) return; // wait for outer loading or user to exist
-    console.log(user)
+    // console.log(user)
 
     let isMounted = true; // prevent state updates if unmounted
 
@@ -378,7 +379,7 @@ return (
             <h1 className="font-heading text-4xl lg:text-5xl tracking-tight">
               {user
                 ? user.isGuest
-                  ? "Your Portfolio"
+                  ? ""
                   : <>Welcome, <span className="text-accent">{user.name}</span>!</>
                 : "Welcome to the site!"}
             </h1>
@@ -399,20 +400,24 @@ return (
                   <div className="text-2xl font-semibold">{formattedNetWorth}</div>
                 </div>
               )}
-              {/* <div className="rounded-2xl bg-black/30 ring-1 ring-white/10 px-5 py-4">
-                <div className="text-xs text-white/60">Budget</div>
-                <div className="text-2xl font-semibold">{formattedBudget}</div>
-              </div> */}
+              {Number(week) > 0 && (
+                <div className="rounded-2xl bg-black/30 ring-1 ring-white/10 px-5 py-4">
+                  <div className="text-xs text-white/60">Budget</div>
+                  <div className="text-2xl font-semibold">{formattedBudget}</div>
+                </div>
+              )}
             </div>
           </div>
         </header>
 
         {/* Portfolio Title + Sort Buttons */}
         <div className="mb-4 flex items-center justify-between">
+          {week < 1 && (
           <div className="rounded-2xl bg-black/30 ring-1 ring-white/10 px-5 py-4">
-                <div className="text-xs text-white/60">Budget</div>
-                <div className="text-2xl font-semibold">{formattedBudget}</div>
-              </div>
+              <div className="text-xs text-white/60">Budget</div>
+              <div className="text-2xl font-semibold">{formattedBudget}</div>
+            </div>
+            )}
           <h2 className="font-heading text-2xl">
             {user && !user.isGuest ? "Your Portfolio" : ""}
           </h2>
@@ -451,13 +456,13 @@ return (
             </h2>
             <p className="text-white/80 text-sm">
               To save your portfolio, you must{" "}
-              <a href="/register" className="text-accent underline">
+              <Link to="/register" className="text-accent underline">
                 sign up
-              </a>
+              </Link>
               , or if you already have an account, you can{" "}
-              <a href="/login" className="text-accent underline">
+              <Link to="/login" className="text-accent underline">
                 login
-              </a>
+              </Link>
               .
             </p>
           </div>

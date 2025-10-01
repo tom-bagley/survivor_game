@@ -8,7 +8,7 @@ async function recordStockPrices() {
 
   for (const survivor of stockList) {
     try {
-      const name = survivor.name;       
+      const name = survivor.name;    
       const total = await getTotalStockCount();
       const availablePlayerCount = await Survivor.countDocuments({ availability: true });
       const season = await Season.findOne({ isCurrentSeason: true });
@@ -25,7 +25,7 @@ async function recordStockPrices() {
 
       // console.log(`✅ Saved ${name} at $${currentPrice}`);
     } catch (err) {
-      console.error(`❌ Error fetching ${player.name}:`, err.message);
+      console.error(`❌ Error fetching ${survivor.name}:`, err.message);
     }
   }
 }

@@ -59,7 +59,8 @@ const StockChart = ({
     );
     }
 
-  const domainMax = Math.max(Number(medianPrice) * 2 || 0, latestPrice * 1.25);
+  const domainMax = Math.max(Number(medianPrice) * 2);
+  const numericMedian = Number(medianPrice)
 
   return (
     <div className="w-full">
@@ -116,14 +117,15 @@ const StockChart = ({
               />
 
               <YAxis
-                domain={[0, domainMax]}
-                ticks={[0, Number(medianPrice || 0), domainMax]}
-                tickFormatter={(v) => `$${Number(v).toFixed(2)}`}
-                tick={{ fill: "rgba(255,255,255,0.75)", fontSize: 12 }}
-                axisLine={{ stroke: "rgba(255,255,255,0.15)" }}
-                tickLine={false}
-                width={40}
+                domain={[0, (dataMax) => Math.min(dataMax, domainMax)]} // hard max
+                ticks={[0, numericMedian, Math.ceil(domainMax)]}         // ensure ticks are numeric
+                tickFormatter={(v) => `$${Number(v).toFixed(2)}`}        // format as price
+                tick={{ fill: "rgba(255,255,255,0.75)", fontSize: 12 }} // tick styling
+                axisLine={{ stroke: "rgba(255,255,255,0.15)" }}          // axis line styling
+                tickLine={false}                                        // remove tick lines
+                width={40}                                              // width of Y axis
               />
+
 
               <Tooltip content={<ChartTooltip />} cursor={{ stroke: "rgba(255,255,255,0.15)" }} />
 

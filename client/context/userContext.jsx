@@ -7,6 +7,7 @@ export const UserContext = createContext({});
 export function UserContextProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const guestCreatedRef = useRef(false);
+  const didFetchRef = useRef(false);
 
   const { user: guestUser, setUser: updateGuest, loadingGuest } = useGuestUser();
   const [user, setUser] = useState(null);

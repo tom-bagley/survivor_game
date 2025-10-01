@@ -15,10 +15,21 @@ app.use(cors({
   credentials: true 
 }));
 
-//database connection
-mongoose.connect(process.env.MONGO_URL)
-.then(() => console.log('Database Connected'))
-.catch((err) => console.log('Database not Connected', err))
+const connectDB = async () => {
+  try {
+    const mongoUrl = 
+      process.env.NODE_ENV === "production"
+        ? process.env.MONGO_URL
+        : process.env.MONGO_URL_DEV;
+
+    await mongoose.connect(mongoUrl);
+    console.log("Database Connected");
+  } catch (err) {
+    console.error("Database not Connected", err);
+  }
+};
+
+connectDB();
 
 recordStockPrices()
   .then(() => console.log("Initial price recording done"))

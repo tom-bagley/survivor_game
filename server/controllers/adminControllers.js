@@ -5,6 +5,34 @@ const recordStockPrices = require('../jobs/recordPricesJob');
 const { startEpisode } = require('../jobs/checkEpisodeStatusJobs');
 const Episode = require('../models/episodeSettings');
 
+const addSurvivor = async (req, res) => {
+    try {
+        const { name, profile_pic, age, Hometown, Current_Residence, Occupation, Link } = req.body;
+        //Check if Survivor already added
+        const exist = await Survivor.findOne({name});
+        if(exist) {
+            return res.json({
+                error: 'Survivor already added'
+            });
+        }
+
+        //Create Survivor in database
+        const survivor = await Survivor.create({
+            name,
+            profile_pic,
+            age, 
+            Hometown,
+            Current_Residence,
+            Occupation,
+            youtube_interview: Link,
+        });
+
+        return res.json(survivor)
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 const resetUsers = async (req, res) => {
   const { budget, initialSurvivorPrice } = req.body;
   try {
@@ -125,6 +153,7 @@ const toggleOnAirStatus = async (req, res) => {
 }
 
 module.exports = {
+  addSurvivor,
   resetUsers,
   changeSeason,
   changeWeek,
