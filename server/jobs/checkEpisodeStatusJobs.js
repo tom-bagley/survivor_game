@@ -6,7 +6,7 @@ async function startEpisode() {
   if (episode?.onAir) return; // already on
 
   episode.onAir = true;
-  episode.episodeEndTime = new Date(Date.now() + (3 * 60 * 60 * 1000) + (30 * 60 * 1000));
+  episode.episodeEndTime = new Date(Date.now() + (1 * 60 * 60 * 1000) + (45 * 60 * 1000));
   await episode.save();
   console.log("Episode automatically started for Wednesday 8PM Eastern");
 }
