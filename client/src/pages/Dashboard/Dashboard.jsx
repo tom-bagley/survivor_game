@@ -29,7 +29,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (loading || !user) return; // wait for outer loading or user to exist
-    // console.log(user)
+    console.log(user)
 
     let isMounted = true; // prevent state updates if unmounted
 

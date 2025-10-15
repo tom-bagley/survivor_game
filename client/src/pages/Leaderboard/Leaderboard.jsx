@@ -1,14 +1,17 @@
 import { useContext, useEffect, useState } from "react";
+import CreateGroupModal from "../../components/createGroup";
 import { UserContext } from "../../../context/userContext";
 import axios from "axios";
 
 export default function Leaderboard() {
-  const { user } = useContext(UserContext);
+  const { user, loading } = useContext(UserContext);
   const [leaders, setLeaders] = useState([]);
-  const [myRank, setMyRank] = useState(null); // supports number or object from API
+  const [myRank, setMyRank] = useState(null); 
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
 
   useEffect(() => {
+    if (loading || !user) return;
     async function fetchLeaders() {
       try {
         // all entries
@@ -37,7 +40,7 @@ export default function Leaderboard() {
     }
 
     fetchLeaders();
-  }, [user]);
+  }, [user, loading]);
 
   if (loadingLeaderboard) {
     return (
@@ -58,76 +61,95 @@ export default function Leaderboard() {
           ? { user_id: user.id, rank: myRank, username: user.name, net_worth: 0 }
           : null)
       : null;
-
-  return (
-    <div className="min-h-screen bg-black-bg text-white">
-      <div className="mx-auto max-w-[48rem] px-5 sm:px-8 lg:px-10 py-10">
-        <header className="mb-6">
+return (
+  <div className="min-h-screen bg-black-bg text-white">
+    <div className="mx-auto max-w-[48rem] px-5 sm:px-8 lg:px-10 py-10">
+      {/* Header with title and Create Group button */}
+      <header className="mb-6 flex items-center justify-between">
+        <div>
           <h1 className="font-heading text-3xl sm:text-4xl tracking-tight">Leaderboard</h1>
           <p className="text-white/60 mt-1">Top players by net worth.</p>
-        </header>
+        </div>
+      </header>
 
-        {/* Table/card list */}
-        <div className="rounded-2xl bg-charcoal/80 ring-1 ring-white/10 overflow-hidden">
-          {/* Header row */}
-          <div className="grid grid-cols-[72px_1fr_auto] gap-3 px-4 py-3 bg-black/30 text-white/70 text-xs uppercase tracking-wide">
-            <div>#</div>
-            <div>Player</div>
-            <div className="text-right">Net Worth</div>
-          </div>
+      {/* Table/card list */}
+      <div className="rounded-2xl bg-charcoal/80 ring-1 ring-white/10 overflow-hidden">
+        {/* Header row */}
+        <div className="grid grid-cols-[72px_1fr_auto] gap-3 px-4 py-3 bg-black/30 text-white/70 text-xs uppercase tracking-wide">
+          <div>#</div>
+          <div>Player</div>
+          <div className="text-right">Net Worth</div>
+        </div>
 
-          {/* Top 10 */}
-          <ul className="divide-y divide-white/10">
-            {topTen.map((leader) => {
-              const isMe = user && leader.user_id === user.id;
-              return (
-                <li
-                  key={leader.user_id}
-                  className={[
-                    "grid grid-cols-[72px_1fr_auto] gap-3 px-4 py-3",
-                    isMe ? "bg-primary/10 ring-1 ring-primary/40" : "",
-                  ].join(" ")}
-                >
-                  <div className="tabular-nums font-semibold text-white/90">#{leader.rank}</div>
-                  <div className="truncate">
-                    <span className="font-semibold">{leader.username}</span>
-                  </div>
-                  <div className="tabular-nums text-right">
-                    ${Number(leader.net_worth || 0).toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-
-          {/* My row if not in Top 10 */}
-          {myEntry && (
-            <>
-              <div className="h-px bg-white/10 mx-4" />
-              <div className="px-4 py-3 bg-black/20 text-white/60 text-xs">Your position</div>
-              <div className="grid grid-cols-[72px_1fr_auto] gap-3 px-4 py-3 bg-primary/10 ring-1 ring-primary/40">
-                <div className="tabular-nums font-semibold text-white/90">#{myEntry.rank}</div>
+        {/* Top 10 leaderboard entries */}
+        <ul className="divide-y divide-white/10">
+          {topTen.map((leader) => {
+            const isMe = user && leader.user_id === user.id;
+            return (
+              <li
+                key={leader.user_id}
+                className={[
+                  "grid grid-cols-[72px_1fr_auto] gap-3 px-4 py-3",
+                  isMe ? "bg-primary/10 ring-1 ring-primary/40" : "",
+                ].join(" ")}
+              >
+                <div className="tabular-nums font-semibold text-white/90">#{leader.rank}</div>
                 <div className="truncate">
-                  <span className="font-semibold">
-                    {myEntry.username || user?.name || "You"}
-                  </span>
+                  <span className="font-semibold">{leader.username}</span>
                 </div>
                 <div className="tabular-nums text-right">
-                  ${Number(myEntry.net_worth || 0).toLocaleString(undefined, {
+                  ${Number(leader.net_worth || 0).toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}
                 </div>
+              </li>
+            );
+          })}
+        </ul>
+
+        {/* My row if not in Top 10 */}
+        {myEntry && (
+          <>
+            <div className="h-px bg-white/10 mx-4" />
+            <div className="px-4 py-3 bg-black/20 text-white/60 text-xs">Your position</div>
+            <div className="grid grid-cols-[72px_1fr_auto] gap-3 px-4 py-3 bg-primary/10 ring-1 ring-primary/40">
+              <div className="tabular-nums font-semibold text-white/90">#{myEntry.rank}</div>
+              <div className="truncate">
+                <span className="font-semibold">
+                  {myEntry.username || user?.name || "You"}
+                </span>
               </div>
-            </>
-          )}
-        </div>
+              <div className="tabular-nums text-right">
+                ${Number(myEntry.net_worth || 0).toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
-  );
+<div className="mb-6 flex items-center justify-center">
+        <button
+          onClick={() => setIsCreateOpen(true)}
+          className="px-4 py-2 rounded-md bg-primary text-white"
+        >
+          Create Group
+        </button>
+</div>
+
+    {/* Create Group Modal - placed outside leaderboard div for overlay */}
+    <CreateGroupModal
+      isOpen={isCreateOpen}
+      onClose={() => setIsCreateOpen(false)}
+      currentUser={user}
+      onCreated={""}
+    />
+  </div>
+);
+
 }
 
 

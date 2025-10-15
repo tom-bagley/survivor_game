@@ -20,6 +20,7 @@ import Rules from './pages/Rules';
 import ChangeUsername from './pages/ChangeUsername';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import JoinGroup from './pages/joinGroup';
 
 if (process.env.NODE_ENV === 'production') {
   axios.defaults.baseURL = 'https://survivorstockexchange.com';
@@ -85,6 +86,7 @@ function App() {
         <Route path='/change-username' element={<ChangeUsername />} />
         <Route path='/change-password' element={<ForgotPassword />} />
         <Route path='/reset-password/:token' element={<ResetPassword />} />
+        <Route path='/join-group/:token' element={<JoinGroup />} />
       </Routes>
     </>
   );

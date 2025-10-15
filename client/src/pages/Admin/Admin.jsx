@@ -194,7 +194,6 @@ export default function Players() {
               placeholder="Profile photo URL"
               value={data.profile_pic}
               onChange={onChange("profile_pic")}
-              required
             />
             <input
               className="rounded-lg bg-black/30 text-white placeholder-white/40 ring-1 ring-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70"
