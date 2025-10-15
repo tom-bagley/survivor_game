@@ -11,7 +11,7 @@ async function startEpisode() {
   const duration =
     process.env.NODE_ENV === "development"
       ? 10 * 1000 // 10 seconds
-      : (4 * 60 * 60 * 1000) + (30 * 60 * 1000); // 3.5 hours
+      : (1 * 60 * 60 * 1000) + (45 * 60 * 1000); // 3.5 hours
 
   episode.episodeEndTime = new Date(Date.now() + duration);
 
