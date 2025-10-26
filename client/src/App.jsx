@@ -86,7 +86,7 @@ function App() {
         <Route path='/change-username' element={<ChangeUsername />} />
         <Route path='/change-password' element={<ForgotPassword />} />
         <Route path='/reset-password/:token' element={<ResetPassword />} />
-        <Route path='/join-group/:token' element={<JoinGroup />} />
+        <Route path='/join-group' element={<JoinGroup />} />
       </Routes>
     </>
   );

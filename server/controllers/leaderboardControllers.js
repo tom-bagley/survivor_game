@@ -3,6 +3,7 @@ const Group = require("../models/groups");
 const User = require('../models/user');
 const crypto = require('node:crypto');
 const { rawListeners } = require('../models/user');
+const { sendGroupInviteEmail } = require('../resend/email');
 
 const getLeaderboard = async (req, res) => {
     try {
@@ -41,7 +42,7 @@ const getUserPlaceOnLeaderboard = async (req, res) => {
 
 const createGroup = async (req, res) => {
   try {
-    const { name, currentUserId } = req.body; 
+    const { name, currentUserId, emails } = req.body; 
 
     const existing = await Group.findOne({ name });
     if (existing) {
@@ -63,6 +64,11 @@ const createGroup = async (req, res) => {
     await group.save();
 
     const populatedGroup = await group.populate("members", "name netWorth");
+
+    for (const email of emails){
+      await sendGroupInviteEmail(email, `http://localhost:5173/join-group?token=${tokenHash}`);
+    }
+    
 
     res.status(201).json(populatedGroup);
   } catch (err) {

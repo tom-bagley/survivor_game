@@ -392,6 +392,24 @@ const resetPasswordLinkEmail = `
 </html>
 `;
 
+const joinGroupEmail = `
+
+<!doctype html>
+<html lang="en">
+  <body>
+    <p>
+      This person sent a request for you to join their group in the survivor stock exchange.
+    </p>
+    <p>
+      <a href="{resetURL}">Join Group</a>
+    </p>
+    <p>
+      This link will expire after a short time. 
+    </p>
+  </body>
+</html>
+`;
+
 const passwordResetSuccessfulEmail = `<!DOCTYPE html>
 <html>
   <head>
@@ -431,4 +449,4 @@ const passwordResetSuccessfulEmail = `<!DOCTYPE html>
 `
 
 
-module.exports = {verificationTokenEmailTemplate, welcomeEmail, resetPasswordLinkEmail, passwordResetSuccessfulEmail}
+module.exports = {verificationTokenEmailTemplate, welcomeEmail, resetPasswordLinkEmail, passwordResetSuccessfulEmail, joinGroupEmail}

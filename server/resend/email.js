@@ -1,5 +1,5 @@
 const { resend } = require('./config')
-const { verificationTokenEmailTemplate, welcomeEmail, resetPasswordLinkEmail, passwordResetSuccessfulEmail } = require('./email-template')
+const { verificationTokenEmailTemplate, welcomeEmail, resetPasswordLinkEmail, passwordResetSuccessfulEmail, joinGroupEmail } = require('./email-template')
 
 const sendVerificationEmail = async (email, verificationToken) => {
     console.log(email, verificationToken)
@@ -59,9 +59,23 @@ const sendRestSuccessEmail = async (email) => {
     }
 }
 
+const sendGroupInviteEmail = async (email, inviteURL) => {
+    try {
+        const { data, error } = await resend.emails.send({
+            from: 'Survivor Stock Exchange <no-reply@mail.survivorstockexchange.com>',
+            to: [email],
+            subject: "Invite to join",
+            html: joinGroupEmail.replace(/{resetURL}/g, inviteURL)
+        })
+    } catch (error) {
+        throw new Error("Error sending join group email")
+    }
+}
+
 module.exports = {
     sendVerificationEmail,
     sendWelcomeEmail,
     sendPasswordResetEmail,
-    sendRestSuccessEmail
+    sendRestSuccessEmail,
+    sendGroupInviteEmail
 }

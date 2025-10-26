@@ -11,7 +11,8 @@ function uid() {
   return `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
 }
 
-export async function createGuest(overrides = {}) {
+export async function createGuest(from_invite, overrides = {}) {
+  print(from_invite)
   let survivors = [];
 
   try {
@@ -35,7 +36,8 @@ export async function createGuest(overrides = {}) {
     last_seen_episode_id: overrides.last_seen_episode_id ?? null,
     prevNetWorth: overrides.prevNetWorth ?? null,
     role: "user",
-    email: ""
+    email: "",
+
   };
   return guest;
 }

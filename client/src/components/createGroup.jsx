@@ -53,7 +53,7 @@ export default function CreateGroupModal({ isOpen, onClose, currentUser, onCreat
 
     setLoading(true);
     try {
-      const payload = { name: name.trim(), currentUserId: currentUser.id };
+      const payload = { name: name.trim(), currentUserId: currentUser.id, emails: emails };
       const { data } = await axios.post("/leaderboard/creategroup", payload);
 
       setSuccessMessage("Group created!");

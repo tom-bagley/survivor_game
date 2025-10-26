@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, createContext } from "react";
 import axios from "axios";
 import { useGuestUser } from "../src/hooks/useGuestUser";
+import { useLocation } from "react-router-dom";
 
 export const UserContext = createContext({});
 
@@ -11,6 +12,11 @@ export function UserContextProvider({ children }) {
 
   const { user: guestUser, setUser: updateGuest, loadingGuest } = useGuestUser();
   const [user, setUser] = useState(null);
+
+  const location = useLocation();
+  const token = new URLSearchParams(location.search).get("token");
+
+  console.log(token)
 
   // 1️⃣ Fetch signed-in user
   useEffect(() => {
