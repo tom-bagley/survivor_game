@@ -16,8 +16,6 @@ export function UserContextProvider({ children }) {
   const location = useLocation();
   const token = new URLSearchParams(location.search).get("token");
 
-  console.log(token)
-
   // 1️⃣ Fetch signed-in user
   useEffect(() => {
     const fetchUser = async () => {
@@ -61,7 +59,7 @@ export function UserContextProvider({ children }) {
 
   return (
     <UserContext.Provider
-      value={{ user, setUser: updateUser, setRealUser, loading, updateUser }}
+      value={{ user, setUser: updateUser, setRealUser, loading, updateUser, token }}
     >
       {children}
     </UserContext.Provider>

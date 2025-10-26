@@ -11,6 +11,7 @@ export default function Leaderboard() {
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
 
   useEffect(() => {
+
     if (loading || !user) return;
     async function fetchLeaders() {
       try {
@@ -131,25 +132,26 @@ return (
         )}
       </div>
     </div>
-<div className="mb-6 flex items-center justify-center">
+    {!user.isGuest && (
+      <>
+      <div className="mb-6 flex items-center justify-center">
         <button
           onClick={() => setIsCreateOpen(true)}
           className="px-4 py-2 rounded-md bg-primary text-white"
         >
           Create Group
         </button>
-</div>
-
-    {/* Create Group Modal - placed outside leaderboard div for overlay */}
-    <CreateGroupModal
-      isOpen={isCreateOpen}
-      onClose={() => setIsCreateOpen(false)}
-      currentUser={user}
-      onCreated={""}
-    />
+      </div>
+      <CreateGroupModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        currentUser={user}
+        onCreated={""}
+      />
+      </>
+    )}
   </div>
 );
-
 }
 
 

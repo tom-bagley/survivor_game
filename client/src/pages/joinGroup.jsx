@@ -5,12 +5,21 @@ import { Link } from "react-router-dom"
 import { UserContext } from "../../context/userContext";
 
 export default function JoinGroup() {
-    const { user, setUser, loading } = useContext(UserContext)
+    const { user, loading, token } = useContext(UserContext)
+    const [groupName, setGroupName] = useState([]);
 
     useEffect(() => {
         if(loading || !user) return;
-        console.log(user)
-    }, [loading, user])
+            async function getGroupName () {
+                const { data } = await axios.get("/leaderboard/fetchGroupName", {
+                    params: { token }
+                });
+                setGroupName(data.groupName)
+            }
+            getGroupName();
+    }, [user, loading])
+
+    useEffect
 
     if (!user) {
         return <p>Loading user...</p>
@@ -47,7 +56,7 @@ export default function JoinGroup() {
             {user
             ? user.isGuest
                 ? ""
-                : <>Welcome, <span className="text-accent">{user.name}</span>!</>
+                : <>Welcome, <span className="text-accent">{groupName}</span>!</>
             : "Welcome to the site!"}
         </h1>
     )

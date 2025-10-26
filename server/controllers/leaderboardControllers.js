@@ -77,8 +77,21 @@ const createGroup = async (req, res) => {
   }
 };
 
+const fetchGroupName = async (req, res) => {
+  try{
+    const token = req.query.token;
+    const group = await Group.findOne({ inviteTokenHash: token})
+    groupName = group.name
+    res.json({ success: true, groupName });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+}
+
 module.exports = {
     getLeaderboard,
     getUserPlaceOnLeaderboard,
-    createGroup
+    createGroup,
+    fetchGroupName
 }
