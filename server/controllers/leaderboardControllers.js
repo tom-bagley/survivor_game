@@ -56,7 +56,7 @@ const createGroup = async (req, res) => {
     const group = new Group({
       name,
       owner: currentUserId,
-      members: [currentUserId],
+      members: [{user: currentUserId, accepted: true, joinedAt: new Date()}],
       inviteTokenHash: tokenHash, 
       inviteTokenExpiresAt: tokenExpiry
     });

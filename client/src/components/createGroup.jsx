@@ -62,14 +62,14 @@ export default function CreateGroupModal({ isOpen, onClose, currentUser, onCreat
       setEmails(currentUser.email ? [currentUser.email] : []);
 
       if (onCreated) onCreated(data);
-      // Optionally close modal after short delay:
+      
       setTimeout(() => {
         setSuccessMessage(null);
         onClose();
       }, 700);
     } catch (err) {
       console.error("Create group error:", err);
-      // try to surface backend error message if present
+      
       const msg =
         err?.response?.data?.message ||
         err?.response?.data?.error ||

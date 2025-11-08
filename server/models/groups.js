@@ -6,12 +6,13 @@ const groupSchema = new Schema({
   owner: { type: String, required: true },
   members: [
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User" // reference to User model
+      user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      accepted: { type: Boolean , default: false },
+      joinedAt: { type: Date }
     }
   ],
   inviteTokenHash: { type: String, required: true },
-  inviteTokenExpiresAt: { type: Date }
+  inviteTokenExpiresAt: { type: Date },
 });
 
 const Group = mongoose.model("Group", groupSchema);
