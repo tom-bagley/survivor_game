@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { createGuest } from "../utils/guest";
 
-export function useGuestUser() {
+export function useGuestUser(from_invite) {
   const [user, setUser] = useState(null);
   const [loadingGuest, setLoadingGuest] = useState(true);
 
@@ -16,7 +16,7 @@ export function useGuestUser() {
       }
 
       // No guest saved — create new one
-      const guest = await createGuest();
+      const guest = await createGuest(from_invite);
       sessionStorage.setItem("guest_user", JSON.stringify(guest));
       setUser(guest);
       setLoadingGuest(false);

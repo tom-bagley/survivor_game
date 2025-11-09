@@ -9,12 +9,15 @@ export function UserContextProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const guestCreatedRef = useRef(false);
   const didFetchRef = useRef(false);
-
-  const { user: guestUser, setUser: updateGuest, loadingGuest } = useGuestUser();
-  const [user, setUser] = useState(null);
+  const from_invite = true;
 
   const location = useLocation();
   const token = new URLSearchParams(location.search).get("token");
+
+  
+
+  const { user: guestUser, setUser: updateGuest, loadingGuest } = useGuestUser(from_invite);
+  const [user, setUser] = useState(null);
 
   // 1️⃣ Fetch signed-in user
   useEffect(() => {

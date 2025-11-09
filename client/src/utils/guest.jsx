@@ -12,7 +12,7 @@ function uid() {
 }
 
 export async function createGuest(from_invite, overrides = {}) {
-  print(from_invite)
+  console.log(from_invite);
   let survivors = [];
 
   try {
