@@ -5,7 +5,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { UserContext } from "../../../context/userContext";
 
 const Login = () => {
-  const { setUser } = useContext(UserContext);
+
+  const { setUser, fromInvite} = useContext(UserContext);
   const navigate = useNavigate();
 
   const [data, setData] = useState({ email: "", password: "" });
@@ -28,7 +29,13 @@ const Login = () => {
 
       const profileRes = await axios.get("/auth/profile");
       setUser(profileRes.data);
-      navigate("/dashboard");
+      if(fromInvite) {
+        console.log('here')
+        navigate('/join-group')
+      }
+      else {
+        navigate("/dashboard")
+      }; 
     } catch (err) {
       console.error(err);
       toast.error("Something went wrong. Please try again.");
