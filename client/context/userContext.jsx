@@ -3,23 +3,35 @@ import axios from "axios";
 import { useGuestUser } from "../src/hooks/useGuestUser";
 import { useLocation } from "react-router-dom";
 
-export const UserContext = createContext({});
+export const UserContext = createContext({
+  user: null,
+  setUser: () => {},
+  setRealUser: () => {},
+  loading: true,
+  updateUser: () => {},
+  fromInvite: false,
+  inviteToken: null,
+});
 
 export function UserContextProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const guestCreatedRef = useRef(false);
-  const didFetchRef = useRef(false);
-  const from_invite = true;
-
   const location = useLocation();
-  const token = new URLSearchParams(location.search).get("token");
 
-  
+  const [inviteToken, setInviteToken] = useState(() => {
+    try {
+      const initialSearch = (typeof window !== "undefined" && window.location?.search) || "";
+      return new URLSearchParams(initialSearch).get("token");
+    } catch {
+      return null;
+    }
+  });
 
-  const { user: guestUser, setUser: updateGuest, loadingGuest } = useGuestUser(from_invite);
+  const fromInvite = Boolean(inviteToken);
+
+  const { user: guestUser, setUser: updateGuest, loadingGuest } = useGuestUser();
   const [user, setUser] = useState(null);
 
-  // 1️⃣ Fetch signed-in user
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -34,7 +46,6 @@ export function UserContextProvider({ children }) {
     fetchUser();
   }, []);
 
-  // 2️⃣ Fallback to guest after signed-in check
   useEffect(() => {
     if (loading || loadingGuest) return;
     if (user) return;
@@ -44,7 +55,6 @@ export function UserContextProvider({ children }) {
     setUser(guestUser);
   }, [loading, loadingGuest, user, guestUser]);
 
-  // 3️⃣ Generic updateUser works for both signed-in & guest
   const updateUser = (updates) => {
     setUser((prev) => {
       const updated = prev ? { ...prev, ...updates } : prev;
@@ -55,19 +65,27 @@ export function UserContextProvider({ children }) {
     });
   };
 
-  // 4️⃣ Explicitly set a signed-in user
   const setRealUser = (realUser) => {
     setUser(realUser);
   };
 
   return (
     <UserContext.Provider
-      value={{ user, setUser: updateUser, setRealUser, loading, updateUser, token }}
+      value={{
+        user,
+        setUser: updateUser,
+        setRealUser,
+        loading,
+        updateUser,
+        fromInvite
+      }}
     >
       {children}
     </UserContext.Provider>
   );
 }
+
+
 
 
 

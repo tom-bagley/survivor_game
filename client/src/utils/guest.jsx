@@ -11,8 +11,7 @@ function uid() {
   return `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
 }
 
-export async function createGuest(from_invite, overrides = {}) {
-  console.log(from_invite);
+export async function createGuest(overrides = {}) {
   let survivors = [];
 
   try {

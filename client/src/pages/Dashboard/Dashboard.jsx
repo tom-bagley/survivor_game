@@ -7,7 +7,7 @@ import Display from "../../components/dashboardDisplay/dashboardDisplay";
 import EliminationSequence from "../../components/EliminationSequence";
 
 export default function Dashboard() {
-  const { user, updateUser, loading } = useContext(UserContext);
+  const { user, updateUser, loading, from_invite } = useContext(UserContext);
   const [budget, setBudget] = useState(null);
   const [netWorth, setNetWorth] = useState(null);
   const [prevNetWorth, setPrevNetWorth] = useState(null);
@@ -30,6 +30,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (loading || !user) return; // wait for outer loading or user to exist
     console.log(user)
+    console.log(from_invite)
 
     let isMounted = true; // prevent state updates if unmounted
 
