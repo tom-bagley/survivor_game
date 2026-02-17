@@ -114,8 +114,8 @@ export default function Navbar() {
           </li> */}
           {Number(week) > 0 && (
             <li>
-              <NavLink to="/leaderboard" className={getLink}>
-                Leaderboard
+              <NavLink to="/view-groups" className={getLink}>
+                View Your Groups
               </NavLink>
             </li>
           )}
@@ -230,8 +230,8 @@ export default function Navbar() {
         </li> */}
         {Number(week) > 0 && (
             <li>
-              <NavLink to="/leaderboard" className={getLink}>
-                Leaderboard
+              <NavLink to="/view-groups" className={getLink}>
+                View Your Groups
               </NavLink>
             </li>
           )}

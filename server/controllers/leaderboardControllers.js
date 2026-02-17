@@ -115,10 +115,32 @@ const addToGroup = async (req, res) => {
   }
 }
 
+const fetchUserGroups = async (req, res) => {
+  const { id } = req.query
+
+  try {
+    const groups = await Group.find({
+      members: {
+        $elemMatch: {
+          user: id,
+          accepted: true
+        }
+      }
+    }); 
+
+    
+    return res.json({ success: true, groups})
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error'});
+  }
+}
+
 module.exports = {
     getLeaderboard,
     getUserPlaceOnLeaderboard,
     createGroup,
     fetchGroupName,
-    addToGroup
+    addToGroup,
+    fetchUserGroups
 }
