@@ -102,7 +102,7 @@ export default function Navbar() {
               </NavLink>
             </li>
           )}
-          <li>
+          {/* <li>
             <a
               href="https://discord.gg/9V66vjHP"
               className="block px-4 py-2 rounded-lg font-medium text-white/90 hover:bg-white/5"
@@ -111,7 +111,7 @@ export default function Navbar() {
             >
               Join Discord
             </a>
-          </li>
+          </li> */}
           {Number(week) > 0 && (
             <li>
               <NavLink to="/leaderboard" className={getLink}>
@@ -217,7 +217,7 @@ export default function Navbar() {
             Meet the Cast
           </NavLink>
         </li>
-        <li>
+        {/* <li>
           <a
             href="https://discord.gg/9V66vjHP"
             className="block px-4 py-2 rounded-lg font-medium text-white/90 hover:bg-white/5"
@@ -227,7 +227,7 @@ export default function Navbar() {
           >
             Join Discord
           </a>
-        </li>
+        </li> */}
         {Number(week) > 0 && (
             <li>
               <NavLink to="/leaderboard" className={getLink}>
