@@ -79,13 +79,39 @@ const createGroup = async (req, res) => {
 
 const fetchGroupName = async (req, res) => {
   try{
-    const token = req.query.token;
+    const token = req.query.inviteToken;
     const group = await Group.findOne({ inviteTokenHash: token})
-    groupName = group.name
-    res.json({ success: true, groupName });
+    const groupName = group.name
+    const owner_id = group.owner
+    const owner = await User.findOne({ _id: owner_id})
+    res.json({ success: true, groupName: groupName, owner: owner.name });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+}
+
+const addToGroup = async (req, res) => {
+  const { email, token } = req.body;
+  try {
+    const group = await Group.findOne({ inviteTokenHash: token})
+    const user = await User.findOne({ email });
+    const alreadyMember = group.members.some(
+      (m) => m.user.toString() === user._id.toString()
+    );
+    if (alreadyMember) {
+      return res.status(400).json({ error: 'User is already in the group' });
+    }
+    group.members.push({
+      user: user._id,
+      accepted: true,
+      joinedAt: new Date()
+    });
+    await group.save()
+    return res.json({ success: true, group });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
   }
 }
 
@@ -93,5 +119,6 @@ module.exports = {
     getLeaderboard,
     getUserPlaceOnLeaderboard,
     createGroup,
-    fetchGroupName
+    fetchGroupName,
+    addToGroup
 }

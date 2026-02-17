@@ -5,16 +5,12 @@ import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../../context/userContext";
 
 export default function Register() {
-  const { user,setUser } = useContext(UserContext);
+  const { user,setUser, fromInvite } = useContext(UserContext);
   const navigate = useNavigate();
 
   const [data, setData] = useState({ name: "", email: "", password: "" });
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-
-  // useEffect(() => {
-  //   console.log(user)
-  // }, [user]);
 
   const onChange = (field) => (e) => setData((s) => ({ ...s, [field]: e.target.value.trimStart() }));
 
@@ -80,7 +76,12 @@ export default function Register() {
         else if (typeof setUser === "function") setUser(null);
       }
 
-      navigate("/dashboard");
+      if(fromInvite) {
+        navigate('/join-group')
+      }
+      else {
+        navigate("/dashboard")
+      }; 
     } catch (err) {
       console.error(err);
       toast.error("Registration failed. Please try again.");
