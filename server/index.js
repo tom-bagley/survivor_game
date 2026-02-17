@@ -31,38 +31,38 @@ const connectDB = async () => {
 
 connectDB();
 
-recordStockPrices()
-  .then(() => console.log("Initial price recording done"))
-  .catch(console.error);
+// recordStockPrices()
+//   .then(() => console.log("Initial price recording done"))
+//   .catch(console.error);
 
-//Schedule to run every minute
-setInterval(recordStockPrices, 60* 60 * 1000);
+// //Schedule to run every minute
+// setInterval(recordStockPrices, 60* 60 * 1000);
 
-updateLiveLeaderboard()
-  .catch(console.error);
+// updateLiveLeaderboard()
+//   .catch(console.error);
 
-setInterval(() => {
-  updateLiveLeaderboard()
-    .catch(console.error);
-}, 60* 60 * 1000); 
+// setInterval(() => {
+//   updateLiveLeaderboard()
+//     .catch(console.error);
+// }, 60* 60 * 1000); 
 
-setInterval(checkEpisodeStatus, 6 * 1000);
+// setInterval(checkEpisodeStatus, 6 * 1000);
 
-setInterval(async () => {
-  try {
-    if (isWednesday8PMEastern()) {
-      await changeWeek();
-      await startEpisode();
-    }
-    await checkEpisodeStatus();
-  } catch (err) {
-    console.error("Scheduler error:", err);
-  }
-}, 1* 60 * 1000);
+// setInterval(async () => {
+//   try {
+//     if (isWednesday8PMEastern()) {
+//       await changeWeek();
+//       await startEpisode();
+//     }
+//     await checkEpisodeStatus();
+//   } catch (err) {
+//     console.error("Scheduler error:", err);
+//   }
+// }, 1* 60 * 1000);
 
-(async () => {
-  await checkEpisodeStatus(); 
-})();
+// (async () => {
+//   await checkEpisodeStatus(); 
+// })();
 
 //middleware
 app.use(express.json());
