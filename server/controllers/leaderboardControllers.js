@@ -126,7 +126,9 @@ const fetchUserGroups = async (req, res) => {
           accepted: true
         }
       }
-    }); 
+    })
+    .select("name members")
+    .populate("members.user", "name email") 
 
     
     return res.json({ success: true, groups})

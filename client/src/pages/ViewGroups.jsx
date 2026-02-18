@@ -65,37 +65,48 @@ export default function ViewGroups() {
               </>
             )}
             </div>
+            
             <div className="max-w-3xl mx-auto space-y-6">
-    {groups.length === 0 ? (
-        <div className="text-center text-white/60">
-            No groups yet.
-        </div>
-    ) : (
-        groups.map(group => (
-            <div
-                key={group._id}
-                className="bg-zinc-900 p-6 rounded-xl shadow"
-            >
-                <h2 className="text-xl font-semibold mb-4">
-                    {group.name}
-                </h2>
-
-                <div className="space-y-2">
-                    {group.members.map(member => (
-                        <div
-                            key={member._id}
-                            className="flex justify-between bg-zinc-800 px-3 py-2 rounded-md"
-                        >
-                            <span>
-                                {member.user}
-                            </span>
-                        </div>
-                    ))}
+              {groups.length === 0 ? (
+                <div className="text-center text-white/60">
+                  No groups yet.
                 </div>
+              ) : (
+                groups.map(group => (
+                  <div
+                    key={group._id}
+                    className="bg-zinc-900 p-6 rounded-xl shadow"
+                  >
+                    <h2 className="text-xl font-semibold mb-4">
+                      {group.name}
+                    </h2>
+
+                    <div className="space-y-2">
+                      {group.members.map(member => (
+                        <div
+                          key={member._id}
+                          className="flex justify-between items-center bg-zinc-800 px-4 py-3 rounded-md"
+                        >
+                          <div>
+                            <div className="font-medium">
+                              {member.user.name}
+                            </div>
+                            <div className="text-sm text-white/60">
+                              {member.user.email}
+                            </div>
+                          </div>
+
+                          <div className="text-sm text-white/60">
+                            {member.accepted ? "Member" : "Pending"}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
-        ))
-    )}
-</div>
+
             </div>
     );
 }
