@@ -32,6 +32,7 @@ export async function createGuest(overrides = {}) {
     budget: overrides.budget ?? DEFAULT_BUDGET,
     netWorth: overrides.netWorth ?? DEFAULT_BUDGET,
     portfolio: overrides.portfolio ?? portfolio,
+    bootOrders: overrides.bootOrders ?? {},
     last_seen_episode_id: overrides.last_seen_episode_id ?? null,
     prevNetWorth: overrides.prevNetWorth ?? null,
     role: "user",

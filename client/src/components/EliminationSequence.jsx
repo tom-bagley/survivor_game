@@ -9,18 +9,29 @@ export default function EliminationSequence({
   medianPrice = 0,
   prevNetWorth = 0,
   netWorth = 0,
-  onFinish, 
+  bonuses = [],
+  onFinish,
 }) {
-  
+
   const survivorList = useMemo(
-    () =>
+    () => 
+      
       Object.keys(eliminatedSurvivors)
         .map((id) => eliminatedSurvivors[id])
         .filter(Boolean),
     [eliminatedSurvivors]
   );
 
-  const totalStages = Math.max(1, survivorList.length + 1); 
+  
+
+  // Bonuses earned during the episode that just ended (episode = week - 1)
+  const episodeBonuses = useMemo(
+    () => (bonuses || []).filter((b) => b.episode === week - 1),
+    [bonuses, week]
+  );
+  const hasBonuses = episodeBonuses.length > 0;
+
+  const totalStages = Math.max(1, survivorList.length + (hasBonuses ? 1 : 0) + 1);
   const [stageIndex, setStageIndex] = useState(0);
 
   // Navigation
@@ -92,6 +103,78 @@ export default function EliminationSequence({
     );
   };
 
+  const bonusTypeLabels = {
+    bootOrder: "Boot Order Prediction",
+    challengeWin: "Challenge Win",
+    rightSideVote: "Right Side of Vote",
+    playedIdolCorrectly: "Idol Played Correctly",
+    foundIdol: "Idol Found",
+  };
+
+  const renderBonusStage = (episodeBonuses) => {
+    const totalBonus = episodeBonuses.reduce((sum, b) => sum + b.bonusAmount, 0);
+
+    // Group entries by type, preserving insertion order
+    const grouped = episodeBonuses.reduce((acc, bonus) => {
+      if (!acc[bonus.type]) acc[bonus.type] = [];
+      acc[bonus.type].push(bonus);
+      return acc;
+    }, {});
+
+    return (
+      <div className="animate-fadein text-center w-full max-w-xl">
+        <h1 className="font-heading text-2xl sm:text-3xl tracking-tight">
+          Bonuses Earned
+        </h1>
+        <p className="mt-1 text-white/60 text-sm">Week {week} rewards</p>
+
+        <div className="mt-4 space-y-3 text-left max-h-72 overflow-y-auto pr-1">
+          {Object.entries(grouped).map(([type, entries]) => {
+            const typeTotal = entries.reduce((sum, b) => sum + b.bonusAmount, 0);
+            return (
+              <div key={type} className="rounded-xl bg-black/30 ring-1 ring-white/10 overflow-hidden">
+                {/* Type header */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+                  <span className="text-sm font-semibold">
+                    {bonusTypeLabels[type] || type}
+                  </span>
+                  <span className="text-green-400 font-bold">+{formatUSD(typeTotal)}</span>
+                </div>
+                {/* Per-player rows */}
+                {entries.map((bonus, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between px-4 py-2 bg-white/5"
+                  >
+                    <div>
+                      <span className="text-sm text-white/80">{bonus.survivor}</span>
+                      {bonus.type === "bootOrder" && bonus.predictedPosition != null && (
+                        <span className="ml-2 text-xs text-white/40">
+                          predicted #{bonus.predictedPosition + 1}
+                        </span>
+                      )}
+                      {bonus.sharesOwned != null && (
+                        <span className="ml-2 text-xs text-white/40">
+                          {bonus.sharesOwned} share{bonus.sharesOwned !== 1 ? "s" : ""}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-green-400 text-sm ml-4">+{formatUSD(bonus.bonusAmount)}</span>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-4 rounded-xl bg-black/30 ring-1 ring-white/10 px-4 py-3 flex items-center justify-between">
+          <span className="text-white/70 text-sm">Total Bonus</span>
+          <span className="text-green-400 font-bold text-xl">+{formatUSD(totalBonus)}</span>
+        </div>
+      </div>
+    );
+  };
+
   const renderNetWorthStage = () => (
     <div className="animate-fadein text-center w-full max-w-xl">
       <h1 className="font-heading text-2xl sm:text-3xl tracking-tight">
@@ -114,9 +197,16 @@ export default function EliminationSequence({
   );
 
   const showingSurvivor = stageIndex < survivorList.length;
-  const content = showingSurvivor
-    ? renderSurvivorStage(survivorList[stageIndex])
-    : renderNetWorthStage();
+  const showingBonuses = hasBonuses && stageIndex === survivorList.length;
+
+  let content;
+  if (showingSurvivor) {
+    content = renderSurvivorStage(survivorList[stageIndex]);
+  } else if (showingBonuses) {
+    content = renderBonusStage(episodeBonuses);
+  } else {
+    content = renderNetWorthStage();
+  }
 
   // Nothing to show?
   if (!totalStages) return null;
@@ -149,7 +239,7 @@ export default function EliminationSequence({
         </div>
 
         {/* progress + controls (fixed within modal) */}
-        <div className="px-4 sm:px-8 pb-4 sm:pb-6 pt-2 [padding-bottom:calc(env(safe-area-inset-bottom)+1rem)] bg-transparent">
+        <div className="px-4 sm:px-8 pb-4 sm:pb-6 pt-2 bg-transparent">
           <div className="flex items-center justify-center gap-2">
             {Array.from({ length: totalStages }).map((_, i) => (
               <span
@@ -162,7 +252,7 @@ export default function EliminationSequence({
             ))}
           </div>
           <div className="mt-4 flex items-center justify-center gap-3">
-            {showingSurvivor && (
+            {stageIndex < totalStages - 1 && (
               <button
                 type="button"
                 onClick={nextStage}

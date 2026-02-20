@@ -59,7 +59,7 @@ const deleteSurvivor = async (req, res) => {
 const toggleSurvivorAvailability = async (req, res) => {
   const { id } = req.params;
 
-  try {
+//   try {
     const survivor = await Survivor.findById(id);
     const episode = await Episode.findOne({ isCurrentEpisode: true });
     const season = await Season.findOne({ isCurrentSeason: true });
@@ -70,7 +70,7 @@ const toggleSurvivorAvailability = async (req, res) => {
 
     const total = await getTotalStockCount();
     const availableSurvivorCount = await Survivor.countDocuments({ availability: true });
-    const currentPrice = calculateStockPrice(survivor.count, total, availableSurvivorCount, season.currentPrice);
+    const currentPrice = 2
 
     survivor.price = currentPrice;
 
@@ -91,10 +91,10 @@ const toggleSurvivorAvailability = async (req, res) => {
       message: `survivor availability set to ${survivor.availability} successfully`,
       survivor 
     });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'An error occurred while toggling survivor availability' });
-  }
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: 'An error occurred while toggling survivor availability' });
+//   }
 };
 
 const getHistoricalPrices = async (req, res) => {
@@ -116,7 +116,6 @@ const getHistoricalPrices = async (req, res) => {
 const getCurrentSeason = async (req, res) => {
     try {
         const season = await Season.findOne({ isCurrentSeason: true });
-        console.log(season)
         return res.json(season);
     } catch (error) {
         console.error(error);

@@ -1,17 +1,27 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { UserContext } from "../../../context/userContext";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-hot-toast";
-import Display from "../../components/dashboardDisplay/dashboardDisplay";
+import BuyOrShortDisplay from "../../components/BuyOrShortStockDisplay";
 import EliminationSequence from "../../components/EliminationSequence";
+import BootOrder from "../../components/BootOrder";
+import ScoreEfficiencyBar from "../../components/ScoreEfficiencyBar";
 
 export default function Dashboard() {
   const { user, updateUser, loading, from_invite } = useContext(UserContext);
+  const [searchParams] = useSearchParams();
+  const urlGroupId = searchParams.get("groupId");
+  const [groupId, setGroupId] = useState(urlGroupId);
   const [budget, setBudget] = useState(null);
   const [netWorth, setNetWorth] = useState(null);
   const [prevNetWorth, setPrevNetWorth] = useState(null);
+  const [maxPossibleBudget, setMaxPossibleBudget] = useState(null);
+  const [bonuses, setBonuses] = useState([]);
   const [sharesOwned, setSharesOwned] = useState({});
+  const [availableShares, setAvailableShares] = useState({});
+  const [maxSharesPerPlayer, setMaxSharesPerPlayer] = useState(50);
   const [survivorPlayerStats, setSurvivorPlayerStats] = useState({});
   const [prices, setPrices] = useState({});
   const [leaderboard, setLeaderboard] = useState({});
@@ -19,18 +29,18 @@ export default function Dashboard() {
   const [season, setSeason] = useState([]);
   const [week, setWeek] = useState(null);
   const [medianPrice, setMedianPrice] = useState([]);
-  const [admin, setAdmin] = useState([]);
   const [lastSeenWeek, setLastSeenWeek] = useState(null);
   const [showAnimation, setShowAnimation] = useState(false);
   const [eliminatedSurvivors, setEliminatedSurvivors] = useState([]);
   const [displayOrder, setDisplayOrder] = useState([]);
   const [appliedSort, setAppliedSort] = useState("name");
-  const [isSortStale, setIsSortStale] = useState(false);  
+  const [isSortStale, setIsSortStale] = useState(false);
+  const [userGroups, setUserGroups] = useState([]);
+  const [groupDropdownOpen, setGroupDropdownOpen] = useState(false);
+  const groupDropdownRef = useRef(null);
 
   useEffect(() => {
     if (loading || !user) return; // wait for outer loading or user to exist
-    console.log(user)
-    console.log(from_invite)
 
     let isMounted = true; // prevent state updates if unmounted
 
@@ -49,8 +59,9 @@ export default function Dashboard() {
           user.isGuest || !user.id
             ? []
             : [
-                axios.get("/transactions/getportfolio", { params: { userId: user.id } }),
+                axios.get("/transactions/getportfolio", { params: { userId: user.id, groupId } }),
                 axios.get(`/leaderboard/getleaderboard/${user.id}`),
+                axios.get("/groups/user-groups", { params: { userId: user.id } }),
               ];
 
         const results = await Promise.all([...publicRequests, ...privateRequests]);
@@ -64,9 +75,11 @@ export default function Dashboard() {
         // Map private results if any
         let financialData = null;
         let leaderboardRank = null;
+        let groupsData = [];
         if (privateRequests.length > 0) {
           financialData = results[4].data;
           leaderboardRank = results[5].data;
+          groupsData = results[6].data || [];
         }
 
         // Build survivors map
@@ -79,7 +92,6 @@ export default function Dashboard() {
 
         // Always set these
         setPrices(pricesData);
-        setAdmin(seasonData);
         setWeek(seasonData.currentWeek);
         setSeason(seasonData.seasonName);
         setMedianPrice(seasonData.currentPrice);
@@ -88,9 +100,19 @@ export default function Dashboard() {
 
         if (!user.isGuest && financialData) {
           // Real signed-in user
+          if (financialData.groupId) setGroupId(String(financialData.groupId));
           setBudget(financialData.user.budget);
           setNetWorth(financialData.user.netWorth);
-          setSharesOwned(financialData.user.portfolio);
+          // Seed every survivor at 0, then overlay actual holdings so all cards render
+          const fullPortfolio = {};
+          survivorPlayersData.forEach(s => { fullPortfolio[s.name] = 0; });
+          Object.assign(fullPortfolio, financialData.user.portfolio);
+          setSharesOwned(fullPortfolio);
+          if (financialData.availableShares) setAvailableShares(financialData.availableShares);
+          setMaxPossibleBudget(financialData.maxPossibleBudget ?? null);
+          if (financialData.maxSharesPerPlayer) setMaxSharesPerPlayer(financialData.maxSharesPerPlayer);
+          setBonuses(financialData.user.bonuses || []);
+          setUserGroups(groupsData);
           setLeaderboard(leaderboardRank);
           setLastSeenWeek(financialData.user.last_seen_episode_id);
           setPrevNetWorth(financialData.prevNetWorth);
@@ -117,7 +139,38 @@ export default function Dashboard() {
     };
   }, [loading, user]);
 
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (groupDropdownRef.current && !groupDropdownRef.current.contains(e.target)) {
+        setGroupDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
+  const switchGroup = async (newGroupId) => {
+    setGroupDropdownOpen(false);
+    if (newGroupId === groupId) return;
+    try {
+      const { data } = await axios.get("/transactions/getportfolio", {
+        params: { userId: user.id, groupId: newGroupId },
+      });
+      setGroupId(String(data.groupId));
+      setBudget(data.user.budget);
+      setNetWorth(data.user.netWorth);
+      setPrevNetWorth(data.prevNetWorth);
+      const fullPortfolio = {};
+      Object.keys(survivorPlayerStats).forEach(name => { fullPortfolio[name] = 0; });
+      Object.assign(fullPortfolio, data.user.portfolio);
+      setSharesOwned(fullPortfolio);
+      if (data.availableShares) setAvailableShares(data.availableShares);
+      if (data.maxSharesPerPlayer) setMaxSharesPerPlayer(data.maxSharesPerPlayer);
+      setMaxPossibleBudget(data.maxPossibleBudget ?? null);
+    } catch (error) {
+      toast.error("Failed to switch group");
+    }
+  };
 
   useEffect(() => {
     const updateLastSeen = async () => {
@@ -207,26 +260,6 @@ export default function Dashboard() {
     setIsSortStale(!same);  
   }, [sharesOwned, prices, week, medianPrice, appliedSort, displayOrder, survivorPlayerStats]);
 
-  // // Not logged in
-  // if (!user?.id)
-  //   return (
-  //     <div className="min-h-screen bg-black-bg text-white flex items-center justify-center">
-  //       <div className="text-center">
-  //         <div className="mx-auto mb-4 h-16 w-16 rounded-full border-2 border-white/20 grid place-items-center text-white/70">
-  //           <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 16 16" fill="currentColor">
-  //             <path d="M10 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0z" />
-  //             <path
-  //               fillRule="evenodd"
-  //               d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-6a6 6 0 0 0-4.472 10.085C4.584 10.97 6.203 10 8 10s3.416.97 4.472 2.085A6 6 0 0 0 8 2z"
-  //             />
-  //           </svg>
-  //         </div>
-  //         <h1 className="font-heading text-2xl">You’re not logged in</h1>
-  //         <p className="text-white/60 mt-1">Please sign in to continue</p>
-  //       </div>
-  //     </div>
-  //   );
-
   // Loading
   if (loading || loadingFinancials)
     return (
@@ -311,10 +344,11 @@ export default function Dashboard() {
 
       // --- Real user: API call ---
       try {
-        const endpoint = week === 0 ? "/transactions/updateportfoliopreseason" : "/transactions/updateportfolio";
+        const endpoint = "/transactions/updateportfoliopreseason";
 
         const { data } = await axios.put(endpoint, {
           userId: user.id,
+          groupId,
           survivorPlayer,
           amount,
           action,
@@ -324,9 +358,13 @@ export default function Dashboard() {
           toast.error(data.error);
         } else {
           resetPrices();
-          setSharesOwned(data.portfolio);
+          setSharesOwned(prev => ({ ...prev, ...data.portfolio }));
           setBudget(data.budget);
           setNetWorth(data.netWorth);
+          setAvailableShares(prev => ({
+            ...prev,
+            [survivorPlayer]: (prev[survivorPlayer] ?? maxSharesPerPlayer) + (action === 'buy' ? -amount : amount),
+          }));
         }
       } catch (error) {
         toast.error("Something went wrong updating your portfolio.");
@@ -368,6 +406,7 @@ return (
         medianPrice={medianPrice}
         prevNetWorth={prevNetWorth}
         netWorth={netWorth}
+        bonuses={bonuses}
         onFinish={() => setShowAnimation(false)}
       />
     )}
@@ -377,13 +416,54 @@ return (
         {/* Header */}
         <header className="mb-10">
           <div className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-6">
-            <h1 className="font-heading text-4xl lg:text-5xl tracking-tight">
-              {user
-                ? user.isGuest
-                  ? ""
-                  : <>Welcome, <span className="text-accent">{user.name}</span>!</>
-                : "Welcome to the site!"}
-            </h1>
+            <div className="flex flex-col gap-3">
+              <h1 className="font-heading text-4xl lg:text-5xl tracking-tight">
+                {user
+                  ? user.isGuest
+                    ? ""
+                    : <>Welcome, <span className="text-accent">{user.name}</span>!</>
+                  : "Welcome to the site!"}
+              </h1>
+
+              {/* Group selector — only for signed-in users with groups */}
+              {!user?.isGuest && userGroups.length > 0 && (
+                <div className="relative w-fit" ref={groupDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setGroupDropdownOpen(o => !o)}
+                    className="flex items-center gap-2 rounded-xl bg-black/30 ring-1 ring-white/10 px-4 py-2 text-sm font-medium hover:bg-white/5 transition-colors"
+                  >
+                    <span className="text-white/50 text-xs uppercase tracking-widest">Group</span>
+                    <span className="text-white font-semibold">
+                      {userGroups.find(g => String(g._id) === String(groupId))?.displayName ?? '—'}
+                    </span>
+                    <svg className={`w-4 h-4 text-white/40 transition-transform ${groupDropdownOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {groupDropdownOpen && (
+                    <div className="absolute left-0 top-full mt-2 z-50 min-w-[200px] rounded-2xl bg-charcoal ring-1 ring-white/10 shadow-2xl overflow-hidden">
+                      {userGroups.map(g => {
+                        const isActive = String(g._id) === String(groupId);
+                        return (
+                          <button
+                            key={g._id}
+                            type="button"
+                            onClick={() => switchGroup(String(g._id))}
+                            className={`w-full text-left px-4 py-3 text-sm flex items-center justify-between gap-4 transition-colors
+                              ${isActive ? "bg-primary/10 text-primary" : "text-white hover:bg-white/5"}`}
+                          >
+                            <span className="font-medium">{g.displayName}</span>
+                            <span className="text-xs text-white/40">pool: {g.maxSharesPerPlayer}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* Financial summary */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -409,6 +489,11 @@ return (
               )}
             </div>
           </div>
+
+          {/* Max-score efficiency bar — only for signed-in users after week 1 */}
+          {!user?.isGuest && Number(week) > 0 && maxPossibleBudget != null && (
+            <ScoreEfficiencyBar netWorth={netWorth} maxPossibleBudget={maxPossibleBudget} />
+          )}
         </header>
 
         {/* Portfolio Title + Sort Buttons */}
@@ -469,6 +554,9 @@ return (
           </div>
         ) : null}
 
+        {/* Boot Order */}
+        <BootOrder groupId={groupId} />
+
         {/* Portfolio Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {displayOrder.map((survivorPlayer) => {
@@ -485,19 +573,14 @@ return (
 
             return (
               <div key={survivorPlayer} className="h-full">
-                <Display
+                <BuyOrShortDisplay
                   name={survivorPlayer}
                   profilePhotoUrl={profile_pic}
                   shares={shares}
-                  price={displayPrice}
-                  holdingsValue={holdingsValue}
+                  availableShares={availableShares[survivorPlayer] ?? maxSharesPerPlayer}
+                  maxSharesPerPlayer={maxSharesPerPlayer}
                   buyStock={buyStock}
                   sellStock={sellStock}
-                  eliminated={eliminated}
-                  season={season}
-                  week={week}
-                  historical_prices={historical_prices}
-                  medianPrice={medianPrice}
                 />
               </div>
             );

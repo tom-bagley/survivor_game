@@ -9,6 +9,27 @@ const recordStockPrices = require('./jobs/recordPricesJob');
 const updateLiveLeaderboard = require('./jobs/recordLeaderboardJob');
 const  { checkEpisodeStatus, startEpisode, isWednesday8PMEastern }  = require('./jobs/checkEpisodeStatusJobs');
 const { changeWeek } = require('./controllers/adminControllers');
+// const User = require('./models/user');
+
+
+// const updateUsers = async () => {
+//   await User.updateMany(
+//     {},
+//     {
+//       $unset: {
+//         budget: "",
+//         bootOrder: "",
+//         portfolio: "",
+//         bonuses: "",
+//         bootOrders: "",
+//         netWorth: ""
+//       }
+//     }
+//   );
+// }
+
+// updateUsers();
+
 
 app.use(cors({
   origin: 'http://localhost:5173', 
@@ -46,7 +67,7 @@ connectDB();
 //     .catch(console.error);
 // }, 60* 60 * 1000); 
 
-// setInterval(checkEpisodeStatus, 6 * 1000);
+setInterval(checkEpisodeStatus, 6 * 1000);
 
 // setInterval(async () => {
 //   try {
@@ -60,9 +81,9 @@ connectDB();
 //   }
 // }, 1* 60 * 1000);
 
-// (async () => {
-//   await checkEpisodeStatus(); 
-// })();
+(async () => {
+  await checkEpisodeStatus(); 
+})();
 
 //middleware
 app.use(express.json());
@@ -75,6 +96,7 @@ app.use('/transactions', require('./routes/transactionRoutes'));
 app.use('/leaderboard', require('./routes/leaderboardRoutes'));
 app.use('/admin', require('./routes/adminRoutes'));
 app.use('/episode', require('./routes/episodeRoutes'));
+app.use('/groups', require('./routes/groupRoutes'));
 
 if(process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../client/dist')));

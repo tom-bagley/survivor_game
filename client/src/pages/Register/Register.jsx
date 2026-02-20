@@ -32,28 +32,21 @@ export default function Register() {
     try {
       setSubmitting(true);
 
-      // Prepare guest data if available
-      let guestData = {};
-      
-        guestData = {
-          portfolio: user.portfolio,
-          budget: user.budget,
-          netWorth: user.netWorth,
-          last_seen_episode_id: user.last_seen_episode_id,
-          prevNetWorth: user.prevNetWorth,
-        };
-      
-      console.log(guestData)
-      const portfolio = guestData.portfolio
-      const budget = guestData.budget
+      // Carry over guest state if coming from a guest session
+      const guestData = {
+        portfolio: user?.portfolio || {},
+        budget: user?.budget,
+        bootOrders: user?.bootOrders || {},
+      };
 
       // Send registration + guest state to backend
       const res = await axios.post("/auth/register", {
         name,
         email,
         password,
-        portfolio,
-        budget
+        portfolio: guestData.portfolio,
+        budget: guestData.budget,
+        bootOrders: guestData.bootOrders,
       });
 
       if (res.data?.error) {

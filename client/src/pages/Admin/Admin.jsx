@@ -2,6 +2,29 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 
+const PLAYER_EVENT_FIELDS = [
+  { key: "foundIdol",           label: "Found Idol",           color: "yellow" },
+  { key: "wonChallenge",        label: "Won Challenge",        color: "blue"   },
+  { key: "rightSideOfVote",     label: "Right Side of Vote",   color: "green"  },
+  { key: "playedIdolCorrectly", label: "Played Idol Correctly",color: "purple" },
+];
+
+const colorMap = {
+  yellow: "bg-yellow-400/20 text-yellow-400 ring-yellow-400/40 shadow-yellow-400/20 shadow-md",
+  blue:   "bg-blue-400/20 text-blue-400 ring-blue-400/40 shadow-blue-400/20 shadow-md",
+  green:  "bg-green-400/20 text-green-400 ring-green-400/40 shadow-green-400/20 shadow-md",
+  purple: "bg-purple-400/20 text-purple-400 ring-purple-400/40 shadow-purple-400/20 shadow-md",
+};
+
+const dotMap = {
+  yellow: "bg-yellow-400",
+  blue:   "bg-blue-400",
+  green:  "bg-green-400",
+  purple: "bg-purple-400",
+};
+
+const inactiveClass = "bg-white/5 text-white/40 ring-white/10 hover:bg-white/10 hover:text-white/60";
+
 export default function Players() {
   const [data, setData] = useState({
     name: "",
@@ -15,6 +38,7 @@ export default function Players() {
     percentageIncrement: "",
     budget: "",
     initialSurvivorPrice: "",
+    Link: "",
   });
 
   const [season, setSeason] = useState();
@@ -22,40 +46,12 @@ export default function Players() {
   const [price, setPrice] = useState();
   const [increment, setIncrement] = useState();
   const [players, setPlayers] = useState([]);
+  const [episode, setEpisode] = useState(null);
 
-  const onChange = (field) => (e) => setData((s) => ({ ...s, [field]: e.target.value }));
+  const onChange = (field) => (e) =>
+    setData((s) => ({ ...s, [field]: e.target.value }));
 
-  const addPlayer = async (e) => {
-    e.preventDefault();
-    const { name, profile_pic, age, Hometown, Current_Residence, Occupation, Link } = data;
-    try {
-      const res = await axios.post("/admin/addplayer", {
-        name,
-        profile_pic,
-        age,
-        Hometown,
-        Current_Residence,
-        Occupation,
-        Link,
-      });
-      if (res.data?.error) return toast.error(res.data.error);
-      setData((s) => ({
-        ...s,
-        name: "",
-        profile_pic: "",
-        age: "",
-        Hometown: "",
-        Current_Residence: "",
-        Occupation: "",
-      }));
-      await displayPlayers();
-      toast.success("Player added successfully");
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to add player");
-    }
-  };
-
+  // ----------------- API Functions -----------------
   const displayPlayers = async () => {
     try {
       const { data } = await axios.get("/admin/allplayers");
@@ -63,6 +59,33 @@ export default function Players() {
     } catch (err) {
       console.error(err);
       toast.error("Failed to load players");
+    }
+  };
+
+  const fetchCurrentEpisode = async () => {
+    try {
+      const { data } = await axios.get("/episode/getcurrentepisode");
+      setEpisode(data);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load episode");
+    }
+  };
+
+  const addPlayer = async (e) => {
+    e.preventDefault();
+    const { name, profile_pic, age, Hometown, Current_Residence, Occupation, Link } = data;
+    try {
+      const res = await axios.post("/admin/addplayer", {
+        name, profile_pic, age, Hometown, Current_Residence, Occupation, Link,
+      });
+      if (res.data?.error) return toast.error(res.data.error);
+      setData((s) => ({ ...s, name: "", profile_pic: "", age: "", Hometown: "", Current_Residence: "", Occupation: "", Link: "" }));
+      await displayPlayers();
+      toast.success("Player added successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to add player");
     }
   };
 
@@ -90,14 +113,36 @@ export default function Players() {
     }
   };
 
+  const togglePlayerEvent = async (playerName, field, label) => {
+    try {
+      const res = await axios.patch(`/admin/player/events`, { field, playerName });
+      if (res.data?.error) return toast.error(res.data.error);
+
+      // Optimistically update episode state
+      setEpisode((prev) => {
+        if (!prev) return prev;
+        const current = prev[field] || [];
+        const alreadySet = current.includes(playerName);
+        return {
+          ...prev,
+          [field]: alreadySet
+            ? current.filter((n) => n !== playerName)
+            : [...current, playerName],
+        };
+      });
+
+      toast.success(`${label} updated`);
+    } catch (err) {
+      console.error(err);
+      toast.error(`Failed to update ${label}`);
+    }
+  };
+
   const handleResetUsers = async (e) => {
     e.preventDefault();
     const { budget, initialSurvivorPrice } = data;
     try {
-      const res = await axios.post("/admin/reset-users", {
-        budget,
-        initialSurvivorPrice,
-      });
+      const res = await axios.post("/admin/reset-users", { budget, initialSurvivorPrice });
       if (res.data?.error) return toast.error(res.data.error);
       toast.success("Users reset");
     } catch (err) {
@@ -110,11 +155,7 @@ export default function Players() {
     e.preventDefault();
     const { seasonName, initialPrice, percentageIncrement } = data;
     try {
-      const res = await axios.post("/admin/change-season", {
-        seasonName,
-        initialPrice,
-        percentageIncrement,
-      });
+      const res = await axios.post("/admin/change-season", { seasonName, initialPrice, percentageIncrement });
       if (res.data?.error) return toast.error(res.data.error);
       setSeason(seasonName);
       setWeek(0);
@@ -127,8 +168,7 @@ export default function Players() {
     }
   };
 
-  const handleWeekChange = async (e) => {
-    e.preventDefault();
+  const handleWeekChange = async () => {
     const newWeek = Number(week ?? 0) + 1;
     try {
       const res = await axios.post("/admin/change-week", { newWeek });
@@ -141,8 +181,7 @@ export default function Players() {
     }
   };
 
-  const handleOnAirStatusChange = async (e) => {
-    e.preventDefault();
+  const handleOnAirStatusChange = async () => {
     try {
       const res = await axios.patch("/episode/changeonairstatus");
       if (res.data?.error) return toast.error(res.data.error);
@@ -167,12 +206,14 @@ export default function Players() {
     }
     displayPlayers();
     getCurrentSeason();
-    // Fetch once on mount
-  }, []);
+    fetchCurrentEpisode();
+  }, [week]);
 
+  // ----------------- JSX -----------------
   return (
     <div className="min-h-screen bg-black-bg text-white">
       <div className="mx-auto max-w-[1100px] px-5 sm:px-8 lg:px-10 py-10 space-y-8">
+        {/* Header */}
         <header>
           <h1 className="font-heading text-3xl sm:text-4xl tracking-tight">Admin</h1>
           <p className="text-white/70 mt-1">Manage players, season settings, and system status.</p>
@@ -182,54 +223,18 @@ export default function Players() {
         <section className="rounded-2xl bg-charcoal/80 ring-1 ring-white/10 p-5">
           <h2 className="font-heading text-2xl mb-4">Add Players</h2>
           <form onSubmit={addPlayer} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input
-              className="rounded-lg bg-black/30 text-white placeholder-white/40 ring-1 ring-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70"
-              placeholder="Name"
-              value={data.name}
-              onChange={onChange("name")}
-              required
-            />
-            <input
-              className="rounded-lg bg-black/30 text-white placeholder-white/40 ring-1 ring-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70"
-              placeholder="Profile photo URL"
-              value={data.profile_pic}
-              onChange={onChange("profile_pic")}
-            />
-            <input
-              className="rounded-lg bg-black/30 text-white placeholder-white/40 ring-1 ring-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70"
-              placeholder="Age"
-              value={data.age}
-              onChange={onChange("age")}
-            />
-            <input
-              className="rounded-lg bg-black/30 text-white placeholder-white/40 ring-1 ring-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70"
-              placeholder="Hometown"
-              value={data.Hometown}
-              onChange={onChange("Hometown")}
-            />
-            <input
-              className="rounded-lg bg-black/30 text-white placeholder-white/40 ring-1 ring-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70"
-              placeholder="Current residence"
-              value={data.Current_Residence}
-              onChange={onChange("Current_Residence")}
-            />
-            <input
-              className="rounded-lg bg-black/30 text-white placeholder-white/40 ring-1 ring-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70"
-              placeholder="Occupation"
-              value={data.Occupation}
-              onChange={onChange("Occupation")}
-            />
-            <input
-              className="rounded-lg bg-black/30 text-white placeholder-white/40 ring-1 ring-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70"
-              placeholder="Link"
-              value={data.Link}
-              onChange={onChange("Link")}
-            />
+            {["name", "profile_pic", "age", "Hometown", "Current_Residence", "Occupation", "Link"].map((field) => (
+              <input
+                key={field}
+                className="rounded-lg bg-black/30 text-white placeholder-white/40 ring-1 ring-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70"
+                placeholder={field.replace("_", " ").replace(/^\w/, (c) => c.toUpperCase())}
+                value={data[field]}
+                onChange={onChange(field)}
+                required={field === "name"}
+              />
+            ))}
             <div className="sm:col-span-2 flex justify-end">
-              <button
-                type="submit"
-                className="rounded-lg bg-primary text-black font-semibold px-4 py-2 hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-primary/70"
-              >
+              <button type="submit" className="rounded-lg bg-primary text-black font-semibold px-4 py-2 hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-primary/70">
                 Add Player
               </button>
             </div>
@@ -241,64 +246,21 @@ export default function Players() {
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-4">
             <h2 className="font-heading text-2xl">Season Adjustments</h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-              <div className="rounded-lg bg-black/30 ring-1 ring-white/10 px-3 py-2">
-                <div className="text-white/60">Season</div>
-                <div className="font-semibold">{season ?? "—"}</div>
-              </div>
-              <div className="rounded-lg bg-black/30 ring-1 ring-white/10 px-3 py-2">
-                <div className="text-white/60">Week</div>
-                <div className="font-semibold">{week ?? "—"}</div>
-              </div>
-              <div className="rounded-lg bg-black/30 ring-1 ring-white/10 px-3 py-2">
-                <div className="text-white/60">Price</div>
-                <div className="font-semibold">{price ?? "—"}</div>
-              </div>
-              <div className="rounded-lg bg-black/30 ring-1 ring-white/10 px-3 py-2">
-                <div className="text-white/60">Increment</div>
-                <div className="font-semibold">{increment ?? "—"}</div>
-              </div>
+              {[["Season", season], ["Week", week], ["Price", price], ["Increment", increment]].map(([label, value]) => (
+                <div key={label} className="rounded-lg bg-black/30 ring-1 ring-white/10 px-3 py-2">
+                  <div className="text-white/60">{label}</div>
+                  <div className="font-semibold">{value ?? "—"}</div>
+                </div>
+              ))}
             </div>
           </div>
-
-          <form onSubmit={handleSeasonChange} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <input
-              className="rounded-lg bg-black/30 text-white placeholder-white/40 ring-1 ring-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70"
-              placeholder="Season name"
-              value={data.seasonName || ""}
-              onChange={onChange("seasonName")}
-              required
-            />
-            <input
-              className="rounded-lg bg-black/30 text-white placeholder-white/40 ring-1 ring-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70"
-              placeholder="Initial price"
-              value={data.initialPrice || ""}
-              onChange={onChange("initialPrice")}
-              required
-            />
-            <input
-              className="rounded-lg bg-black/30 text-white placeholder-white/40 ring-1 ring-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70"
-              placeholder="Percent increment"
-              value={data.percentageIncrement || ""}
-              onChange={onChange("percentageIncrement")}
-              required
-            />
+          <form onSubmit={handleSeasonChange} className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+            <input className="rounded-lg bg-black/30 text-white placeholder-white/40 ring-1 ring-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70" placeholder="Season name" value={data.seasonName || ""} onChange={onChange("seasonName")} required />
+            <input className="rounded-lg bg-black/30 text-white placeholder-white/40 ring-1 ring-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70" placeholder="Initial price" value={data.initialPrice || ""} onChange={onChange("initialPrice")} required />
+            <input className="rounded-lg bg-black/30 text-white placeholder-white/40 ring-1 ring-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70" placeholder="Percent increment" value={data.percentageIncrement || ""} onChange={onChange("percentageIncrement")} required />
             <div className="sm:col-span-3 flex items-center gap-3">
-              <button
-                type="submit"
-                className="rounded-lg bg-primary text-black font-semibold px-4 py-2 hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-primary/70"
-              >
-                Change Season
-              </button>
-              <form onSubmit={handleWeekChange}>
-                {/* dummy form prevented; we’ll just use a button */}
-              </form>
-              <button
-                type="button"
-                onClick={handleWeekChange}
-                className="rounded-lg bg-white/10 text-white font-semibold px-4 py-2 hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/70"
-              >
-                Next Week
-              </button>
+              <button type="submit" className="rounded-lg bg-primary text-black font-semibold px-4 py-2 hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-primary/70">Change Season</button>
+              <button type="button" onClick={handleWeekChange} className="rounded-lg bg-white/10 text-white font-semibold px-4 py-2 hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/70">Next Week</button>
             </div>
           </form>
         </section>
@@ -306,11 +268,7 @@ export default function Players() {
         {/* On-Air Status */}
         <section className="rounded-2xl bg-charcoal/80 ring-1 ring-white/10 p-5">
           <h2 className="font-heading text-2xl mb-3">On-Air Status</h2>
-          <button
-            type="button"
-            onClick={handleOnAirStatusChange}
-            className="rounded-lg bg-white/10 text-white font-semibold px-4 py-2 hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/70"
-          >
+          <button type="button" onClick={handleOnAirStatusChange} className="rounded-lg bg-white/10 text-white font-semibold px-4 py-2 hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/70">
             Toggle On-Air
           </button>
         </section>
@@ -319,29 +277,79 @@ export default function Players() {
         <section className="rounded-2xl bg-charcoal/80 ring-1 ring-white/10 p-5">
           <h2 className="font-heading text-2xl mb-4">Reset Users</h2>
           <form onSubmit={handleResetUsers} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <input
-              className="rounded-lg bg-black/30 text-white placeholder-white/40 ring-1 ring-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70"
-              placeholder="Budget"
-              value={data.budget || ""}
-              onChange={onChange("budget")}
-              required
-            />
-            <input
-              className="rounded-lg bg-black/30 text-white placeholder-white/40 ring-1 ring-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70"
-              placeholder="Initial survivor price"
-              value={data.initialSurvivorPrice || ""}
-              onChange={onChange("initialSurvivorPrice")}
-              required
-            />
+            <input className="rounded-lg bg-black/30 text-white placeholder-white/40 ring-1 ring-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70" placeholder="Budget" value={data.budget || ""} onChange={onChange("budget")} required />
+            <input className="rounded-lg bg-black/30 text-white placeholder-white/40 ring-1 ring-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/70" placeholder="Initial survivor price" value={data.initialSurvivorPrice || ""} onChange={onChange("initialSurvivorPrice")} required />
             <div className="sm:col-span-1 flex items-center">
-              <button
-                type="submit"
-                className="rounded-lg bg-primary text-black font-semibold px-4 py-2 hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-primary/70"
-              >
-                Reset
-              </button>
+              <button type="submit" className="rounded-lg bg-primary text-black font-semibold px-4 py-2 hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-primary/70">Reset</button>
             </div>
           </form>
+        </section>
+
+        {/* Current Episode Events */}
+        <section className="rounded-2xl bg-charcoal/80 ring-1 ring-white/10 p-5">
+          <div className="flex items-start justify-between mb-5">
+            <div>
+              <h2 className="font-heading text-2xl">Episode Events</h2>
+              {episode ? (
+                <p className="text-white/50 text-sm mt-0.5">
+                  Episode {episode.episodeNumber} · {episode.season}&nbsp;&nbsp;
+                  {episode.onAir
+                    ? <span className="text-green-400 font-medium">● On Air</span>
+                    : <span className="text-white/30">Off Air</span>
+                  }
+                </p>
+              ) : (
+                <p className="text-white/40 text-sm mt-0.5">No active episode found</p>
+              )}
+            </div>
+          </div>
+
+          {episode && players.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {PLAYER_EVENT_FIELDS.map(({ key, label, color }) => {
+                const selected = (episode[key] || []).flat(Infinity);
+                return (
+                  <div key={key} className="rounded-xl bg-black/20 ring-1 ring-white/10 p-4">
+                    {/* Category header */}
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className={`w-2 h-2 rounded-full ${dotMap[color]}`} />
+                      <span className="text-sm font-semibold text-white/80">{label}</span>
+                      {selected.length > 0 && (
+                        <span className="ml-auto text-xs text-white/40">
+                          {selected.length} selected
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Player toggle buttons */}
+                    <div className="flex flex-wrap gap-2">
+                      {players.map((p) => {
+                        const active = selected.includes(p.name);
+                        return (
+                          <button
+                            key={p._id}
+                            type="button"
+                            onClick={() => togglePlayerEvent(p.name, key, label)}
+                            className={`
+                              rounded-full px-3 py-1 text-xs font-medium ring-1
+                              transition-all duration-150 focus:outline-none
+                              ${active ? colorMap[color] : inactiveClass}
+                            `}
+                          >
+                            {p.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-white/40 text-sm">
+              {!episode ? "No active episode." : "No players loaded."}
+            </p>
+          )}
         </section>
 
         {/* Players List */}
@@ -384,4 +392,3 @@ export default function Players() {
     </div>
   );
 }
-
