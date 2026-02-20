@@ -14,8 +14,10 @@ export default function userGameplay () {
     const [survivors, setSurvivors] = useState([])
     const [financialData, setFinancialData] = useState({
         portfolio: {},
+        shorts: {},
         budget: 0
     });
+    const [availableShorts, setAvailableShorts] = useState({});
     const [episodeData, setEpisodeData] = useState({})
 
     useEffect(() => {
@@ -36,6 +38,7 @@ export default function userGameplay () {
         async function getUserFinancials () {
             const  { data } = await axios.get("/transactions/getportfolio", { params: { userId: user.id, groupId } })
             setFinancialData(data.user)
+            setAvailableShorts(data.availableShorts || {})
         }
 
         getUserFinancials();
@@ -64,12 +67,15 @@ export default function userGameplay () {
         setFinancialData(prev => ({
             ...prev,
             portfolio: data.portfolio,
+            shorts: data.shorts,
             budget: data.budget
         }));
     };
 
     const buyStock = (survivorPlayer, amount) => updatePortfolio(survivorPlayer, amount, "buy");
     const sellStock = (survivorPlayer, amount) => updatePortfolio(survivorPlayer, amount, "sell");
+    const shortStock = (survivorPlayer, amount) => updatePortfolio(survivorPlayer, amount, "short");
+    const coverShort = (survivorPlayer, amount) => updatePortfolio(survivorPlayer, amount, "cover");
 
 return (
   <div className="min-h-screen bg-background px-6 py-8 space-y-10">
@@ -116,8 +122,12 @@ return (
             name={survivorPlayer.name}
             profilePhotoUrl={survivorPlayer.profile_pic}
             shares={financialData.portfolio?.[survivorPlayer.name] ?? 0}
+            shorts={financialData.shorts?.[survivorPlayer.name] ?? 0}
+            availableShorts={availableShorts[survivorPlayer.name] ?? 0}
             buyStock={buyStock}
             sellStock={sellStock}
+            shortStock={shortStock}
+            coverShort={coverShort}
           />
         ))}
       </div>

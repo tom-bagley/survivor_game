@@ -21,6 +21,8 @@ export default function Dashboard() {
   const [bonuses, setBonuses] = useState([]);
   const [sharesOwned, setSharesOwned] = useState({});
   const [availableShares, setAvailableShares] = useState({});
+  const [shortsOwned, setShortsOwned] = useState({});
+  const [availableShorts, setAvailableShorts] = useState({});
   const [maxSharesPerPlayer, setMaxSharesPerPlayer] = useState(50);
   const [survivorPlayerStats, setSurvivorPlayerStats] = useState({});
   const [prices, setPrices] = useState({});
@@ -109,6 +111,11 @@ export default function Dashboard() {
           Object.assign(fullPortfolio, financialData.user.portfolio);
           setSharesOwned(fullPortfolio);
           if (financialData.availableShares) setAvailableShares(financialData.availableShares);
+          if (financialData.availableShorts) setAvailableShorts(financialData.availableShorts);
+          const fullShorts = {};
+          survivorPlayersData.forEach(s => { fullShorts[s.name] = 0; });
+          Object.assign(fullShorts, financialData.user.shorts);
+          setShortsOwned(fullShorts);
           setMaxPossibleBudget(financialData.maxPossibleBudget ?? null);
           if (financialData.maxSharesPerPlayer) setMaxSharesPerPlayer(financialData.maxSharesPerPlayer);
           setBonuses(financialData.user.bonuses || []);
@@ -165,6 +172,11 @@ export default function Dashboard() {
       Object.assign(fullPortfolio, data.user.portfolio);
       setSharesOwned(fullPortfolio);
       if (data.availableShares) setAvailableShares(data.availableShares);
+      if (data.availableShorts) setAvailableShorts(data.availableShorts);
+      const fullShorts = {};
+      Object.keys(survivorPlayerStats).forEach(name => { fullShorts[name] = 0; });
+      Object.assign(fullShorts, data.user.shorts);
+      setShortsOwned(fullShorts);
       if (data.maxSharesPerPlayer) setMaxSharesPerPlayer(data.maxSharesPerPlayer);
       setMaxPossibleBudget(data.maxPossibleBudget ?? null);
     } catch (error) {
@@ -358,13 +370,21 @@ export default function Dashboard() {
           toast.error(data.error);
         } else {
           resetPrices();
-          setSharesOwned(prev => ({ ...prev, ...data.portfolio }));
           setBudget(data.budget);
           setNetWorth(data.netWorth);
-          setAvailableShares(prev => ({
-            ...prev,
-            [survivorPlayer]: (prev[survivorPlayer] ?? maxSharesPerPlayer) + (action === 'buy' ? -amount : amount),
-          }));
+          if (action === 'short' || action === 'cover') {
+            setShortsOwned(prev => ({ ...prev, ...data.shorts }));
+            setAvailableShorts(prev => ({
+              ...prev,
+              [survivorPlayer]: (prev[survivorPlayer] ?? maxSharesPerPlayer) + (action === 'short' ? -amount : amount),
+            }));
+          } else {
+            setSharesOwned(prev => ({ ...prev, ...data.portfolio }));
+            setAvailableShares(prev => ({
+              ...prev,
+              [survivorPlayer]: (prev[survivorPlayer] ?? maxSharesPerPlayer) + (action === 'buy' ? -amount : amount),
+            }));
+          }
         }
       } catch (error) {
         toast.error("Something went wrong updating your portfolio.");
@@ -374,6 +394,8 @@ export default function Dashboard() {
 
   const buyStock = (survivorPlayer, amount) => updatePortfolio(survivorPlayer, amount, "buy");
   const sellStock = (survivorPlayer, amount) => updatePortfolio(survivorPlayer, amount, "sell");
+  const shortStock = (survivorPlayer, amount) => updatePortfolio(survivorPlayer, amount, "short");
+  const coverShort = (survivorPlayer, amount) => updatePortfolio(survivorPlayer, amount, "cover");
 
   const resetPrices = async () => {
     try {
@@ -579,8 +601,12 @@ return (
                   shares={shares}
                   availableShares={availableShares[survivorPlayer] ?? maxSharesPerPlayer}
                   maxSharesPerPlayer={maxSharesPerPlayer}
+                  shorts={shortsOwned[survivorPlayer] ?? 0}
+                  availableShorts={availableShorts[survivorPlayer] ?? maxSharesPerPlayer}
                   buyStock={buyStock}
                   sellStock={sellStock}
+                  shortStock={shortStock}
+                  coverShort={coverShort}
                 />
               </div>
             );

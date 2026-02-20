@@ -9,11 +9,10 @@ export default function BootOrder({ groupId }) {
   const [players, setPlayers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [dragIndex, setDragIndex] = useState(null);
-  const [overIndex, setOverIndex] = useState(null); 
+  const [overIndex, setOverIndex] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [episodeData, setEpisodeData] = useState({})
 
-  // ----------------- Fetch players -----------------
   useEffect(() => {
     async function getPlayers() {
       try {
@@ -29,16 +28,15 @@ export default function BootOrder({ groupId }) {
     getPlayers();
   }, []);
 
-    useEffect(() => {
-        if(loading||!user) return;
-        async function getCurrentEpisode () {
-        const { data } = await axios.get("/episode/getcurrentepisode")
-        setEpisodeData(data)
-        }
-        getCurrentEpisode();
-    }, [loading, user])
+  useEffect(() => {
+    if (loading || !user) return;
+    async function getCurrentEpisode() {
+      const { data } = await axios.get("/episode/getcurrentepisode");
+      setEpisodeData(data);
+    }
+    getCurrentEpisode();
+  }, [loading, user]);
 
-  // ----------------- Drag & Drop -----------------
   function handleDragStart(e, index) {
     setDragIndex(index);
     e.dataTransfer.effectAllowed = "move";
@@ -59,15 +57,11 @@ export default function BootOrder({ groupId }) {
     setOverIndex(null);
   }
 
-  // ----------------- Submit order -----------------
   const handleSubmitOrder = async () => {
     setIsSubmitting(true);
-
     try {
       const orderPayload = players.map((p) => p.name);
-
       if (user?.isGuest) {
-        // Persist in guest session so it transfers on sign-up
         updateUser({
           bootOrders: {
             ...(user.bootOrders || {}),
@@ -75,10 +69,14 @@ export default function BootOrder({ groupId }) {
           },
         });
       } else {
-        await axios.put("/transactions/save-boot-order", { order: orderPayload, userId: user.id, groupId, episodeNumber: episodeData.episodeNumber });
+        await axios.put("/transactions/save-boot-order", {
+          order: orderPayload,
+          userId: user.id,
+          groupId,
+          episodeNumber: episodeData.episodeNumber,
+        });
       }
-
-      toast.success("Player order saved!");
+      toast.success("Boot order saved!");
     } catch (err) {
       console.error("Error saving", err);
       toast.error("Failed to save order");
@@ -88,174 +86,84 @@ export default function BootOrder({ groupId }) {
   };
 
   return (
-    <>
-      {/* Fonts & styles omitted for brevity */}
-      
-      <div
-        style={{
-          minHeight: "100vh",
-          background: `
-            radial-gradient(ellipse at 15% 20%, rgba(140,70,10,0.3) 0%, transparent 55%),
-            radial-gradient(ellipse at 85% 80%, rgba(70,20,90,0.25) 0%, transparent 55%),
-            linear-gradient(155deg, #0d0800 0%, #100b02 45%, #07030f 100%)
-          `,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "5px 0 6px",
-        }}
-      >
-        {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: 20, padding: "0 10px" }}>
-          <div
-            style={{
-              fontSize: 10,
-              letterSpacing: "0.35em",
-              textTransform: "uppercase",
-              color: "rgba(255,200,80,0.45)",
-              fontFamily: "'Cinzel', serif",
-              marginBottom: 10,
-            }}
-          >
-            Survivor Fantasy League
-          </div>
-          <h1
-            style={{
-              margin: 0,
-              fontSize: "clamp(22px, 3.5vw, 42px)",
-              fontFamily: "'Cinzel', serif",
-              fontWeight: 900,
-              letterSpacing: "0.1em",
-              color: "#ffe8a0",
-              textShadow: "0 0 50px rgba(200,130,40,0.55), 0 3px 6px rgba(0,0,0,0.9)",
-              lineHeight: 1.1,
-            }}
-          >
-            WHO GETS VOTED OUT THIS WEEK?
-          </h1>
-          <p
-            style={{
-              margin: "14px 0 0",
-              fontSize: 15,
-              color: "rgba(255,210,100,0.4)",
-              fontStyle: "italic",
-              fontFamily: "'Crimson Text', serif",
-              letterSpacing: "0.06em",
-            }}
-          >
-            Drag to rank contestants most likely to go home · #1 is first out
+    <div className="rounded-2xl bg-charcoal/80 ring-1 ring-white/10 shadow-xl p-6 mb-6">
+      {/* Header */}
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="font-heading text-2xl tracking-tight">Boot Order</h2>
+          <p className="text-sm text-white/50 mt-0.5">
+            Drag to rank who gets voted out first — #1 is first out
           </p>
-        </div>
-
-        {/* Scroll tray */}
-        <div style={{ width: "100%", position: "relative" }}>
-          {/* Edge fades */}
-          <div
-            style={{
-              position: "absolute", left: 0, top: 0, bottom: 0, width: 70,
-              background: "linear-gradient(90deg, #0d0800, transparent)",
-              zIndex: 10, pointerEvents: "none",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute", right: 0, top: 0, bottom: 0, width: 70,
-              background: "linear-gradient(270deg, #07030f, transparent)",
-              zIndex: 10, pointerEvents: "none",
-            }}
-          />
-
-          <div
-            className="card-tray"
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              gap: 16,
-              overflowX: "auto",
-              padding: "20px 90px 30px",
-              alignItems: "center",
-            }}
-          >
-            {isLoading
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      width: 130,
-                      height: 210,
-                      borderRadius: 18,
-                      background: "rgba(40,25,10,0.55)",
-                      border: "1px solid rgba(255,200,80,0.08)",
-                      flexShrink: 0,
-                      animation: `shimmer 1.5s ease-in-out ${i * 0.12}s infinite`,
-                    }}
-                  />
-                ))
-              : players.map((player, index) => (
-                  <div
-                    key={player._id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, index)}
-                    onDragEnter={() => handleDragEnter(index)}
-                    onDragEnd={handleDragEnd}
-                    onDragOver={(e) => e.preventDefault()}
-                    style={{
-                      animation: `fadeUp 0.4s ease ${index * 0.07}s both`,
-                      flexShrink: 0,
-                    }}
-                  >
-                    <PlayerCard
-                      player={player}
-                      rank={index + 1}
-                      isDragging={dragIndex === index}
-                      isOver={overIndex === index}
-                      overDirection={dragIndex < index ? "right" : "left"}
-                    />
-                  </div>
-                ))}
+          {/* Payout scale */}
+          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+            {[100, 80, 60, 40, 20].map((bonus, i) => (
+              <span key={i} className="text-xs text-white/40">
+                <span className="font-semibold text-accent">#{i + 1}</span>
+                {" "}→{" "}
+                <span className="text-white/70">+${bonus}</span>
+              </span>
+            ))}
+            <span className="text-xs text-white/30">#6+ → $0</span>
           </div>
         </div>
-
-        {/* Submit Button */}
         {!isLoading && players.length > 0 && (
           <button
             onClick={handleSubmitOrder}
             disabled={isSubmitting}
-            style={{
-              marginTop: 16,
-              padding: "8px 24px",
-              fontWeight: 600,
-              borderRadius: 8,
-              background: "#ffe8a0",
-              color: "#000",
-              cursor: isSubmitting ? "not-allowed" : "pointer",
-              transition: "background 0.2s",
-            }}
+            className="shrink-0 rounded-lg bg-primary text-black font-semibold px-4 py-2 hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-primary/70 disabled:opacity-60"
           >
-            {isSubmitting ? "Saving..." : "Save Changes"}
+            {isSubmitting ? "Saving…" : "Save Order"}
           </button>
         )}
-
-        {/* Footer */}
-        {!isLoading && (
-          <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ width: 40, height: 1, background: "linear-gradient(90deg, transparent, rgba(255,200,80,0.3))" }} />
-            <span
-              style={{
-                fontSize: 11,
-                letterSpacing: "0.2em",
-                textTransform: "uppercase",
-                color: "rgba(255,200,80,0.3)",
-                fontFamily: "'Cinzel', serif",
-              }}
-            >
-              {players.length} castaways
-            </span>
-            <div style={{ width: 40, height: 1, background: "linear-gradient(270deg, transparent, rgba(255,200,80,0.3))" }} />
-          </div>
-        )}
       </div>
-    </>
+
+      {/* Scroll tray */}
+      <div className="relative">
+        {/* Edge fades */}
+        <div className="absolute left-0 top-0 bottom-0 w-14 bg-gradient-to-r from-charcoal to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-14 bg-gradient-to-l from-charcoal to-transparent z-10 pointer-events-none" />
+
+        <div
+          className="flex gap-4 overflow-x-auto py-3 px-14 items-center"
+          style={{ scrollbarWidth: "none" }}
+        >
+          {isLoading
+            ? Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="w-32 h-52 rounded-xl bg-black/30 ring-1 ring-white/10 flex-shrink-0 animate-pulse"
+                />
+              ))
+            : players.map((player, index) => (
+                <div
+                  key={player._id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragEnter={() => handleDragEnter(index)}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={(e) => e.preventDefault()}
+                  className="flex-shrink-0"
+                >
+                  <PlayerCard
+                    player={player}
+                    rank={index + 1}
+                    isDragging={dragIndex === index}
+                    isOver={overIndex === index}
+                    overDirection={dragIndex < index ? "right" : "left"}
+                  />
+                </div>
+              ))}
+        </div>
+      </div>
+
+      {/* Castaway count */}
+      {!isLoading && (
+        <div className="mt-3 text-center">
+          <span className="text-xs text-white/25 uppercase tracking-widest">
+            {players.length} castaways remaining
+          </span>
+        </div>
+      )}
+    </div>
   );
 }

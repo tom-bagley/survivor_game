@@ -1,6 +1,8 @@
 const LiveLeaderboardCache = require('../models/liveleaderboard');
-const Group = require("../models/groups"); 
+const Group = require("../models/groups");
 const User = require('../models/user');
+const UserGroupGame = require('../models/userGroupGame');
+const Episode = require('../models/episodeSettings');
 const crypto = require('node:crypto');
 const { rawListeners } = require('../models/user');
 const { sendGroupInviteEmail } = require('../resend/email');
@@ -116,25 +118,53 @@ const addToGroup = async (req, res) => {
 }
 
 const fetchUserGroups = async (req, res) => {
-  const { id } = req.query
+  const { id } = req.query;
 
   try {
-    const groups = await Group.find({
-      members: {
-        $elemMatch: {
-          user: id,
-          accepted: true
-        }
-      }
-    })
-    .select("name members")
-    .populate("members.user", "name email") 
+    const currentEpisode = await Episode.findOne({ isCurrentEpisode: true });
+    const episodeKey = String((currentEpisode?.episodeNumber ?? 1) - 1);
 
-    
-    return res.json({ success: true, groups})
+    const groups = await Group.find({
+      members: { $elemMatch: { user: id, accepted: true } }
+    })
+    .select("name members maxPossibleBudgets")
+    .populate("members.user", "name email");
+
+    const enrichedGroups = await Promise.all(groups.map(async (group) => {
+      const maxPossibleBudget = group.maxPossibleBudgets?.get(episodeKey) ?? null;
+
+      const memberNetWorths = await Promise.all(
+        group.members
+          .filter(m => m.accepted && m.user)
+          .map(async (m) => {
+            const ugGame = await UserGroupGame.findOne({
+              userId: m.user._id,
+              groupId: group._id,
+            }).select("netWorth");
+            return { userId: String(m.user._id), netWorth: ugGame?.netWorth ?? null };
+          })
+      );
+
+      const netWorthMap = {};
+      memberNetWorths.forEach(({ userId, netWorth }) => { netWorthMap[userId] = netWorth; });
+
+      return {
+        _id: group._id,
+        name: group.name,
+        maxPossibleBudget,
+        members: group.members.map(m => ({
+          _id: m._id,
+          user: m.user,
+          accepted: m.accepted,
+          netWorth: m.user ? (netWorthMap[String(m.user._id)] ?? null) : null,
+        })),
+      };
+    }));
+
+    return res.json({ success: true, groups: enrichedGroups });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Server error'});
+    res.status(500).json({ error: 'Server error' });
   }
 }
 

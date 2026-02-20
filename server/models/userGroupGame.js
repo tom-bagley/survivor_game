@@ -26,6 +26,11 @@ const userGroupGameSchema = new Schema({
         of: Number,
         default: {},
     },
+    shorts: {
+        type: Map,
+        of: Number,
+        default: {},
+    },
     bootOrders: {
         type: Map,
         of: [String],
@@ -45,7 +50,9 @@ const userGroupGameSchema = new Schema({
             "challengeWin",
             "rightSideVote",
             "playedIdolCorrectly",
-            "foundIdol"
+            "foundIdol",
+            "shortPayout",
+            "shortPenalty"
             ],
             required: true
         },

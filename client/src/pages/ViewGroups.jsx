@@ -1,7 +1,13 @@
 import { useContext, useEffect, useState } from "react";
 import CreateGroupModal from "../components/createGroup";
+import ScoreEfficiencyBar from "../components/ScoreEfficiencyBar";
 import { UserContext } from "../../context/userContext";
 import axios from "axios";
+
+function groupDisplayName(group) {
+    if (group.name.startsWith("solo_")) return "Your Own Game";
+    return group.name;
+}
 
 export default function ViewGroups() {
     const { user, loading } = useContext(UserContext);
@@ -36,10 +42,10 @@ export default function ViewGroups() {
     }
 
     return (
-        <div>
+        <div className="min-h-screen bg-black-bg text-white px-4 py-8">
         <div>
             {user.isGuest && (
-                <div>
+                <div className="text-center text-white/60">
                     Must be logged in to view groups
                 </div>
             )}
@@ -65,45 +71,80 @@ export default function ViewGroups() {
               </>
             )}
             </div>
-            
+
             <div className="max-w-3xl mx-auto space-y-6">
               {groups.length === 0 ? (
                 <div className="text-center text-white/60">
                   No groups yet.
                 </div>
               ) : (
-                groups.map(group => (
-                  <div
-                    key={group._id}
-                    className="bg-zinc-900 p-6 rounded-xl shadow"
-                  >
-                    <h2 className="text-xl font-semibold mb-4">
-                      {group.name}
-                    </h2>
+                groups.map(group => {
+                  const isSolo = group.name.startsWith("solo_");
+                  const displayName = groupDisplayName(group);
+                  const acceptedMembers = group.members.filter(m => m.accepted);
 
-                    <div className="space-y-2">
-                      {group.members.map(member => (
-                        <div
-                          key={member._id}
-                          className="flex justify-between items-center bg-zinc-800 px-4 py-3 rounded-md"
-                        >
-                          <div>
-                            <div className="font-medium">
-                              {member.user.name}
-                            </div>
-                            <div className="text-sm text-white/60">
-                              {member.user.email}
-                            </div>
-                          </div>
+                  return (
+                    <div
+                      key={group._id}
+                      className="bg-charcoal/80 ring-1 ring-white/10 p-6 rounded-2xl shadow-xl"
+                    >
+                      <h2 className="text-xl font-semibold mb-1">{displayName}</h2>
+                      {!isSolo && (
+                        <p className="text-xs text-white/40 mb-4">
+                          {acceptedMembers.length} member{acceptedMembers.length !== 1 ? "s" : ""}
+                        </p>
+                      )}
 
-                          <div className="text-sm text-white/60">
-                            {member.accepted ? "Member" : "Pending"}
+                      <div className="space-y-3">
+                        {acceptedMembers.map(member => {
+                          const hasScore = member.netWorth != null && group.maxPossibleBudget != null && group.maxPossibleBudget > 0;
+
+                          return (
+                            <div key={member._id} className="rounded-xl bg-black/30 ring-1 ring-white/10 px-4 py-3">
+                              <div className="flex justify-between items-center">
+                                <div>
+                                  <div className="font-medium">{member.user.name}</div>
+                                  {!isSolo && (
+                                    <div className="text-xs text-white/50">{member.user.email}</div>
+                                  )}
+                                </div>
+                                {member.netWorth != null && (
+                                  <div className="text-right">
+                                    <div className="text-sm font-semibold text-primary">
+                                      ${member.netWorth.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </div>
+                                    <div className="text-xs text-white/40">net worth</div>
+                                  </div>
+                                )}
+                              </div>
+
+                              {hasScore && (
+                                <ScoreEfficiencyBar
+                                  netWorth={member.netWorth}
+                                  maxPossibleBudget={group.maxPossibleBudget}
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
+
+                        {/* Pending members (non-solo groups only) */}
+                        {!isSolo && group.members.filter(m => !m.accepted).map(member => (
+                          <div
+                            key={member._id}
+                            className="flex justify-between items-center rounded-xl bg-black/20 ring-1 ring-white/5 px-4 py-3 opacity-50"
+                          >
+                            <div>
+                              <div className="font-medium">{member.user?.name ?? "—"}</div>
+                              <div className="text-xs text-white/50">{member.user?.email}</div>
+                            </div>
+                            <div className="text-xs text-white/40 italic">Pending</div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
 

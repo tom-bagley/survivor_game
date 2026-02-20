@@ -206,6 +206,8 @@ const addBonuses = async (prevEpisode) => {
 
       const portfolio = ugGame.portfolio || {};
 
+      const shorts = ugGame.shorts || new Map();
+
       const awardStockBonus = (survivorName, baseAmount, eventType) => {
         const sharesOwned = portfolio.get(survivorName) || 0;
         if (sharesOwned <= 0) return;
@@ -223,24 +225,65 @@ const addBonuses = async (prevEpisode) => {
         });
       };
 
-      // 🎯 Challenge Wins
+      const applyShortPenalty = (survivorName, penaltyRate, eventType) => {
+        const shortsOwned = shorts.get(survivorName) || 0;
+        if (shortsOwned <= 0) return;
+
+        const penalty = shortsOwned * penaltyRate;
+        totalBonus -= penalty;
+
+        bonusEntries.push({
+          type: "shortPenalty",
+          episode: prevEpisode.episodeNumber,
+          survivor: survivorName,
+          sharesOwned: shortsOwned,
+          bonusAmount: -penalty
+        });
+      };
+
+      // Long bonuses
       for (const name of challengeWinners) {
         awardStockBonus(name, 5, "challengeWin");
       }
-
-      // ✅ Right Side of Vote
       for (const name of rightSide) {
         awardStockBonus(name, 3, "rightSideVote");
       }
-
-      // 🛡 Played Idol Correctly
       for (const name of correctIdols) {
         awardStockBonus(name, 8, "playedIdolCorrectly");
       }
-
-      // 🔎 Found Idol
       for (const name of idolFinds) {
         awardStockBonus(name, 4, "foundIdol");
+      }
+
+      // Short penalties (survivor performed well — bad for short holders)
+      for (const name of challengeWinners) {
+        applyShortPenalty(name, 5, "challengeWin");
+      }
+      for (const name of rightSide) {
+        applyShortPenalty(name, 3, "rightSideVote");
+      }
+      for (const name of correctIdols) {
+        applyShortPenalty(name, 8, "playedIdolCorrectly");
+      }
+      for (const name of idolFinds) {
+        applyShortPenalty(name, 4, "foundIdol");
+      }
+
+      // Short payouts (survivor voted out — short holders win)
+      for (const survivorName of prevEpisode.survivorsVotedOut || []) {
+        const shortsOwned = shorts.get(survivorName) || 0;
+        if (shortsOwned <= 0) continue;
+
+        const payout = shortsOwned * 10;
+        totalBonus += payout;
+
+        bonusEntries.push({
+          type: "shortPayout",
+          episode: prevEpisode.episodeNumber,
+          survivor: survivorName,
+          sharesOwned: shortsOwned,
+          bonusAmount: payout
+        });
       }
 
       /* -----------------------------
