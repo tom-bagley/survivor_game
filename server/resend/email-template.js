@@ -398,7 +398,7 @@ const joinGroupEmail = `
 <html lang="en">
   <body>
     <p>
-      This person sent a request for you to join their group in the survivor stock exchange.
+      {inviteUser} sent a request for you to join their group in the survivor stock exchange.
     </p>
     <p>
       <a href="{resetURL}">Join Group</a>

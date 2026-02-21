@@ -10,9 +10,9 @@ const survivorSchema = new Schema({
         type: Number,
         default: 5,
     },
-    count: {
+    countStocks: {
         type: Number,
-        default: 500,
+        default: 0,
     },
     availability: {
         type: Boolean,

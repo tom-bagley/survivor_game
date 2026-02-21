@@ -77,7 +77,8 @@ export function UserContextProvider({ children }) {
         setRealUser,
         loading,
         updateUser,
-        fromInvite
+        fromInvite,
+        inviteToken
       }}
     >
       {children}

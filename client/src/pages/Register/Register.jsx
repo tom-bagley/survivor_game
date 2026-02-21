@@ -5,16 +5,12 @@ import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../../context/userContext";
 
 export default function Register() {
-  const { user,setUser } = useContext(UserContext);
+  const { user,setUser, fromInvite } = useContext(UserContext);
   const navigate = useNavigate();
 
   const [data, setData] = useState({ name: "", email: "", password: "" });
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-
-  // useEffect(() => {
-  //   console.log(user)
-  // }, [user]);
 
   const onChange = (field) => (e) => setData((s) => ({ ...s, [field]: e.target.value.trimStart() }));
 
@@ -36,28 +32,21 @@ export default function Register() {
     try {
       setSubmitting(true);
 
-      // Prepare guest data if available
-      let guestData = {};
-      
-        guestData = {
-          portfolio: user.portfolio,
-          budget: user.budget,
-          netWorth: user.netWorth,
-          last_seen_episode_id: user.last_seen_episode_id,
-          prevNetWorth: user.prevNetWorth,
-        };
-      
-      console.log(guestData)
-      const portfolio = guestData.portfolio
-      const budget = guestData.budget
+      // Carry over guest state if coming from a guest session
+      const guestData = {
+        portfolio: user?.portfolio || {},
+        budget: user?.budget,
+        bootOrders: user?.bootOrders || {},
+      };
 
       // Send registration + guest state to backend
       const res = await axios.post("/auth/register", {
         name,
         email,
         password,
-        portfolio,
-        budget
+        portfolio: guestData.portfolio,
+        budget: guestData.budget,
+        bootOrders: guestData.bootOrders,
       });
 
       if (res.data?.error) {
@@ -80,7 +69,12 @@ export default function Register() {
         else if (typeof setUser === "function") setUser(null);
       }
 
-      navigate("/dashboard");
+      if(fromInvite) {
+        navigate('/join-group')
+      }
+      else {
+        navigate("/dashboard")
+      }; 
     } catch (err) {
       console.error(err);
       toast.error("Registration failed. Please try again.");

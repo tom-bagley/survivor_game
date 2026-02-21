@@ -9,6 +9,27 @@ const recordStockPrices = require('./jobs/recordPricesJob');
 const updateLiveLeaderboard = require('./jobs/recordLeaderboardJob');
 const  { checkEpisodeStatus, startEpisode, isWednesday8PMEastern }  = require('./jobs/checkEpisodeStatusJobs');
 const { changeWeek } = require('./controllers/adminControllers');
+// const User = require('./models/user');
+
+
+// const updateUsers = async () => {
+//   await User.updateMany(
+//     {},
+//     {
+//       $unset: {
+//         budget: "",
+//         bootOrder: "",
+//         portfolio: "",
+//         bonuses: "",
+//         bootOrders: "",
+//         netWorth: ""
+//       }
+//     }
+//   );
+// }
+
+// updateUsers();
+
 
 app.use(cors({
   origin: 'http://localhost:5173', 
@@ -31,34 +52,34 @@ const connectDB = async () => {
 
 connectDB();
 
-recordStockPrices()
-  .then(() => console.log("Initial price recording done"))
-  .catch(console.error);
+// recordStockPrices()
+//   .then(() => console.log("Initial price recording done"))
+//   .catch(console.error);
 
-//Schedule to run every minute
-setInterval(recordStockPrices, 60* 60 * 1000);
+// //Schedule to run every minute
+// setInterval(recordStockPrices, 60* 60 * 1000);
 
-updateLiveLeaderboard()
-  .catch(console.error);
+// updateLiveLeaderboard()
+//   .catch(console.error);
 
-setInterval(() => {
-  updateLiveLeaderboard()
-    .catch(console.error);
-}, 60* 60 * 1000); 
+// setInterval(() => {
+//   updateLiveLeaderboard()
+//     .catch(console.error);
+// }, 60* 60 * 1000); 
 
 setInterval(checkEpisodeStatus, 6 * 1000);
 
-setInterval(async () => {
-  try {
-    if (isWednesday8PMEastern()) {
-      await changeWeek();
-      await startEpisode();
-    }
-    await checkEpisodeStatus();
-  } catch (err) {
-    console.error("Scheduler error:", err);
-  }
-}, 1* 60 * 1000);
+// setInterval(async () => {
+//   try {
+//     if (isWednesday8PMEastern()) {
+//       await changeWeek();
+//       await startEpisode();
+//     }
+//     await checkEpisodeStatus();
+//   } catch (err) {
+//     console.error("Scheduler error:", err);
+//   }
+// }, 1* 60 * 1000);
 
 (async () => {
   await checkEpisodeStatus(); 
@@ -75,6 +96,8 @@ app.use('/transactions', require('./routes/transactionRoutes'));
 app.use('/leaderboard', require('./routes/leaderboardRoutes'));
 app.use('/admin', require('./routes/adminRoutes'));
 app.use('/episode', require('./routes/episodeRoutes'));
+app.use('/groups', require('./routes/groupRoutes'));
+app.use('/trades', require('./routes/tradeRoutes'));
 
 if(process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../client/dist')));

@@ -21,9 +21,7 @@ function AppLayout() {
   }, []);
 
   useEffect(() => {
-    if (onAir === true) {
-      navigate("/on-air", { replace: true });
-    } else if (onAir === false) {
+    if (onAir !== null) {
       navigate("/dashboard", { replace: true });
     }
   }, [onAir, navigate]);

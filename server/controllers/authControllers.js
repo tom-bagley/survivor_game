@@ -1,4 +1,6 @@
 const User = require('../models/user');
+const Group = require('../models/groups');
+const UserGroupGame = require('../models/userGroupGame');
 const Survivor = require('../models/survivors');
 const Season = require('../models/seasonSettings');
 const { hashPassword, comparePassword, generateVerificationToken } = require('../helpers/auth');
@@ -9,7 +11,7 @@ const { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail, sendRes
 //Register endpoint
 const registerUser = async (req, res) => {
     try {
-        const {name, email, password, portfolio, budget} = req.body;
+        const { name, email, password, portfolio, budget, bootOrders } = req.body;
         // Check if name was entered
         if(!name) {
             return res.json({
@@ -32,20 +34,57 @@ const registerUser = async (req, res) => {
 
         const hashedPassword = await hashPassword(password)
         const verificationToken = generateVerificationToken();
-        
+
         const season = await Season.findOne({ isCurrentSeason: true });
         //Create user in database
         const user = await User.create({
             name,
-            email, 
+            email,
             password: hashedPassword,
             verificationToken,
             verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000,
-            budget,
-            portfolio,
             role: 'user',
-            last_seen_episode_id: season.currentWeek,
+            last_seen_episode_id: season ? season.currentWeek : 0,
         });
+
+        // Transfer guest session into a solo group + UserGroupGame
+        const soloGroup = await Group.create({
+            name: `solo_${user._id}`,
+            owner: user._id,
+            members: [{ user: user._id, accepted: true, joinedAt: new Date() }],
+        });
+
+        // Build portfolio map — only carry over non-zero holdings
+        const portfolioMap = new Map();
+        if (portfolio && typeof portfolio === 'object') {
+            Object.entries(portfolio).forEach(([survivorName, count]) => {
+                if (count > 0) {
+                    portfolioMap.set(survivorName, count);
+                    soloGroup.sharesUsed.set(survivorName, count);
+                }
+            });
+        }
+
+        // Build bootOrders map
+        const bootOrdersMap = new Map();
+        if (bootOrders && typeof bootOrders === 'object') {
+            Object.entries(bootOrders).forEach(([ep, order]) => {
+                if (Array.isArray(order) && order.length > 0) {
+                    bootOrdersMap.set(String(ep), order);
+                }
+            });
+        }
+
+        await UserGroupGame.create({
+            userId: user._id,
+            groupId: soloGroup._id,
+            budget: typeof budget === 'number' ? budget : 50,
+            portfolio: portfolioMap,
+            bootOrders: bootOrdersMap,
+        });
+
+        await soloGroup.save();
+
         jwt.sign({sub: user._id, role: user.role, isGuest: user.isGuest}, process.env.JWT_SECRET, {}, (err, token) => {
             if(err) throw err;
             res.cookie('token', token).json(user)
