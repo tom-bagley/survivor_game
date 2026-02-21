@@ -1,33 +1,38 @@
 @import "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Oswald:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Josefin+Sans:wght@300;400;600;700&display=swap');
 
 @theme {
-  --font-body: Inter, sans-serif;
-  --font-heading: Oswald, sans-serif;
+  --font-body: 'Josefin Sans', sans-serif;
+  --font-heading: 'Cinzel', serif;
 
-  --color-primary: #F15A24;
-  --color-accent: #FFC83D;
-  --color-green-dark: #2C5E3F;
-  --color-red-flame: #E63917;
-  --color-charcoal: #2A2A2A;
-  --color-black-bg: #0E0E0E;
+  /* Island / Survivor palette */
+  --color-primary: #E8943A;       /* torch orange */
+  --color-accent: #F2C94C;        /* golden sand */
+  --color-jungle: #2D6A4F;        /* jungle green */
+  --color-ocean: #1A8FA8;         /* ocean teal */
+  --color-sand: #C4985A;          /* sandy brown */
+  --color-red-flame: #C0392B;     /* tribal fire red */
+  --color-charcoal: #1A2535;      /* dark ocean slate */
+  --color-black-bg: #0B1A2C;      /* deep ocean night */
+  --color-cream: #F5EDD0;         /* warm parchment text */
+
+  /* Keep legacy aliases so existing Tailwind classes still work */
+  --color-green-dark: #2D6A4F;
 }
 
 @layer base {
   html, body, #root { height: 100%; }
 
   body {
-    @apply font-body bg-black-bg text-white antialiased;
+    @apply font-body antialiased;
+    background-color: #0B1A2C;
+    color: #F5EDD0;
   }
 
   h1, h2, h3, h4 {
-    @apply font-heading tracking-tight;
+    @apply font-heading;
+    letter-spacing: 0.04em;
+    color: #F5EDD0;
   }
 }
-
-
-
-
-
-

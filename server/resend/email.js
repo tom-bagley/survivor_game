@@ -59,13 +59,15 @@ const sendRestSuccessEmail = async (email) => {
     }
 }
 
-const sendGroupInviteEmail = async (email, inviteURL) => {
+const sendGroupInviteEmail = async (email, inviteURL, inviteUserUsername) => {
     try {
         const { data, error } = await resend.emails.send({
             from: 'Survivor Stock Exchange <no-reply@mail.survivorstockexchange.com>',
             to: [email],
             subject: "Invite to join",
-            html: joinGroupEmail.replace(/{resetURL}/g, inviteURL)
+            html: joinGroupEmail
+                .replace(/{resetURL}/g, inviteURL)
+                .replace(/{inviteUser}/g, inviteUserUsername)
         })
     } catch (error) {
         throw new Error("Error sending join group email")

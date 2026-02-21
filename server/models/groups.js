@@ -18,6 +18,8 @@ const groupSchema = new Schema({
   shortsUsed: { type: Map, of: Number, default: {} },
   // Max possible budget per episode (episodeNumber string → maxBudget)
   maxPossibleBudgets: { type: Map, of: Number, default: {} },
+  // Detailed log of how the max was achieved (episodeNumber string → log object)
+  maxPossibleLog: { type: Map, of: mongoose.Schema.Types.Mixed, default: {} },
 });
 
 const Group = mongoose.model("Group", groupSchema);

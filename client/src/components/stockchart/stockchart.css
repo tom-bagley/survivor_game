@@ -3,14 +3,13 @@
   height: 100%;
   padding: 8px;
   box-sizing: border-box;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(11, 26, 44, 0.3);
   border-radius: 12px;
 }
 
-/* Optional: Customize the grid look */
 .stock-chart-grid {
   stroke-dasharray: 3 3;
-  stroke: #444;
+  stroke: #1A2D45;
 }
 
 .toggle-buttons {
@@ -22,23 +21,27 @@
 
 .toggle-button {
   padding: 0.5rem 1rem;
-  background-color: #222;
-  color: #ccc;
-  border: 2px solid #444;
+  background: rgba(15, 35, 64, 0.8);
+  color: #C4985A;
+  border: 1px solid rgba(196, 152, 90, 0.3);
   border-radius: 8px;
   cursor: pointer;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
   transition: all 0.2s ease;
 }
 
 .toggle-button:hover {
-  background-color: #333;
+  background: rgba(26, 45, 72, 0.9);
+  border-color: rgba(196, 152, 90, 0.5);
 }
 
+/* Active: ocean teal glow instead of cold cyan */
 .toggle-button.active {
-  background-color: #00eaff;
-  color: #000;
-  border-color: #00eaff;
-  box-shadow: 0 0 10px #00eaff88;
+  background: #1A8FA8;
+  color: #F5EDD0;
+  border-color: #1A8FA8;
+  box-shadow: 0 0 10px rgba(26, 143, 168, 0.5);
   font-weight: bold;
 }
-

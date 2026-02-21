@@ -6,6 +6,10 @@ const episodeSettingsSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  tribalCouncil: {
+    type: Boolean,
+    default: false,
+  },
   episodeEndTime: {
     type: Date,
     default: null,
@@ -15,6 +19,10 @@ const episodeSettingsSchema = new Schema({
     default: 0,
   },
   survivorsVotedOut: {
+    type: [String],
+    default: [],
+  },
+  lastEpisodeVotedOut: {
     type: [String],
     default: [],
   },
@@ -49,6 +57,43 @@ const episodeSettingsSchema = new Schema({
   },
   playedIdolCorrectly: {
     type: [{ type: [String] }],
+    default: [],
+  },
+  lostChallenge: {
+    type: [{ type: [String] }],
+    default: [],
+  },
+  wrongSideOfVote: {
+    type: [{ type: [String] }],
+    default: [],
+  },
+  finalists: {
+    type: [String],
+    default: [],
+  },
+  liveIdolEvents: {
+    type: [{
+      survivorName: { type: String, required: true },
+      appliedAt:    { type: Date, default: Date.now },
+      bonusPerShare: { type: Number, default: 0.50 },
+    }],
+    default: [],
+  },
+  liveEventBonuses: {
+    type: [{
+      survivorName: { type: String, required: true },
+      field:        { type: String, required: true },
+      appliedAt:    { type: Date, default: Date.now },
+    }],
+    default: [],
+  },
+  liveChallengeEvents: {
+    type: [{
+      challengeType: { type: String, required: true }, // 'team' | 'reward' | 'individual'
+      winners:  { type: [String], default: [] },
+      losers:   { type: [String], default: [] },
+      appliedAt: { type: Date, default: Date.now },
+    }],
     default: [],
   },
 }, { timestamps: true });

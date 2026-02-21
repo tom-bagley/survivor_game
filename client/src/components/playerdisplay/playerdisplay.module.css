@@ -1,13 +1,14 @@
 .container {
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(6px);
+  background: linear-gradient(135deg, rgba(15, 35, 64, 0.92) 0%, rgba(11, 26, 44, 0.96) 100%);
+  backdrop-filter: blur(8px);
   border-radius: 16px;
+  border: 1px solid rgba(196, 152, 90, 0.2);
   padding: 24px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(242, 201, 76, 0.06);
   width: 100%;
   max-width: 600px;
   height: 100%;
-  color: white;
+  color: #F5EDD0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -29,7 +30,7 @@
 }
 
 .avatarWrapper {
-  padding: 6px; /* space for border */
+  padding: 6px;
   border-radius: 50%;
   display: inline-block;
   transition: box-shadow 0.4s ease, border 0.4s ease;
@@ -44,7 +45,7 @@
 }
 
 .container:hover {
-  box-shadow: 0 12px 35px rgba(0, 255, 255, 0.25), 0 0 20px rgba(0, 255, 255, 0.15);
+  box-shadow: 0 12px 40px rgba(232, 148, 58, 0.2), 0 0 20px rgba(242, 201, 76, 0.1);
   transform: translateY(-4px);
   transition: all 0.3s ease;
 }
@@ -58,19 +59,18 @@
   align-items: center;
 }
 
-  
 .profilepicture {
-  margin-right: 10px; 
+  margin-right: 10px;
 }
 
 .profilepicture img {
-  width: 200px; 
-  height: 300px; 
-  border-radius: 50%; 
+  width: 200px;
+  height: 300px;
+  border-radius: 50%;
   object-fit: cover;
-  border: 4px solid rgba(0, 255, 255, 0.4);
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
-  transition: transform 0.3s ease; 
+  border: 4px solid rgba(196, 152, 90, 0.5);
+  box-shadow: 0 0 20px rgba(232, 148, 58, 0.25);
+  transition: transform 0.3s ease;
 }
 
 .profilepicture img:hover {
@@ -79,21 +79,22 @@
 
 .details {
   display: flex;
-  flex-direction: column; 
+  flex-direction: column;
   align-items: flex-start;
-  max-width: 60%; 
+  max-width: 60%;
 }
 
 .details h4 {
-  font-size: 30px; 
+  font-size: 30px;
   margin: 0 0 10px 0;
-  text-align: left; 
+  text-align: left;
+  color: #F5EDD0;
 }
 
 .details p {
-  margin: 5px 0; 
+  margin: 5px 0;
   line-height: 1.4;
-  text-align: left; 
+  text-align: left;
 }
 
 .chartContainer {
@@ -113,16 +114,19 @@
   font-size: 2rem;
   font-weight: bold;
   margin-bottom: 0.5rem;
+  color: #F5EDD0;
 }
 
+/* Positive: tropical green */
 .good {
-  border: 2px solid #00e676;
-  box-shadow: 0 0 12px #00e676;
+  border: 2px solid #2D9E68;
+  box-shadow: 0 0 12px rgba(45, 158, 104, 0.5);
 }
 
+/* Negative: tribal fire */
 .bad {
-  border: 2px solid #ff5252;
-  box-shadow: 0 0 12px #ff5252;
+  border: 2px solid #C0392B;
+  box-shadow: 0 0 12px rgba(192, 57, 43, 0.5);
 }
 
 .price {
@@ -139,9 +143,9 @@
 }
 
 .eliminated {
-  filter: grayscale(100%) brightness(0.6);
-  pointer-events: none; /* Optional: disable interactions */
-  opacity: 0.6;
+  filter: grayscale(100%) brightness(0.5);
+  pointer-events: none;
+  opacity: 0.5;
   transition: filter 0.4s ease, opacity 0.4s ease;
 }
 
@@ -149,7 +153,6 @@
   0% { opacity: 1; transform: scale(1); }
   100% { opacity: 0.7; transform: scale(1.1); }
 }
-
 
 @keyframes rotateOut {
   0% {
@@ -198,14 +201,3 @@
 .fadeOut {
   animation: fadeOut 0.5s ease forwards;
 }
-
-
-
-
-
-
-
-  
-  
-  
-  

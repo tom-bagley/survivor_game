@@ -97,6 +97,7 @@ app.use('/leaderboard', require('./routes/leaderboardRoutes'));
 app.use('/admin', require('./routes/adminRoutes'));
 app.use('/episode', require('./routes/episodeRoutes'));
 app.use('/groups', require('./routes/groupRoutes'));
+app.use('/trades', require('./routes/tradeRoutes'));
 
 if(process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../client/dist')));

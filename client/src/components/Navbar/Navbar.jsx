@@ -14,9 +14,9 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   const linkBase =
-    "block px-4 py-2 rounded-lg font-medium hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-primary/60";
+    "block px-4 py-2 rounded-lg font-body font-medium hover:bg-sand/10 focus:outline-none focus:ring-2 focus:ring-primary/60 transition-colors";
   const getLink = ({ isActive }) =>
-    `${linkBase} ${isActive ? "text-accent" : "text-white/90"}`;
+    `${linkBase} ${isActive ? "text-accent" : "text-cream/80"}`;
 
   // ----------------- Fetch current week -----------------
   useEffect(() => {
@@ -72,7 +72,7 @@ export default function Navbar() {
   const groupsLink = Number(week) > 0 ? [{ to: "/view-groups", label: "Your Groups" }] : [];
 
   return (
-    <nav className="sticky top-0 z-40 bg-black/60 backdrop-blur supports-[backdrop-filter]:bg-black/40 border-b border-white/10">
+    <nav className="sticky top-0 z-40 bg-black-bg/80 backdrop-blur supports-[backdrop-filter]:bg-black-bg/60 border-b border-sand/20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between">
           {/* Brand */}
@@ -97,7 +97,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setProfileOpen((v) => !v)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white/90 hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-primary/60"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg font-body font-medium text-cream/80 hover:bg-sand/10 focus:outline-none focus:ring-2 focus:ring-primary/60 transition-colors"
                 >
                   <span>Your Profile</span>
                   <svg

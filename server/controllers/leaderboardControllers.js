@@ -44,7 +44,7 @@ const getUserPlaceOnLeaderboard = async (req, res) => {
 
 const createGroup = async (req, res) => {
   try {
-    const { name, currentUserId, emails } = req.body; 
+    const { name, currentUserId, emails, inviteUserUsername } = req.body; 
 
     const existing = await Group.findOne({ name });
     if (existing) {
@@ -67,8 +67,18 @@ const createGroup = async (req, res) => {
 
     const populatedGroup = await group.populate("members", "name netWorth");
 
-    for (const email of emails){
-      await sendGroupInviteEmail(email, `http://localhost:5173/join-group?token=${tokenHash}`);
+    const creator = await User.findById(currentUserId);
+
+    const filteredEmails = emails.filter(
+      email => email.toLowerCase() !== creator.email.toLowerCase()
+    );
+
+    for (const email of filteredEmails) {
+      await sendGroupInviteEmail(
+        email,
+        `http://localhost:5173/join-group?token=${rawToken}`,
+        inviteUserUsername
+      );
     }
     
 

@@ -13,6 +13,17 @@ const getGroupMax = (group) => {
     return 50 * acceptedCount;
 };
 
+// Tiered purchase price based on how full the group's pool is for a survivor.
+// Pool is split into 5 equal bands: $1 / $2 / $3 / $4 / $5
+const calculateTierPrice = (sharesUsed, groupMax) => {
+    const pct = sharesUsed / groupMax;
+    if (pct < 0.2) return 1;
+    if (pct < 0.4) return 2;
+    if (pct < 0.6) return 3;
+    if (pct < 0.8) return 4;
+    return 5;
+};
+
 const calculatePrices = async () => {
     try {
         const totalSurvivorCount = await getTotalStockCount();
@@ -120,10 +131,9 @@ async function getTotalStockCount() {
 const updatePortfolio = async (req, res) => {
     const { userId, groupId, survivorPlayer, amount, action } = req.body;
     try {
-        const [userGameData, survivor, season, group] = await Promise.all([
+        const [userGameData, survivor, group] = await Promise.all([
             UserGroupGame.findOne({ userId, groupId }),
             Survivor.findOne({ name: survivorPlayer }),
-            Season.findOne({ isCurrentSeason: true }),
             Group.findById(groupId),
         ]);
 
@@ -133,11 +143,10 @@ const updatePortfolio = async (req, res) => {
 
         const currentUserSurvivorCount = userGameData.portfolio.get(survivorPlayer) || 0;
         const currentBudget = userGameData.budget;
-        const availableSurvivorCount = await Survivor.countDocuments({ availability: true });
-        const currentMedianPrice = season.currentPrice;
 
-        const total = await getTotalStockCount();
-        const currentPrice = calculateStockPrice(survivor.countStocks, total, availableSurvivorCount, currentMedianPrice);
+        const groupMax = getGroupMax(group);
+        const sharesUsed = group ? (group.sharesUsed.get(survivorPlayer) || 0) : 0;
+        const currentPrice = calculateTierPrice(sharesUsed, groupMax);
 
         if (action === 'buy') {
             if (currentBudget < (currentPrice * amount)) {
@@ -145,8 +154,7 @@ const updatePortfolio = async (req, res) => {
             }
             // Enforce group share limit
             if (group) {
-                const used = group.sharesUsed.get(survivorPlayer) || 0;
-                const available = getGroupMax(group) - used;
+                const available = groupMax - sharesUsed;
                 if (amount > available) {
                     return res.json({ error: `Only ${available} share${available === 1 ? '' : 's'} of ${survivorPlayer} available in this group` });
                 }
@@ -158,7 +166,7 @@ const updatePortfolio = async (req, res) => {
             } else if ((currentUserSurvivorCount - amount) < 0) {
                 return res.json({ error: 'Not enough stock to sell' });
             }
-            await handleSell(userGameData, survivor, survivorPlayer, availableSurvivorCount, currentMedianPrice, amount);
+            await handleSell(userGameData, survivor, survivorPlayer, currentPrice, amount);
         } else {
             return res.json({ error: 'Invalid action' });
         }
@@ -169,7 +177,7 @@ const updatePortfolio = async (req, res) => {
             group.sharesUsed.set(survivorPlayer, Math.max(0, currentUsed + (action === 'buy' ? amount : -amount)));
         }
 
-        const updatedNetWorth = await calculateNetWorth(userGameData);
+        const updatedNetWorth = await calculateNetWorth(userGameData, group);
         userGameData.netWorth = updatedNetWorth;
 
         const saves = [userGameData.save(), survivor.save()];
@@ -191,29 +199,21 @@ const handleBuy = async (userGameData, survivor, stock, currentPrice, amount) =>
 };
 
 // Helper function to handle selling logic
-const handleSell = async (userGameData, survivor, stock, availableSurvivorCount, currentMedianPrice, amount) => {
+const handleSell = async (userGameData, survivor, stock, currentPrice, amount) => {
     userGameData.portfolio.set(stock, userGameData.portfolio.get(stock) - amount);
     survivor.countStocks -= amount;
-    const total = await getTotalStockCount();
-    const currentPrice = calculateStockPrice(survivor.countStocks, total, availableSurvivorCount, currentMedianPrice);
     userGameData.budget += (currentPrice*amount);
-
 };
 
-// Helper function to calculate net worth
-const calculateNetWorth = async (userGameData) => {
-    const totalSurvivorCount = await getTotalStockCount();
-
+// Helper function to calculate net worth using group-specific tier pricing
+const calculateNetWorth = async (userGameData, group) => {
     const availableSurvivors = await Survivor.find({ availability: true });
-    const availableSurvivorCount = availableSurvivors.length;
-    const season = await Season.findOne({ isCurrentSeason: true });
-    const currentMedianPrice = season.currentPrice;
+    const groupMax = getGroupMax(group);
 
     const survivorPlayerPrices = {};
-
     for (const survivor of availableSurvivors) {
-        const price = calculateStockPrice(survivor.countStocks, totalSurvivorCount, availableSurvivorCount, currentMedianPrice);
-        survivorPlayerPrices[survivor.name] = price;
+        const sharesUsed = group ? (group.sharesUsed.get(survivor.name) || 0) : 0;
+        survivorPlayerPrices[survivor.name] = calculateTierPrice(sharesUsed, groupMax);
     }
     return [...userGameData.portfolio.entries()].reduce(
         (netWorth, [survivor, quantity]) => netWorth + (survivorPlayerPrices[survivor] || 0) * quantity,
@@ -226,26 +226,42 @@ const calculateNetWorth = async (userGameData) => {
 const updatePortfolioPreseason = async (req, res) => {
     const { userId, groupId, survivorPlayer, action, amount } = req.body;
     try {
-        const [userGameData, survivor, season, group] = await Promise.all([
+        const [userGameData, survivor, season, group, episode] = await Promise.all([
             UserGroupGame.findOne({ userId, groupId }),
             Survivor.findOne({ name: survivorPlayer }),
             Season.findOne({ isCurrentSeason: true }),
             Group.findById(groupId),
+            Episode.findOne({ isCurrentEpisode: true }),
         ]);
-        const price = season.currentPrice;
+        const fixedShortPrice = season.currentPrice; // shorts keep the fixed price
+        const isOnAir = episode?.onAir ?? false;
+        const isTribalCouncil = episode?.tribalCouncil ?? false;
 
         if (!userGameData || !survivor) {
             return res.json({ error: 'User game data or player not found' });
+        }
+
+        // Tribal council: all trading locked
+        if (isTribalCouncil && (action === 'buy' || action === 'short')) {
+            return res.json({ error: 'Trading locked — tribal council in progress' });
         }
 
         const currentUserSurvivorCount = userGameData.portfolio.get(survivorPlayer) || 0;
         const currentBudget = userGameData.budget;
         const currentSurvivorCount = survivor.countStocks;
 
+        // During on-air, only bonus money (above the locked snapshot) can be spent
+        const bonusBalance = (isOnAir && userGameData.lockedBudget != null)
+            ? Math.max(0, currentBudget - userGameData.lockedBudget)
+            : null;
+
+        const groupMax = getGroupMax(group);
+        const sharesUsed = group ? (group.sharesUsed.get(survivorPlayer) || 0) : 0;
+        const tierPrice = calculateTierPrice(sharesUsed, groupMax);
+
         // Enforce group share limit on buy
         if (action === 'buy' && group) {
-            const used = group.sharesUsed.get(survivorPlayer) || 0;
-            const available = getGroupMax(group) - used;
+            const available = groupMax - sharesUsed;
             if (amount > available) {
                 return res.json({ error: `Only ${available} share${available === 1 ? '' : 's'} of ${survivorPlayer} available in this group` });
             }
@@ -255,26 +271,27 @@ const updatePortfolioPreseason = async (req, res) => {
             const currentUserShortCount = userGameData.shorts ? (userGameData.shorts.get(survivorPlayer) || 0) : 0;
 
             if (action === 'short') {
-                if ((amount * price) > currentBudget) {
-                    return res.json({ error: 'Not enough funds' });
+                const cost = amount * fixedShortPrice;
+                if (bonusBalance !== null ? cost > bonusBalance : cost > currentBudget) {
+                    return res.json({ error: bonusBalance !== null ? 'Not enough bonus funds' : 'Not enough funds' });
                 }
                 if (group) {
                     const shortsUsed = group.shortsUsed.get(survivorPlayer) || 0;
-                    const availableShorts = getGroupMax(group) - shortsUsed;
+                    const availableShorts = groupMax - shortsUsed;
                     if (amount > availableShorts) {
                         return res.json({ error: `Only ${availableShorts} short${availableShorts === 1 ? '' : 's'} of ${survivorPlayer} available in this group` });
                     }
                     group.shortsUsed.set(survivorPlayer, shortsUsed + amount);
                 }
                 userGameData.shorts.set(survivorPlayer, currentUserShortCount + amount);
-                userGameData.budget -= price * amount;
+                userGameData.budget -= fixedShortPrice * amount;
             } else {
                 // cover
                 if (currentUserShortCount < amount) {
                     return res.json({ error: 'Not enough shorts to cover' });
                 }
                 userGameData.shorts.set(survivorPlayer, currentUserShortCount - amount);
-                userGameData.budget += price * amount;
+                userGameData.budget += fixedShortPrice * amount;
                 if (group) {
                     const shortsUsed = group.shortsUsed.get(survivorPlayer) || 0;
                     group.shortsUsed.set(survivorPlayer, Math.max(0, shortsUsed - amount));
@@ -287,13 +304,18 @@ const updatePortfolioPreseason = async (req, res) => {
             return res.json(userGameData);
         }
 
+        // During on-air, buying is limited to bonus balance only
+        if (action === 'buy' && bonusBalance !== null && tierPrice * amount > bonusBalance) {
+            return res.json({ error: 'Not enough bonus funds' });
+        }
+
         // Handle buy or sell logic
         const { updatedSurvivorCount, updatedBudget, updatedUserSurvivorCount } = handlePreseasonTransaction(
             currentBudget,
             currentUserSurvivorCount,
             currentSurvivorCount,
             action,
-            price,
+            tierPrice,
             amount
         );
 
@@ -427,30 +449,39 @@ const getPortfolio = async (req, res) => {
               userGameData.portfolio.delete(key);
             }
           }
-        userGameData.netWorth = await calculateNetWorth(userGameData);
+        userGameData.netWorth = await calculateNetWorth(userGameData, group);
         prevNetWorth = await calculatePrevNetWorth(userGameData);
         await userGameData.save();
 
         const maxShares = getGroupMax(group);
         const availableShares = {};
         const availableShorts = {};
+        const currentPrices = {};
         survivors.forEach(s => {
             const used = group ? (group.sharesUsed.get(s.name) || 0) : 0;
             availableShares[s.name] = Math.max(0, maxShares - used);
             const shortsUsed = group ? (group.shortsUsed.get(s.name) || 0) : 0;
             availableShorts[s.name] = Math.max(0, maxShares - shortsUsed);
+            currentPrices[s.name] = calculateTierPrice(used, maxShares);
         });
 
         const currentEpisode = await Episode.findOne({ isCurrentEpisode: true });
         const episodeKey = String(currentEpisode?.episodeNumber - 1 ?? '');
         const maxPossibleBudget = group?.maxPossibleBudgets?.get(episodeKey) ?? null;
+        const maxPossibleLog    = group?.maxPossibleLog?.get(episodeKey) ?? null;
+
+        const liveBonusBalance = (currentEpisode?.onAir && userGameData.lockedBudget != null)
+            ? Math.max(0, userGameData.budget - userGameData.lockedBudget)
+            : null;
 
         res.json({
             groupId,
             maxSharesPerPlayer: maxShares,
             availableShares,
             availableShorts,
+            currentPrices,
             maxPossibleBudget,
+            maxPossibleLog,
             user: {
                 budget: userGameData.budget,
                 netWorth: userGameData.netWorth,
@@ -458,7 +489,8 @@ const getPortfolio = async (req, res) => {
                 shorts: userGameData.shorts,
                 bootOrders: userGameData.bootOrders,
                 bonuses: userGameData.bonuses,
-                last_seen_episode_id: user ? user.last_seen_episode_id : 0
+                last_seen_episode_id: user ? user.last_seen_episode_id : 0,
+                liveBonusBalance,
             },
             prevNetWorth
         });

@@ -17,6 +17,10 @@ const userGroupGameSchema = new Schema({
         type: Number,
         default: 50
     },
+    lockedBudget: {
+        type: Number,
+        default: null,
+    },
     netWorth: {
         type: Number,
         default: 500
@@ -52,7 +56,11 @@ const userGroupGameSchema = new Schema({
             "playedIdolCorrectly",
             "foundIdol",
             "shortPayout",
-            "shortPenalty"
+            "shortPenalty",
+            "challengeLoss",
+            "wrongSideVote",
+            "shortBonus",
+            "finalistBonus"
             ],
             required: true
         },
