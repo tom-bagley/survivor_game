@@ -73,13 +73,17 @@ const createGroup = async (req, res) => {
       email => email.toLowerCase() !== creator.email.toLowerCase()
     );
 
-    for (const email of filteredEmails) {
-      await sendGroupInviteEmail(
-        email,
-        `http://localhost:5173/join-group?token=${rawToken}`,
-        inviteUserUsername
-      );
-    }
+    const baseUrl = process.env.CLIENT_URL;
+
+    await Promise.all(
+      filteredEmails.map((email) =>
+        sendGroupInviteEmail(
+          email,
+          `${baseUrl}/join-group?token=${rawToken}`,
+          inviteUserUsername
+        )
+      )
+    );
     
 
     res.status(201).json(populatedGroup);
@@ -90,23 +94,43 @@ const createGroup = async (req, res) => {
 };
 
 const fetchGroupName = async (req, res) => {
-  try{
-    const token = req.query.inviteToken;
-    const group = await Group.findOne({ inviteTokenHash: token})
-    const groupName = group.name
-    const owner_id = group.owner
-    const owner = await User.findOne({ _id: owner_id})
-    res.json({ success: true, groupName: groupName, owner: owner.name });
+  try {
+    const rawToken = req.query.inviteToken;
+
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
+
+    const group = await Group.findOne({ inviteTokenHash: tokenHash });
+
+    if (!group) {
+      return res.status(404).json({ success: false, message: "Invalid invite link" });
+    }
+
+    const owner = await User.findById(group.owner);
+
+    res.json({
+      success: true,
+      groupName: group.name,
+      owner: owner.name,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: "Server error" });
   }
-}
+};
 
 const addToGroup = async (req, res) => {
   const { email, token } = req.body;
   try {
-    const group = await Group.findOne({ inviteTokenHash: token})
+
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    const group = await Group.findOne({ inviteTokenHash: tokenHash });
     const user = await User.findOne({ email });
     const alreadyMember = group.members.some(
       (m) => m.user.toString() === user._id.toString()
