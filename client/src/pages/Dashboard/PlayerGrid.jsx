@@ -30,6 +30,7 @@ export default function PlayerGrid({
               shorts={shortsOwned[survivorPlayer] ?? 0}
               availableShorts={(financialData.availableShorts ?? {})[survivorPlayer] ?? maxPer}
               currentPrice={(financialData.currentPrices ?? {})[survivorPlayer] ?? 1}
+              isEliminated={survivor.availability === false}
               isOnAir={episodeData.onAir}
               tribalCouncil={episodeData.tribalCouncil}
               liveBonusBalance={financialData.user.liveBonusBalance}

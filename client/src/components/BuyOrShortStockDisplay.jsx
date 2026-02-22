@@ -51,6 +51,7 @@ export default function Display({
   isOnAir = false,
   tribalCouncil = false,
   liveBonusBalance = null,
+  isEliminated = false,
   buyStock,
   sellStock,
   shortStock,
@@ -71,7 +72,8 @@ export default function Display({
   // Tribal council: all trading locked
   // During on-air (non-tribal), buying/shorting is only allowed with bonus balance
   const notEnoughBonus = !tribalCouncil && isOnAir && liveBonusBalance !== null && liveBonusBalance < currentPrice;
-  const buyDisabled = poolEmpty || tribalCouncil || notEnoughBonus;
+  const buyDisabled = isEliminated || poolEmpty || tribalCouncil || notEnoughBonus;
+  const sellDisabled = isEliminated || ownedNone || isOnAir;
 
   return (
     <div style={{
@@ -80,6 +82,8 @@ export default function Display({
       boxShadow: `0 6px 40px rgba(0,0,0,0.7), 0 0 0 1px ${J.ring}`,
       overflow: "hidden",
       fontFamily: "'Josefin Sans', sans-serif",
+      filter: isEliminated ? "grayscale(1) brightness(0.65)" : "none",
+      pointerEvents: isEliminated ? "none" : "auto",
     }}>
 
       {/* ── Hero photo with name overlay ── */}
@@ -345,37 +349,41 @@ export default function Display({
                 : "0 4px 20px rgba(175,50,28,0.45)",
             }}
           >
-            {tribalCouncil
-              ? `${isLong ? "BUY" : "SHORT"} · TRIBAL`
-              : notEnoughBonus
-                ? `${isLong ? "BUY" : "SHORT"} · NO BONUS`
-                : isLong ? "▲  BUY 1 SHARE" : "▼  SHORT 1"}
+            {isEliminated
+              ? `${isLong ? "BUY" : "SHORT"} · ELIMINATED`
+              : tribalCouncil
+                ? `${isLong ? "BUY" : "SHORT"} · TRIBAL`
+                : notEnoughBonus
+                  ? `${isLong ? "BUY" : "SHORT"} · NO BONUS`
+                  : isLong ? "▲  BUY 1 SHARE" : "▼  SHORT 1"}
           </button>
 
           {/* Secondary — Sell / Cover */}
           <button
             type="button"
             onClick={() => isLong ? sellStock(name, 1) : coverShort(name, 1)}
-            disabled={ownedNone || isOnAir}
+            disabled={sellDisabled}
             style={{
               width: "100%",
               padding: "11px",
               borderRadius: 11,
-              border: `1px solid ${(ownedNone || isOnAir) ? J.divider : "rgba(196,152,90,0.25)"}`,
+              border: `1px solid ${sellDisabled ? J.divider : "rgba(196,152,90,0.25)"}`,
               fontFamily: "'Josefin Sans', sans-serif",
               fontSize: 13,
               fontWeight: 600,
               letterSpacing: "0.08em",
-              cursor: (ownedNone || isOnAir) ? "not-allowed" : "pointer",
+              cursor: sellDisabled ? "not-allowed" : "pointer",
               transition: "opacity 0.15s, background 0.15s",
-              opacity: (ownedNone || isOnAir) ? 0.3 : 1,
-              background: (ownedNone || isOnAir) ? "transparent" : "rgba(196,152,90,0.06)",
+              opacity: sellDisabled ? 0.3 : 1,
+              background: sellDisabled ? "transparent" : "rgba(196,152,90,0.06)",
               color: J.textDim,
             }}
           >
-            {isOnAir
-              ? `${isLong ? "SELL" : "COVER"} · LOCKED`
-              : isLong ? "SELL 1 SHARE" : "COVER 1 SHORT"}
+            {isEliminated
+              ? `${isLong ? "SELL" : "COVER"} · ELIMINATED`
+              : isOnAir
+                ? `${isLong ? "SELL" : "COVER"} · LOCKED`
+                : isLong ? "SELL 1 SHARE" : "COVER 1 SHORT"}
           </button>
 
         </div>
