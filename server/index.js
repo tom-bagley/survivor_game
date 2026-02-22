@@ -5,7 +5,6 @@ const cors = require('cors');
 const app = express();
 const cookieParser = require('cookie-parser');
 const path = require('path');
-const recordStockPrices = require('./jobs/recordPricesJob');
 const updateLiveLeaderboard = require('./jobs/recordLeaderboardJob');
 const  { checkEpisodeStatus, startEpisode, isWednesday8PMEastern }  = require('./jobs/checkEpisodeStatusJobs');
 const { changeWeek } = require('./controllers/adminControllers');

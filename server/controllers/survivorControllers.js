@@ -1,5 +1,4 @@
 const Survivor = require('../models/survivors');
-const PriceWatch = require('../models/pricewatch');
 const Season = require('../models/seasonSettings')
 const Episode = require('../models/episodeSettings')
 const { getTotalStockCount, calculateStockPrice } = require('./transactionControllers')
@@ -97,21 +96,6 @@ const toggleSurvivorAvailability = async (req, res) => {
 //   }
 };
 
-const getHistoricalPrices = async (req, res) => {
-    try {
-        const { name } = req.params;
-        const prices = await PriceWatch.find({ name }).sort({ date: 1 }); 
-        res.json(prices.map(p => ({
-          date: p.date.toISOString().split('T')[0], 
-          price: p.price,
-          week: p.week,
-          season: p.season
-        })));
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch prices' });
-    }
-
-};
 
 const getCurrentSeason = async (req, res) => {
     try {
@@ -131,6 +115,5 @@ module.exports = {
     getAllSurvivors,
     deleteSurvivor,
     toggleSurvivorAvailability,
-    getHistoricalPrices,
     getCurrentSeason,
 }

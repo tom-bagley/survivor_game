@@ -2,7 +2,6 @@ const User = require('../models/user');
 const UserGroupGame = require('../models/userGroupGame');
 const Group = require('../models/groups');
 const Survivor = require('../models/survivors');
-const PriceWatch = require('../models/pricewatch');
 const Season = require('../models/seasonSettings');
 const Episode = require('../models/episodeSettings')
 
@@ -60,32 +59,10 @@ const getPrices = async (req, res) => {
     }
 };
 
-const fetchHistoricalPrices = async (name) => {
-    const prices = await PriceWatch.find({ name }).sort({ date: 1 });
-    return prices.map(p => ({
-        date: p.date.toISOString().split('T')[0],
-        price: p.price,
-        week: p.week,
-        season: p.season
-    }));
-};
-
 const getProfile = async (req, res) => {
     try {
-        const survivors = await Survivor.find({});
-        const response = [];
-
-        for (const survivor of survivors) {
-            const historicalprices = await fetchHistoricalPrices(survivor.name);
-            response.push({
-                name: survivor.name,
-                profile_pic: survivor.profile_pic,
-                availability: survivor.availability,
-                historicalprices
-            });
-        }
-
-        res.json(response);
+        const survivors = await Survivor.find({}, 'name profile_pic availability');
+        res.json(survivors);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
