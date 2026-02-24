@@ -112,7 +112,7 @@ export default function BuyStockDisplay({
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6, marginBottom: 10 }}>
           {[
             { label: "Owned",    value: shares },
-            { label: "Cost Ea",  value: `$${currentPrice}` },
+            { label: "Cost",  value: `$${currentPrice}` },
             { label: "In Pool",  value: availableShares },
           ].map(({ label, value }) => (
             <div key={label} style={{
