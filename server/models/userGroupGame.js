@@ -25,17 +25,25 @@ const userGroupGameSchema = new Schema({
         type: Number,
         default: 500
     },
+    prevNetWorthSnapshot: {
+        type: Number,
+        default: null,
+    },
+    episodeSnapshotId: {
+        type: Number,
+        default: null,
+    },
     portfolio: {
         type: Map,
         of: Number,
         default: {},
     },
-    shorts: {
-        type: Map,
-        of: Number,
-        default: {},
-    },
     bootOrders: {
+        type: Map,
+        of: [String],
+        default: {}
+    },
+    finaleOrders: {
         type: Map,
         of: [String],
         default: {}
@@ -51,15 +59,13 @@ const userGroupGameSchema = new Schema({
             type: String,
             enum: [
             "bootOrder",
+            "finaleOrder",
             "challengeWin",
             "rightSideVote",
             "playedIdolCorrectly",
             "foundIdol",
-            "shortPayout",
-            "shortPenalty",
             "challengeLoss",
             "wrongSideVote",
-            "shortBonus",
             "finalistBonus"
             ],
             required: true

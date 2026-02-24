@@ -14,19 +14,31 @@ export default function ViewGroups() {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [loadingGroups, setLoadingGroups] = useState(true);
     const [groups, setGroups] = useState([]);
+    const [confirmLeaveGroupId, setConfirmLeaveGroupId] = useState(null);
+
+    async function handleLeaveGroup(groupId) {
+        try {
+            await axios.delete("/leaderboard/leavegroup", { data: { groupId, userId: user.id } });
+            await fetchUserGroups();
+        } catch (err) {
+            alert(err.response?.data?.error || "Failed to leave group");
+        }
+        setConfirmLeaveGroupId(null);
+    }
+
+    async function fetchUserGroups() {
+        try {
+            const { data } = await axios.get("/leaderboard/fetchusergroups", { params: { id: user.id } });
+            setGroups(data.groups);
+        } catch (err) {
+            console.error("Error fetching groups", err);
+        } finally {
+            setLoadingGroups(false);
+        }
+    }
 
     useEffect(() => {
-        if(loading || !user) return;
-        async function fetchUserGroups() {
-            try {
-                const { data } = await axios.get("/leaderboard/fetchusergroups", {params: {id: user.id}})
-                setGroups(data.groups);
-            } catch (err) {
-                console.error("Error fetching groups", err)
-            } finally {
-                setLoadingGroups(false);
-            }
-        }
+        if (loading || !user) return;
         fetchUserGroups();
     }, [user, loading])
 
@@ -53,23 +65,31 @@ export default function ViewGroups() {
 
         <div>
         {!user.isGuest && (
-              <>
-              <div className="mb-6 flex items-center justify-center">
-                <button
-                  onClick={() => setIsCreateOpen(true)}
-                  className="px-4 py-2 rounded-md bg-primary text-white"
-                >
-                  Create Group
-                </button>
-              </div>
-              <CreateGroupModal
-                isOpen={isCreateOpen}
-                onClose={() => setIsCreateOpen(false)}
-                currentUser={user}
-                onCreated={""}
-              />
-              </>
-            )}
+          <>
+            <div className="mb-8 text-center">
+              <h2 className="text-lg font-semibold text-white mb-1">
+                Invite Your Friends!
+              </h2>
+              <p className="text-sm text-white/60 mb-4">
+                Create a group and compete head-to-head all season long.
+              </p>
+
+              <button
+                onClick={() => setIsCreateOpen(true)}
+                className="px-5 py-2 rounded-md bg-primary text-white hover:opacity-90 transition"
+              >
+                Create Group
+              </button>
+            </div>
+
+            <CreateGroupModal
+              isOpen={isCreateOpen}
+              onClose={() => setIsCreateOpen(false)}
+              currentUser={user}
+              onCreated={fetchUserGroups}
+            />
+          </>
+        )}
             </div>
 
             <div className="max-w-3xl mx-auto space-y-6">
@@ -88,7 +108,35 @@ export default function ViewGroups() {
                       key={group._id}
                       className="bg-charcoal/80 ring-1 ring-white/10 p-6 rounded-2xl shadow-xl"
                     >
-                      <h2 className="text-xl font-semibold mb-1">{displayName}</h2>
+                      <div className="flex justify-between items-start mb-1">
+                        <h2 className="text-xl font-semibold">{displayName}</h2>
+                        {!isSolo && (
+                          confirmLeaveGroupId === group._id ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-white/60">Leave group?</span>
+                              <button
+                                onClick={() => handleLeaveGroup(group._id)}
+                                className="px-3 py-1 text-xs rounded-md bg-red-600 text-white hover:bg-red-500 transition"
+                              >
+                                Confirm
+                              </button>
+                              <button
+                                onClick={() => setConfirmLeaveGroupId(null)}
+                                className="px-3 py-1 text-xs rounded-md bg-white/10 text-white/70 hover:bg-white/20 transition"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setConfirmLeaveGroupId(group._id)}
+                              className="px-3 py-1 text-xs rounded-md bg-white/10 text-white/60 hover:bg-red-600/80 hover:text-white transition"
+                            >
+                              Leave
+                            </button>
+                          )
+                        )}
+                      </div>
                       {!isSolo && (
                         <p className="text-xs text-white/40 mb-4">
                           {acceptedMembers.length} member{acceptedMembers.length !== 1 ? "s" : ""}
@@ -102,12 +150,7 @@ export default function ViewGroups() {
                           return (
                             <div key={member._id} className="rounded-xl bg-black/30 ring-1 ring-white/10 px-4 py-3">
                               <div className="flex justify-between items-center">
-                                <div>
-                                  <div className="font-medium">{member.user.name}</div>
-                                  {!isSolo && (
-                                    <div className="text-xs text-white/50">{member.user.email}</div>
-                                  )}
-                                </div>
+                                <div className="font-medium">{member.user.name}</div>
                                 {member.netWorth != null && (
                                   <div className="text-right">
                                     <div className="text-sm font-semibold text-primary">
@@ -134,10 +177,7 @@ export default function ViewGroups() {
                             key={member._id}
                             className="flex justify-between items-center rounded-xl bg-black/20 ring-1 ring-white/5 px-4 py-3 opacity-50"
                           >
-                            <div>
-                              <div className="font-medium">{member.user?.name ?? "—"}</div>
-                              <div className="text-xs text-white/50">{member.user?.email}</div>
-                            </div>
+                            <div className="font-medium">{member.user?.name ?? "—"}</div>
                             <div className="text-xs text-white/40 italic">Pending</div>
                           </div>
                         ))}

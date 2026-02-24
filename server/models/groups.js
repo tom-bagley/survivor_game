@@ -15,7 +15,6 @@ const groupSchema = new Schema({
   inviteTokenExpiresAt: { type: Date },
   maxSharesPerPlayer: { type: Number, default: 50 },
   sharesUsed: { type: Map, of: Number, default: {} },
-  shortsUsed: { type: Map, of: Number, default: {} },
   // Max possible budget per episode (episodeNumber string → maxBudget)
   maxPossibleBudgets: { type: Map, of: Number, default: {} },
   // Detailed log of how the max was achieved (episodeNumber string → log object)

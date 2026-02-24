@@ -23,6 +23,7 @@ import ResetPassword from './pages/ResetPassword';
 import JoinGroup from './pages/joinGroup';
 import ViewGroups from './pages/ViewGroups';
 import UserGameplay from './pages/userGameplayPage';
+import Socials from './pages/Socials';
 
 if (process.env.NODE_ENV === 'production') {
   axios.defaults.baseURL = 'https://survivorstockexchange.com';
@@ -66,14 +67,11 @@ function App() {
       <Routes>
         <Route path='/' element={<AppLayout />}>
           <Route path='dashboard' element={<Dashboard />} />
-          <Route path='on-air' element={<Episode_Airing />} />
         </Route>
 
         <Route path='/login' element={<Login />} />
         <Route path='/logout' element={<Logout />} />
         <Route path='/register' element={<Register />} />
-        <Route path='/displayplayers' element={<DisplayPlayers />} />
-        <Route path='/leaderboard' element={<Leaderboard />} />
 
         <Route
           path='/admin'
@@ -90,7 +88,8 @@ function App() {
         <Route path='/reset-password/:token' element={<ResetPassword />} />
         <Route path='/view-groups' element={<ViewGroups />} />
         <Route path='/join-group' element={<JoinGroup />} />
-        <Route path='/user-page' element={<UserGameplay />} />
+        <Route path='/socials' element={<Socials />} />
+        <Route path='/leaderboard' element={<Leaderboard />} />
       </Routes>
     </>
   );

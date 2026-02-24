@@ -185,6 +185,7 @@ const fetchUserGroups = async (req, res) => {
       return {
         _id: group._id,
         name: group.name,
+        owner: group.owner,
         maxPossibleBudget,
         members: group.members.map(m => ({
           _id: m._id,
@@ -202,11 +203,88 @@ const fetchUserGroups = async (req, res) => {
   }
 }
 
+const leaveGroup = async (req, res) => {
+  const { groupId, userId } = req.body;
+  try {
+    const group = await Group.findById(groupId);
+    if (!group) return res.status(404).json({ error: 'Group not found' });
+    if (group.name.startsWith('solo_')) return res.status(400).json({ error: 'Cannot leave solo group' });
+
+    const memberIndex = group.members.findIndex(m => String(m.user) === String(userId));
+    if (memberIndex === -1) return res.status(400).json({ error: 'Not a member of this group' });
+
+    if (String(group.owner) === String(userId)) {
+      const otherAccepted = group.members.filter(m => m.accepted && String(m.user) !== String(userId));
+      if (otherAccepted.length > 0) {
+        return res.status(400).json({ error: 'Group owner cannot leave while other members remain' });
+      }
+      await Group.findByIdAndDelete(groupId);
+      return res.json({ success: true, deleted: true });
+    }
+
+    group.members.splice(memberIndex, 1);
+    await group.save();
+    return res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+}
+
+const getSoloLeaderboard = async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    // All solo groups (one member each)
+    const soloGroups = await Group.find({ name: /^solo_/ }).select('_id members').lean();
+
+    const entries = (
+      await Promise.all(
+        soloGroups.map(async (group) => {
+          const member = group.members.find((m) => m.accepted);
+          if (!member) return null;
+
+          const [ugGame, user] = await Promise.all([
+            UserGroupGame.findOne({ userId: member.user, groupId: group._id }).select('netWorth').lean(),
+            User.findById(member.user).select('name isGuest').lean(),
+          ]);
+
+          if (!ugGame || !user || user.isGuest) return null;
+
+          return {
+            userId: String(member.user),
+            username: user.name,
+            netWorth: ugGame.netWorth ?? 0,
+          };
+        })
+      )
+    )
+      .filter(Boolean)
+      .sort((a, b) => b.netWorth - a.netWorth)
+      .map((entry, i) => ({ ...entry, rank: i + 1 }));
+
+    const topTen = entries.slice(0, 10);
+
+    let myEntry = null;
+    if (userId) {
+      const found = entries.find((e) => e.userId === String(userId));
+      if (found && found.rank > 10) myEntry = found;
+    }
+
+    return res.json({ topTen, myEntry });
+  } catch (error) {
+    console.error('getSoloLeaderboard error:', error);
+    return res.status(500).json({ error: 'Failed to fetch solo leaderboard' });
+  }
+};
+
 module.exports = {
     getLeaderboard,
     getUserPlaceOnLeaderboard,
+    getSoloLeaderboard,
     createGroup,
     fetchGroupName,
     addToGroup,
-    fetchUserGroups
+    fetchUserGroups,
+    leaveGroup
 }

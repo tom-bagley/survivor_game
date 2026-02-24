@@ -13,7 +13,6 @@ export default function LiveBanners({ episodeData }) {
               Episode Live
             </span>
             <span style={{ fontSize: 12, color: "rgba(226,240,232,0.45)", marginLeft: 6 }}>
-              · Your positions are locked. Idol bonus money can still be invested.
             </span>
           </div>
         </div>
@@ -31,7 +30,7 @@ export default function LiveBanners({ episodeData }) {
               Tribal Council
             </span>
             <span style={{ fontSize: 12, color: "rgba(226,240,232,0.45)", marginLeft: 6 }}>
-              · All trading is locked until tribal council ends.
+              · All buying and selling stock is diabaled, only trades with other group members is allowed.
             </span>
           </div>
         </div>

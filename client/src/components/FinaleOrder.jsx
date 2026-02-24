@@ -22,15 +22,14 @@ function getInitials(name) {
 }
 
 // ─── slot definitions ─────────────────────────────────────────────────────────
-// Slots array (save order): [0]=FIRST OUT … [3]=FOURTH OUT, [4]=4TH SAFEST … [7]=SAFEST
-// Display: danger 0-3 top-to-bottom, safe shown safest-first (7,6,5,4)
 
 const SLOT_DISPLAY = [
-  { idx: 0, label: "FIRST OUT",   reward: "+$20",   color: "#E63917", isDanger: true },
-  { idx: 1, label: "SECOND OUT",  reward: "+$5",    color: "#C7321A", isDanger: true },
-  { idx: 2, label: "THIRD OUT",   reward: "+$3",    color: "#B02D17", isDanger: true },
-  { idx: 3, label: "FOURTH OUT",  reward: "+$1",    color: "#992714", isDanger: true },
-  { idx: 4, label: "FIFTH OUT",   reward: "+$0.50", color: "#7A2010", isDanger: true },
+  { idx: 0, label: "WINNER",    reward: "+$20", color: "#D4A017" },
+  { idx: 1, label: "2ND PLACE", reward: "+$10", color: "#B8892A" },
+  { idx: 2, label: "3RD PLACE", reward: "+$5",  color: "#9C7240" },
+  { idx: 3, label: "4TH PLACE", reward: "+$3",  color: "#7E5B38" },
+  { idx: 4, label: "5TH PLACE", reward: "+$2",  color: "#604530" },
+  { idx: 5, label: "6TH PLACE", reward: "+$1",  color: "#433027" },
 ];
 
 // ─── sub-components ───────────────────────────────────────────────────────────
@@ -52,7 +51,7 @@ function Avatar({ name, profile_pic, size = 30 }) {
   );
 }
 
-function Slot({ idx, label, reward, color, isDanger, player, canPlace, onClick, locked }) {
+function Slot({ idx, label, reward, color, player, canPlace, onClick, locked }) {
   const filled = !!player;
   return (
     <div
@@ -81,7 +80,7 @@ function Slot({ idx, label, reward, color, isDanger, player, canPlace, onClick, 
         </div>
         <div style={{
           fontSize: 10, fontWeight: 700, fontFamily: "'Cinzel', serif", marginTop: 1,
-          color: isDanger ? "#F2C94C" : "#6FCF97",
+          color: "#F2C94C",
         }}>
           {reward}
         </div>
@@ -114,58 +113,48 @@ function Slot({ idx, label, reward, color, isDanger, player, canPlace, onClick, 
   );
 }
 
-function PlayerDropdown({ unplaced, selected, onSelect }) {
+function PlayerRow({ player, isSelected, onClick }) {
   return (
-    <div style={{ position: "relative" }}>
-      <select
-        value={selected?._id || ""}
-        onChange={e => {
-          const player = unplaced.find(p => p._id === e.target.value);
-          onSelect(player || null);
-        }}
-        style={{
-          width: "100%",
-          background: selected ? "rgba(196,152,90,0.1)" : "rgba(196,152,90,0.04)",
-          border: `1px solid ${selected ? "rgba(196,152,90,0.6)" : "rgba(196,152,90,0.25)"}`,
-          borderRadius: 10,
-          color: selected ? "#F5EDD0" : "rgba(245,237,208,0.45)",
-          fontFamily: "'Josefin Sans', sans-serif",
-          fontSize: 13,
-          fontWeight: selected ? 600 : 400,
-          padding: "10px 36px 10px 12px",
-          cursor: "pointer",
-          outline: "none",
-          appearance: "none",
-          WebkitAppearance: "none",
-          transition: "all 0.15s ease",
-        }}
-      >
-        <option value="" style={{ background: "#0d2340", color: "rgba(245,237,208,0.5)" }}>
-          — Select a castaway —
-        </option>
-        {unplaced.map(p => (
-          <option key={p._id} value={p._id} style={{ background: "#0d2340", color: "#F5EDD0", fontWeight: 600 }}>
-            {p.name}
-          </option>
-        ))}
-      </select>
-      {/* Custom dropdown arrow */}
-      <div style={{
-        position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
-        pointerEvents: "none", color: "rgba(196,152,90,0.6)", fontSize: 11,
+    <div
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => (e.key === "Enter" || e.key === " ") && onClick()}
+      style={{
+        display: "flex", alignItems: "center", gap: 10,
+        borderRadius: 10, padding: "8px 12px",
+        border: `1px solid ${isSelected ? "rgba(196,152,90,0.6)" : "rgba(196,152,90,0.15)"}`,
+        background: isSelected ? "rgba(196,152,90,0.12)" : "rgba(196,152,90,0.04)",
+        cursor: "pointer", userSelect: "none",
+        transition: "all 0.15s ease",
+        outline: "none",
+      }}
+    >
+      <Avatar name={player.name} profile_pic={player.profile_pic} size={28} />
+      <span style={{
+        flex: 1, fontSize: 13, fontWeight: 600, color: "#F5EDD0",
+        fontFamily: "'Josefin Sans', sans-serif", letterSpacing: "0.03em",
       }}>
-        ▾
-      </div>
+        {player.name}
+      </span>
+      {isSelected && (
+        <span style={{
+          fontSize: 9.5, letterSpacing: "0.1em", color: "rgba(196,152,90,0.8)",
+          fontFamily: "'Josefin Sans', sans-serif", flexShrink: 0,
+        }}>
+          SELECTED
+        </span>
+      )}
     </div>
   );
 }
 
 // ─── main component ───────────────────────────────────────────────────────────
 
-export default function BootOrder({ groupId, bootOrders = {}, onAir }) {
+export default function FinaleOrder({ groupId, finaleOrders = {}, onAir, finalists = [] }) {
   const { user, updateUser } = useContext(UserContext);
   const [allPlayers, setAllPlayers]     = useState([]);
-  const [slots, setSlots]               = useState(Array(5).fill(null));
+  const [slots, setSlots]               = useState(Array(6).fill(null));
   const [unplaced, setUnplaced]         = useState([]);
   const [selected, setSelected]         = useState(null);
   const [isLoading, setIsLoading]       = useState(true);
@@ -192,30 +181,31 @@ export default function BootOrder({ groupId, bootOrders = {}, onAir }) {
     load();
   }, []);
 
-  // Re-apply saved boot order when group switches or when data first loads.
-  // groupId and bootOrders always update together (batched in switchGroup),
-  // so groupId changing is a reliable signal that bootOrders is also fresh.
+  // Re-apply saved finale order when group switches or data first loads.
   useEffect(() => {
-    const activePlayers = allPlayers.filter(p => p.availability);
-    if (!activePlayers.length || episodeData?.episodeNumber == null) return;
+    // Use finalists prop if provided, otherwise all active players
+    const pool = finalists.length > 0
+      ? allPlayers.filter(p => finalists.includes(p.name))
+      : allPlayers.filter(p => p.availability);
+
+    if (!pool.length || !episodeData?.episodeNumber) return;
 
     setSelected(null);
-    const saved = bootOrders?.[episodeData.episodeNumber];
-    if (saved && saved.length >= 5) {
+    const saved = finaleOrders?.[episodeData.episodeNumber];
+    if (saved && saved.length >= 6) {
       const find = name => allPlayers.find(p => p.name === name) || null;
-      const newSlots = saved.slice(0, 5).map(find);
+      const newSlots = saved.slice(0, 6).map(find);
       setSlots(newSlots);
-      const placed = new Set(saved.slice(0, 5));
-      setUnplaced(activePlayers.filter(p => !placed.has(p.name)));
+      const placed = new Set(saved.slice(0, 6));
+      setUnplaced(pool.filter(p => !placed.has(p.name)));
     } else {
-      setSlots(Array(5).fill(null));
-      setUnplaced(activePlayers);
+      setSlots(Array(6).fill(null));
+      setUnplaced(pool);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [groupId, allPlayers, episodeData]);
+  }, [groupId, allPlayers, episodeData, finalists]);
 
-  // When the episode ends (onAir true → false), re-fetch episode data so the
-  // new episode number is picked up and slots reset to empty for the new week.
+  // When episode ends (onAir true → false), re-fetch episode data for the new week.
   const prevOnAirRef = useRef(onAir);
   useEffect(() => {
     const wasLocked = prevOnAirRef.current;
@@ -230,7 +220,6 @@ export default function BootOrder({ groupId, bootOrders = {}, onAir }) {
   function handleSlotClick(idx) {
     const inSlot = slots[idx];
     if (selected) {
-      // Place selected player; if slot occupied, return that player to list
       setSlots(s => { const n = [...s]; n[idx] = selected; return n; });
       setUnplaced(u => {
         const without = u.filter(p => p._id !== selected._id);
@@ -238,31 +227,36 @@ export default function BootOrder({ groupId, bootOrders = {}, onAir }) {
       });
       setSelected(null);
     } else if (inSlot) {
-      // Remove from slot → back to unplaced list
       setSlots(s => { const n = [...s]; n[idx] = null; return n; });
       setUnplaced(u => [...u, inSlot]);
     }
   }
 
+  function handlePlayerClick(player) {
+    setSelected(prev => prev?._id === player._id ? null : player);
+  }
+
   async function handleSave() {
     const filled = slots.filter(Boolean).length;
-    if (filled < 5) {
-      toast.error(`Fill all 5 slots first (${5 - filled} empty)`);
+    if (filled < 6) {
+      toast.error(`Fill all 6 slots first (${6 - filled} empty)`);
       return;
     }
     setIsSubmitting(true);
     try {
       const order = slots.map(p => p.name);
       if (user?.isGuest) {
-        updateUser({ bootOrders: { ...(user.bootOrders || {}), [episodeData.episodeNumber]: order } });
+        updateUser({ finaleOrders: { ...(user.finaleOrders || {}), [episodeData.episodeNumber]: order } });
       } else {
         await axios.put("/transactions/save-boot-order", {
-          order, userId: user.id, groupId, episodeNumber: episodeData.episodeNumber,
+          order, userId: user.id, groupId,
+          episodeNumber: episodeData.episodeNumber,
+          orderType: "finaleOrders",
         });
       }
-      toast.success("Elimination picks saved!");
+      toast.success("Finale picks saved!");
     } catch (err) {
-      toast.error("Failed to save order");
+      toast.error("Failed to save picks");
     } finally {
       setIsSubmitting(false);
     }
@@ -274,18 +268,18 @@ export default function BootOrder({ groupId, bootOrders = {}, onAir }) {
   return (
     <div className="rounded-2xl shadow-xl p-4 mb-6" style={{
       background: "linear-gradient(135deg, rgba(15,35,64,0.9) 0%, rgba(11,26,44,0.95) 100%)",
-      border: `1px solid ${isLocked ? "rgba(220,50,50,0.35)" : "rgba(196,152,90,0.2)"}`,
+      border: `1px solid ${isLocked ? "rgba(220,50,50,0.35)" : "rgba(212,160,23,0.3)"}`,
     }}>
       {/* Header */}
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
-          <h2 className="font-heading text-xl tracking-tight">Elimination Picks</h2>
+          <h2 className="font-heading text-xl tracking-tight">Finale Picks</h2>
           <p className="text-sm mt-0.5" style={{ color: "rgba(245,237,208,0.5)" }}>
             {isLocked
               ? "Episode is live — picks are locked"
               : selected
                 ? "Now tap a slot to place them"
-                : "Select a castaway from the dropdown you think is going home, then tap a slot and earn money if you are right"
+                : "Rank the finalists from most to least likely to win"
             }
           </p>
         </div>
@@ -311,7 +305,7 @@ export default function BootOrder({ groupId, bootOrders = {}, onAir }) {
               disabled={isSubmitting}
               className="shrink-0 rounded-lg bg-primary text-black font-semibold px-4 py-2 text-sm hover:bg-accent transition-colors disabled:opacity-60"
             >
-              {isSubmitting ? "Saving…" : `Save (${filled}/5)`}
+              {isSubmitting ? "Saving…" : `Save (${filled}/6)`}
             </button>
           )
         )}
@@ -319,7 +313,7 @@ export default function BootOrder({ groupId, bootOrders = {}, onAir }) {
 
       {isLoading ? (
         <div className="flex flex-col gap-2">
-          {Array.from({ length: 5 }).map((_, i) => (
+          {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="h-12 rounded-xl animate-pulse" style={{ background: "rgba(196,152,90,0.06)" }} />
           ))}
         </div>
@@ -327,9 +321,9 @@ export default function BootOrder({ groupId, bootOrders = {}, onAir }) {
         // ── Locked view: full-width read-only slots ──
         <div className="flex flex-col gap-1.5">
           <p className="text-xs uppercase tracking-widest font-semibold mb-0.5" style={{
-            color: "#E87060", fontFamily: "'Josefin Sans', sans-serif",
+            color: "#D4A017", fontFamily: "'Josefin Sans', sans-serif",
           }}>
-            Most likely to go home
+            Your picks
           </p>
           {SLOT_DISPLAY.map(s => (
             <Slot
@@ -343,40 +337,46 @@ export default function BootOrder({ groupId, bootOrders = {}, onAir }) {
           ))}
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col md:flex-row gap-4">
 
-          {/* ── Players dropdown ── */}
-          <div>
-            <p className="text-xs uppercase tracking-widest mb-1.5" style={{
+          {/* ── Players panel — mobile: top, desktop: right ── */}
+          <div className="order-1 md:order-2 flex-1 min-w-0">
+            <p className="text-xs uppercase tracking-widest mb-2" style={{
               color: selected ? "rgba(196,152,90,0.7)" : "rgba(245,237,208,0.35)",
               fontFamily: "'Josefin Sans', sans-serif",
             }}>
               {unplaced.length === 0
-                ? "All castaways placed"
+                ? "All finalists placed"
                 : selected
-                  ? `${selected.name} selected — tap a slot below`
-                  : `${unplaced.length} castaway${unplaced.length !== 1 ? "s" : ""} remaining`
+                  ? `${selected.name} selected — pick a slot`
+                  : `${unplaced.length} finalist${unplaced.length !== 1 ? "s" : ""} remaining`
               }
             </p>
-            {unplaced.length === 0 ? (
-              <p className="text-center py-3 text-sm" style={{ color: "rgba(245,237,208,0.25)" }}>
-                All castaways assigned
-              </p>
-            ) : (
-              <PlayerDropdown
-                unplaced={unplaced}
-                selected={selected}
-                onSelect={setSelected}
-              />
-            )}
+            <div className="flex flex-col gap-1.5">
+              {unplaced.length === 0
+                ? (
+                  <p className="text-center py-6 text-sm" style={{ color: "rgba(245,237,208,0.25)" }}>
+                    All finalists assigned
+                  </p>
+                )
+                : unplaced.map(p => (
+                  <PlayerRow
+                    key={p._id}
+                    player={p}
+                    isSelected={selected?._id === p._id}
+                    onClick={() => handlePlayerClick(p)}
+                  />
+                ))
+              }
+            </div>
           </div>
 
-          {/* ── Slots ── */}
-          <div className="flex flex-col gap-1.5">
-            <p className="text-xs uppercase tracking-widest font-semibold" style={{
-              color: "#E87060", fontFamily: "'Josefin Sans', sans-serif",
+          {/* ── Slots panel — mobile: bottom, desktop: left ── */}
+          <div className="order-2 md:order-1 flex flex-col gap-1.5 w-full md:w-72 lg:w-80 flex-shrink-0">
+            <p className="text-xs uppercase tracking-widest font-semibold mb-0.5" style={{
+              color: "#D4A017", fontFamily: "'Josefin Sans', sans-serif",
             }}>
-              Most likely to go home
+              Most likely to win
             </p>
             {SLOT_DISPLAY.map(s => (
               <Slot

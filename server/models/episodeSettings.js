@@ -96,6 +96,14 @@ const episodeSettingsSchema = new Schema({
     }],
     default: [],
   },
+  liveVoteEvents: {
+    type: [{
+      rightSide: { type: [String], default: [] },
+      wrongSide: { type: [String], default: [] },
+      appliedAt: { type: Date, default: Date.now },
+    }],
+    default: [],
+  },
 }, { timestamps: true });
 
 const episodeSettings = mongoose.model('episodeSettings', episodeSettingsSchema);

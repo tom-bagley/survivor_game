@@ -3,17 +3,18 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 const J = {
-  bg:          "#091910",
-  surface:     "#112a1b",
-  surfaceRing: "rgba(58,140,82,0.22)",
-  green:       "#3a8c52",
-  greenBright: "#5ecf7a",
-  gold:        "#d4a843",
-  coral:       "#df6548",
-  text:        "#e2f0e8",
-  textDim:     "rgba(226,240,232,0.5)",
-  textFaint:   "rgba(226,240,232,0.22)",
-  divider:     "rgba(58,140,82,0.18)",
+  bg:          "#0B1A2C",
+  card:        "#0F2340",
+  surface:     "#162B44",
+  surfaceRing: "rgba(196,152,90,0.2)",
+  green:       "#2D6A4F",
+  greenBright: "#2D9E68",
+  gold:        "#F2C94C",
+  coral:       "#E8943A",
+  text:        "#F5EDD0",
+  textDim:     "rgba(245,237,208,0.5)",
+  textFaint:   "rgba(245,237,208,0.22)",
+  divider:     "rgba(196,152,90,0.18)",
 };
 
 const fmt = (n) => `$${Number(n || 0).toFixed(2)}`;
@@ -213,16 +214,16 @@ export default function TradeOfferModal({
     >
       {/* gold glow */}
       <div className="pointer-events-none" style={{ position: 'fixed', inset: 0, zIndex: 0 }}>
-        <div style={{ position: 'absolute', top: -80, left: '50%', transform: 'translateX(-50%)', height: 240, width: 240, borderRadius: '50%', background: 'rgba(212,168,67,0.15)', filter: 'blur(48px)' }} />
+        <div style={{ position: 'absolute', top: -80, left: '50%', transform: 'translateX(-50%)', height: 240, width: 240, borderRadius: '50%', background: 'rgba(242,201,76,0.12)', filter: 'blur(48px)' }} />
       </div>
 
       <div
         style={{
           position: 'relative', zIndex: 1,
           width: '100%', maxWidth: 560,
-          background: '#0d2218',
+          background: '#0F2340',
           borderRadius: 18,
-          border: `1px solid rgba(212,168,67,0.2)`,
+          border: `1px solid rgba(196,152,90,0.25)`,
           color: J.text,
           padding: 24,
         }}
@@ -231,7 +232,7 @@ export default function TradeOfferModal({
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
             <div style={{ fontSize: 10, color: J.textFaint, textTransform: 'uppercase', letterSpacing: '0.18em', marginBottom: 4 }}>Trading</div>
-            <h2 style={{ fontSize: 20, fontFamily: 'Oswald, sans-serif', color: J.gold, margin: 0, letterSpacing: '0.04em' }}>
+            <h2 style={{ fontSize: 20, fontFamily: "'Cinzel', serif", color: J.gold, margin: 0, letterSpacing: '0.04em' }}>
               Send a Trade Offer
             </h2>
           </div>
@@ -260,9 +261,9 @@ export default function TradeOfferModal({
                     onClick={() => setSelectedRecipient(String(m.userId))}
                     style={{
                       padding: '8px 14px', borderRadius: 9, fontSize: 13, fontWeight: active ? 700 : 400,
-                      background: active ? 'rgba(94,207,122,0.15)' : 'rgba(255,255,255,0.05)',
-                      border: `1px solid ${active ? 'rgba(94,207,122,0.45)' : J.surfaceRing}`,
-                      color: active ? J.greenBright : J.textDim,
+                      background: active ? 'rgba(242,201,76,0.15)' : 'rgba(255,255,255,0.05)',
+                      border: `1px solid ${active ? 'rgba(242,201,76,0.5)' : J.surfaceRing}`,
+                      color: active ? J.gold : J.textDim,
                       cursor: 'pointer', transition: 'all 0.15s',
                     }}
                   >
@@ -375,12 +376,12 @@ export default function TradeOfferModal({
                 onChange={e => setRequestStockPicker(e.target.value)}
                 style={{
                   flex: 1, padding: '7px 10px', borderRadius: 8,
-                  background: 'rgba(255,255,255,0.06)', border: `1px solid ${J.surfaceRing}`,
+                  background: '#162B44', border: `1px solid ${J.surfaceRing}`,
                   color: requestStockPicker ? J.text : J.textFaint, fontSize: 13,
                 }}
               >
-                <option value="">Add a stock…</option>
-                {requestableNames.map(n => <option key={n} value={n}>{n}</option>)}
+                <option value="" style={{ background: '#162B44', color: J.textFaint }}>Add a stock…</option>
+                {requestableNames.map(n => <option key={n} value={n} style={{ background: '#162B44', color: J.text }}>{n}</option>)}
               </select>
               <button
                 type="button"
@@ -388,9 +389,9 @@ export default function TradeOfferModal({
                 disabled={!requestStockPicker}
                 style={{
                   padding: '7px 14px', borderRadius: 8, fontSize: 13, fontWeight: 600,
-                  background: requestStockPicker ? 'rgba(94,207,122,0.15)' : 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${requestStockPicker ? 'rgba(94,207,122,0.3)' : J.surfaceRing}`,
-                  color: requestStockPicker ? J.greenBright : J.textFaint,
+                  background: requestStockPicker ? 'rgba(242,201,76,0.15)' : 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${requestStockPicker ? 'rgba(242,201,76,0.4)' : J.surfaceRing}`,
+                  color: requestStockPicker ? J.gold : J.textFaint,
                   cursor: requestStockPicker ? 'pointer' : 'not-allowed',
                 }}
               >
@@ -407,7 +408,7 @@ export default function TradeOfferModal({
           disabled={submitting || !selectedRecipient}
           style={{
             width: '100%', padding: '13px 0', borderRadius: 10, fontSize: 15, fontWeight: 700,
-            fontFamily: 'Oswald, sans-serif', letterSpacing: '0.06em',
+            fontFamily: "'Josefin Sans', sans-serif", letterSpacing: '0.06em',
             background: submitting || !selectedRecipient ? 'rgba(212,168,67,0.25)' : J.gold,
             color: submitting || !selectedRecipient ? J.textFaint : '#1a0f00',
             border: 'none', cursor: submitting || !selectedRecipient ? 'not-allowed' : 'pointer',
@@ -511,8 +512,8 @@ export default function TradeOfferModal({
                       }}
                       style={{
                         flex: 1, padding: '6px 0', borderRadius: 7, fontSize: 12, fontWeight: 700,
-                        background: busy ? 'rgba(94,207,122,0.2)' : '#5ecf7a',
-                        color: busy ? J.textFaint : '#000',
+                        background: busy ? 'rgba(242,201,76,0.2)' : J.gold,
+                        color: busy ? J.textFaint : '#1a0f00',
                         border: 'none', cursor: busy ? 'not-allowed' : 'pointer',
                       }}
                     >

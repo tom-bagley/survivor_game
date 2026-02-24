@@ -4,11 +4,11 @@ const formatAmt = (n) =>
   `${n >= 0 ? "+" : "-"}$${Math.abs(Number(n || 0)).toFixed(2)}`;
 
 const EVENT_CONFIG = {
-  wonChallenge:        { emoji: "🏆", title: "Challenge Win!",           description: "won a challenge",                        longRate: 0.10,  shortRate: -0.10 },
-  lostChallenge:       { emoji: "📉", title: "Challenge Loss",            description: "lost a challenge",                       longRate: -0.10, shortRate:  0.10 },
-  rightSideOfVote:     { emoji: "🗳️",  title: "Right Side of the Vote!", description: "voted with the majority",                 longRate: 0.08,  shortRate: -0.08 },
-  wrongSideOfVote:     { emoji: "❌", title: "Wrong Side of the Vote",   description: "voted with the minority",                longRate: -0.08, shortRate:  0.08 },
-  playedIdolCorrectly: { emoji: "🔮", title: "Idol Played Correctly!",   description: "played a hidden immunity idol correctly", longRate: 2.00,  shortRate:  0    },
+  wonChallenge:        { emoji: "🏆", title: "Challenge Win!",           description: "won a challenge",                        longRate: 0.10  },
+  lostChallenge:       { emoji: "📉", title: "Challenge Loss",            description: "lost a challenge",                       longRate: -0.10 },
+  rightSideOfVote:     { emoji: "🗳️",  title: "Right Side of the Vote!", description: "voted with the majority",                 longRate: 0.08  },
+  wrongSideOfVote:     { emoji: "❌", title: "Wrong Side of the Vote",   description: "voted with the minority",                longRate: -0.08 },
+  playedIdolCorrectly: { emoji: "🔮", title: "Idol Played Correctly!",   description: "played a hidden immunity idol correctly", longRate: 2.00  },
 };
 
 export default function LiveEventNotification({
@@ -16,17 +16,15 @@ export default function LiveEventNotification({
   survivorName,
   survivorProfilePic = null,
   sharesOwned = 0,
-  shortsOwned = 0,
   onClose,
 }) {
   const config = EVENT_CONFIG[field] || {
-    emoji: "⚡", title: "Live Event!", description: "triggered an event", longRate: 0, shortRate: 0,
+    emoji: "⚡", title: "Live Event!", description: "triggered an event", longRate: 0,
   };
 
   const sharesImpact = sharesOwned * config.longRate;
-  const shortsImpact = shortsOwned * config.shortRate;
-  const totalImpact  = sharesImpact + shortsImpact;
-  const hasPosition  = sharesOwned > 0 || shortsOwned > 0;
+  const totalImpact  = sharesImpact;
+  const hasPosition  = sharesOwned > 0;
   const isGain       = totalImpact >= 0;
 
   const accentColor = isGain ? "#5ecf7a" : "#ff8888";
@@ -105,17 +103,6 @@ export default function LiveEventNotification({
                     </span>
                     <span className="font-bold text-base" style={{ color: sharesImpact >= 0 ? "#5ecf7a" : "#ff8888" }}>
                       {formatAmt(sharesImpact)}
-                    </span>
-                  </div>
-                )}
-
-                {shortsOwned > 0 && config.shortRate !== 0 && (
-                  <div className="px-4 py-3 flex items-center justify-between border-b border-white/5">
-                    <span className="text-sm text-white/70">
-                      {shortsOwned} short{shortsOwned !== 1 ? "s" : ""} × {config.shortRate >= 0 ? "+" : ""}${Math.abs(config.shortRate).toFixed(2)}/short
-                    </span>
-                    <span className="font-bold text-base" style={{ color: shortsImpact >= 0 ? "#5ecf7a" : "#ff8888" }}>
-                      {formatAmt(shortsImpact)}
                     </span>
                   </div>
                 )}

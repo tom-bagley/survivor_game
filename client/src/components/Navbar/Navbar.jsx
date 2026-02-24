@@ -64,12 +64,12 @@ export default function Navbar() {
   // ----------------- Menu Items -----------------
   const commonLinks = [
     { to: "/", label: "Home", end: true },
-    { to: "/rules", label: "Rules", end: true },
-    { to: "/displayplayers", label: "Meet the Cast" },
+{ to: "/rules", label: "Rules", end: true },
+    { to: "/view-groups", label: "Your Groups", end: true },
+    { to: "/socials", label: "Socials", end: true },
   ];
 
   const adminLink = user?.role === "admin" ? [{ to: "/admin", label: "Admin" }] : [];
-  const groupsLink = Number(week) > 0 ? [{ to: "/view-groups", label: "Your Groups" }] : [];
 
   return (
     <nav className="sticky top-0 z-40 bg-black-bg/80 backdrop-blur supports-[backdrop-filter]:bg-black-bg/60 border-b border-sand/20">
@@ -83,7 +83,7 @@ export default function Navbar() {
 
           {/* Desktop Menu */}
           <ul className="hidden md:flex items-center gap-2">
-            {commonLinks.concat(groupsLink, adminLink).map((link) => (
+            {commonLinks.concat(adminLink).map((link) => (
               <li key={link.to}>
                 <NavLink to={link.to} className={getLink} end={link.end}>
                   {link.label}
@@ -118,13 +118,13 @@ export default function Navbar() {
                     </div>
                     <button
                       onClick={() => navigate("/change-username")}
-                      className="block w-full text-left px-4 py-2 text-white hover:bg-primary/20"
+                      className="block w-full text-left px-4 py-2 font-body text-white hover:bg-primary/20"
                     >
                       Change Username
                     </button>
                     <button
                       onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-white hover:bg-red-500/20"
+                      className="block w-full text-left px-4 py-2 font-body text-white hover:bg-red-500/20"
                     >
                       Logout
                     </button>
@@ -162,7 +162,7 @@ export default function Navbar() {
       {open && (
         <div className="md:hidden border-t border-white/10">
           <ul className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-2 space-y-1">
-            {commonLinks.concat(groupsLink, adminLink).map((link) => (
+            {commonLinks.concat(adminLink).map((link) => (
               <li key={link.to}>
                 <NavLink
                   to={link.to}
@@ -181,7 +181,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setMobileProfileOpen((v) => !v)}
-                  className="w-full flex items-center justify-between px-4 py-2 rounded-lg font-medium text-white/90 hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-primary/60"
+                  className="w-full flex items-center justify-between px-4 py-2 rounded-lg font-body font-medium text-white/90 hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-primary/60"
                 >
                   <span>Your Profile</span>
                   <svg
@@ -202,7 +202,7 @@ export default function Navbar() {
                         setOpen(false);
                         navigate("/dashboard");
                       }}
-                      className="w-full text-left px-4 py-2 rounded-lg text-white/90 hover:bg-white/5"
+                      className="w-full text-left px-4 py-2 rounded-lg font-body text-white/90 hover:bg-white/5"
                     >
                       Your Stock Portfolio
                     </button>
@@ -211,7 +211,7 @@ export default function Navbar() {
                         setOpen(false);
                         navigate("/change-username");
                       }}
-                      className="w-full text-left px-4 py-2 rounded-lg text-white/90 hover:bg-white/5"
+                      className="w-full text-left px-4 py-2 rounded-lg font-body text-white/90 hover:bg-white/5"
                     >
                       Change Username
                     </button>
@@ -220,7 +220,7 @@ export default function Navbar() {
                         setOpen(false);
                         handleLogout();
                       }}
-                      className="w-full text-left px-4 py-2 rounded-lg text-white/90 hover:bg-red-500/20"
+                      className="w-full text-left px-4 py-2 rounded-lg font-body text-white/90 hover:bg-red-500/20"
                     >
                       Logout
                     </button>

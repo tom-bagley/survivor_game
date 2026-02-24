@@ -4,7 +4,7 @@ import { UserContext } from "../../../context/userContext";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { J } from "./colors";
-import DashboardHUD from "./DashboardHUD";
+import DashboardHUD, { useHudHeight } from "./DashboardHUD";
 import DashboardHero from "./DashboardHero";
 import LiveBanners from "./LiveBanners";
 import PlayerGrid from "./PlayerGrid";
@@ -14,14 +14,16 @@ import LiveEventNotification from "../../components/LiveEventNotification";
 import IncomingTradeNotification from "../../components/IncomingTradeNotification";
 import TradeOfferModal from "../../components/TradeOfferModal";
 import LiveChallengeNotification from "../../components/LiveChallengeNotification";
+import LiveVoteNotification from "../../components/LiveVoteNotification";
 import BootOrder from "../../components/BootOrder";
+import FinaleOrder from "../../components/FinaleOrder";
 
 const NAVBAR_H = 56;
-const HUD_H    = 40;
 
 export default function Dashboard() {
+  const hudHeight = useHudHeight();
   const { user, updateUser, loading } = useContext(UserContext);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const urlGroupId = searchParams.get("groupId");
   const [groupId, setGroupId] = useState(urlGroupId);
   const [financialData, setFinancialData] = useState(null);
@@ -43,12 +45,16 @@ export default function Dashboard() {
   const [pendingEventNotifications, setPendingEventNotifications] = useState([]);
   const [seenChallengeEventCount, setSeenChallengeEventCount] = useState(0);
   const [pendingChallengeNotifications, setPendingChallengeNotifications] = useState([]);
+  const [seenVoteEventCount, setSeenVoteEventCount] = useState(0);
+  const [pendingVoteNotifications, setPendingVoteNotifications] = useState([]);
   const [pendingTradeNotifications, setPendingTradeNotifications] = useState([]);
   const [incomingTrades, setIncomingTrades] = useState([]);
   const [showTradeModal, setShowTradeModal] = useState(false);
   const [groupMembers, setGroupMembers] = useState([]);
+  const [groupStandings, setGroupStandings] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const prevOnAirRef = useRef(null);
+  const hasShownAnimationRef = useRef(false);
   const seenTradeIdsRef = useRef(new Set());
 
   // Zero-fill all survivors so every card renders even with 0 shares
@@ -56,13 +62,6 @@ export default function Dashboard() {
     const full = {};
     Object.keys(survivorPlayerStats).forEach(name => { full[name] = 0; });
     if (financialData?.user?.portfolio) Object.assign(full, financialData.user.portfolio);
-    return full;
-  }, [financialData, survivorPlayerStats]);
-
-  const shortsOwned = useMemo(() => {
-    const full = {};
-    Object.keys(survivorPlayerStats).forEach(name => { full[name] = 0; });
-    if (financialData?.user?.shorts) Object.assign(full, financialData.user.shorts);
     return full;
   }, [financialData, survivorPlayerStats]);
 
@@ -122,7 +121,10 @@ export default function Dashboard() {
         setSeenChallengeEventCount((episodeResult.liveChallengeEvents || []).length);
 
         if (!user.isGuest && portfolioResult) {
-          if (portfolioResult.groupId) setGroupId(String(portfolioResult.groupId));
+          if (portfolioResult.groupId) {
+            setGroupId(String(portfolioResult.groupId));
+            setSearchParams({ groupId: String(portfolioResult.groupId) });
+          }
           setFinancialData(portfolioResult);
           setUserGroups(groupsResult);
           setLeaderboard(leaderboardResult);
@@ -132,9 +134,7 @@ export default function Dashboard() {
               budget: user.budget,
               netWorth: user.netWorth,
               portfolio: user.portfolio || {},
-              shorts: {},
               bonuses: [],
-              liveBonusBalance: null,
               last_seen_episode_id: null,
             },
             prevNetWorth: null,
@@ -142,7 +142,6 @@ export default function Dashboard() {
             maxPossibleLog: null,
             maxSharesPerPlayer: 50,
             availableShares: {},
-            availableShorts: {},
             currentPrices: {},
             groupId: null,
           });
@@ -172,7 +171,8 @@ export default function Dashboard() {
       const week = seasonData?.currentWeek;
       const lastSeenWeek = financialData?.user?.last_seen_episode_id;
       if (loading || week == null || lastSeenWeek == null) return;
-      if (lastSeenWeek !== week) {
+      if (lastSeenWeek !== week && !hasShownAnimationRef.current) {
+        hasShownAnimationRef.current = true;
         setShowAnimation(true);
         try {
           await axios.put(`/episode/updatelastseenepisode/${user.id}`);
@@ -201,11 +201,14 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [user, groupId]);
 
-  // Fetch group members whenever groupId changes (needed for trade button + modal)
+  // Fetch group members and standings whenever groupId changes
   useEffect(() => {
     if (!groupId || !user?.id || user?.isGuest) return;
     axios.get('/trades/group-members', { params: { groupId, userId: user.id } })
       .then(({ data }) => setGroupMembers(data))
+      .catch(() => { /* silent */ });
+    axios.get('/groups/standings', { params: { groupId } })
+      .then(({ data }) => setGroupStandings(data))
       .catch(() => { /* silent */ });
   }, [groupId, user]);
 
@@ -232,10 +235,11 @@ export default function Dashboard() {
 
           const eventBonuses = data.liveEventBonuses || [];
           if (eventBonuses.length > seenLiveEventBonusCount) {
-            const nonChallenge = eventBonuses.slice(seenLiveEventBonusCount).filter(
+            const filtered = eventBonuses.slice(seenLiveEventBonusCount).filter(
               b => b.field !== 'wonChallenge' && b.field !== 'lostChallenge'
+                && b.field !== 'rightSideOfVote' && b.field !== 'wrongSideOfVote'
             );
-            if (nonChallenge.length > 0) setPendingEventNotifications((prev) => [...prev, ...nonChallenge]);
+            if (filtered.length > 0) setPendingEventNotifications((prev) => [...prev, ...filtered]);
             setSeenLiveEventBonusCount(eventBonuses.length);
           }
 
@@ -244,11 +248,17 @@ export default function Dashboard() {
             setPendingChallengeNotifications((prev) => [...prev, ...challengeEvents.slice(seenChallengeEventCount)]);
             setSeenChallengeEventCount(challengeEvents.length);
           }
+
+          const voteEvents = data.liveVoteEvents || [];
+          if (voteEvents.length > seenVoteEventCount) {
+            setPendingVoteNotifications((prev) => [...prev, ...voteEvents.slice(seenVoteEventCount)]);
+            setSeenVoteEventCount(voteEvents.length);
+          }
         }
       } catch { /* silent */ }
     }, 6000);
     return () => clearInterval(interval);
-  }, [user, seenLiveEventCount, seenLiveEventBonusCount, seenChallengeEventCount]);
+  }, [user, seenLiveEventCount, seenLiveEventBonusCount, seenChallengeEventCount, seenVoteEventCount]);
 
   // ── Sorting ──
   const stockOrder = (mode) => {
@@ -299,7 +309,7 @@ export default function Dashboard() {
       if (fields === "budget") {
         setFinancialData(prev => ({
           ...prev,
-          user: { ...prev.user, budget: data.user.budget, netWorth: data.user.netWorth, liveBonusBalance: data.user.liveBonusBalance ?? null },
+          user: { ...prev.user, budget: data.user.budget, netWorth: data.user.netWorth },
         }));
       } else {
         setFinancialData(prev => ({
@@ -322,6 +332,7 @@ export default function Dashboard() {
     await refreshFinancials("budget");
   };
   const dismissChallengeNotification = () => setPendingChallengeNotifications((prev) => prev.slice(1));
+  const dismissVoteNotification = () => setPendingVoteNotifications((prev) => prev.slice(1));
 
   const dismissTradeAccept = async (tradeId) => {
     setPendingTradeNotifications((prev) => prev.slice(1));
@@ -346,6 +357,7 @@ export default function Dashboard() {
     try {
       const { data } = await axios.get("/transactions/getportfolio", { params: { userId: user.id, groupId: newGroupId } });
       setGroupId(String(data.groupId));
+      setSearchParams({ groupId: String(data.groupId) });
       setFinancialData(data);
     } catch {
       toast.error("Failed to switch group");
@@ -418,23 +430,7 @@ export default function Dashboard() {
           toast.error(data.error);
         } else {
           resetPrices();
-          if (action === "short" || action === "cover") {
-            setFinancialData(prev => ({
-              ...prev,
-              user: {
-                ...prev.user,
-                budget: data.budget,
-                netWorth: data.netWorth,
-                liveBonusBalance: data.lockedBudget != null ? Math.max(0, data.budget - data.lockedBudget) : prev.user.liveBonusBalance,
-                shorts: { ...prev.user.shorts, ...data.shorts },
-              },
-              availableShorts: {
-                ...prev.availableShorts,
-                [survivorPlayer]: (prev.availableShorts[survivorPlayer] ?? prev.maxSharesPerPlayer) + (action === "short" ? -amount : amount),
-              },
-            }));
-          } else {
-            setFinancialData(prev => {
+          setFinancialData(prev => {
               const newAvailable = (prev.availableShares[survivorPlayer] ?? prev.maxSharesPerPlayer) + (action === "buy" ? -amount : amount);
               const newUsed = prev.maxSharesPerPlayer - newAvailable;
               return {
@@ -443,14 +439,12 @@ export default function Dashboard() {
                   ...prev.user,
                   budget: data.budget,
                   netWorth: data.netWorth,
-                  liveBonusBalance: data.lockedBudget != null ? Math.max(0, data.budget - data.lockedBudget) : prev.user.liveBonusBalance,
                   portfolio: { ...prev.user.portfolio, ...data.portfolio },
                 },
                 availableShares: { ...prev.availableShares, [survivorPlayer]: newAvailable },
                 currentPrices: { ...prev.currentPrices, [survivorPlayer]: calculateTierPrice(newUsed, prev.maxSharesPerPlayer) },
               };
             });
-          }
         }
       } catch {
         toast.error("Something went wrong updating your portfolio.");
@@ -458,10 +452,8 @@ export default function Dashboard() {
     }
   };
 
-  const buyStock   = (s, a) => updatePortfolio(s, a, "buy");
-  const sellStock  = (s, a) => updatePortfolio(s, a, "sell");
-  const shortStock = (s, a) => updatePortfolio(s, a, "short");
-  const coverShort = (s, a) => updatePortfolio(s, a, "cover");
+  const buyStock  = (s, a) => updatePortfolio(s, a, "buy");
+  const sellStock = (s, a) => updatePortfolio(s, a, "sell");
 
   return (
     <>
@@ -487,7 +479,6 @@ export default function Dashboard() {
             survivorName={evt.survivorName}
             survivorProfilePic={survivorPlayerStats[evt.survivorName]?.profile_pic ?? null}
             sharesOwned={sharesOwned[evt.survivorName] ?? 0}
-            shortsOwned={shortsOwned[evt.survivorName] ?? 0}
             onClose={dismissEventNotification}
           />
         );
@@ -508,8 +499,15 @@ export default function Dashboard() {
         <LiveChallengeNotification
           challengeEvent={pendingChallengeNotifications[0]}
           sharesOwned={sharesOwned}
-          shortsOwned={shortsOwned}
           onClose={dismissChallengeNotification}
+        />
+      )}
+
+      {pendingIdolNotifications.length === 0 && pendingEventNotifications.length === 0 && pendingTradeNotifications.length === 0 && pendingChallengeNotifications.length === 0 && pendingVoteNotifications.length > 0 && (
+        <LiveVoteNotification
+          voteEvent={pendingVoteNotifications[0]}
+          sharesOwned={sharesOwned}
+          onClose={dismissVoteNotification}
         />
       )}
 
@@ -546,7 +544,7 @@ export default function Dashboard() {
       )}
 
       {/* ── Page layout ── */}
-      <div style={{ minHeight: "100vh", background: J.bg, color: J.text, paddingTop: NAVBAR_H + HUD_H }}>
+      <div style={{ minHeight: "100vh", background: J.bg, color: J.text, paddingTop: NAVBAR_H + hudHeight }}>
         <DashboardHUD
           scrollY={scrollY}
           seasonData={seasonData}
@@ -563,6 +561,7 @@ export default function Dashboard() {
           incomingTrades={incomingTrades}
           onShowTradeModal={() => setShowTradeModal(true)}
           leaderboard={leaderboard}
+          groupStandings={groupStandings}
         />
 
         <DashboardHero
@@ -570,19 +569,30 @@ export default function Dashboard() {
           seasonData={seasonData}
           episodeData={episodeData}
           financialData={financialData}
+          groupStandings={groupStandings}
         />
 
         <LiveBanners episodeData={episodeData} />
 
         <div
-          className="mx-auto max-w-[1400px] grid grid-cols-1 lg:grid-cols-[560px_1fr]"
+          className="mx-auto max-w-[1400px] grid grid-cols-1 lg:grid-cols-[340px_1fr]"
           style={{ padding: "24px 28px 60px", gap: 24, alignItems: "start" }}
         >
           <div className="lg:sticky" style={{ top: 112, maxHeight: "calc(100vh - 130px)", overflowY: "auto" }}>
-            <BootOrder
-              groupId={groupId}
-              bootOrders={financialData.user.bootOrders ?? {}}
-            />
+            {episodeData?.finalists?.length > 0 ? (
+              <FinaleOrder
+                groupId={groupId}
+                finaleOrders={financialData.user.finaleOrders ?? {}}
+                onAir={episodeData?.onAir ?? false}
+                finalists={episodeData.finalists}
+              />
+            ) : (
+              <BootOrder
+                groupId={groupId}
+                bootOrders={financialData.user.bootOrders ?? {}}
+                onAir={episodeData?.onAir ?? false}
+              />
+            )}
           </div>
 
           <main>
@@ -591,12 +601,9 @@ export default function Dashboard() {
               survivorPlayerStats={survivorPlayerStats}
               financialData={financialData}
               sharesOwned={sharesOwned}
-              shortsOwned={shortsOwned}
               episodeData={episodeData}
               buyStock={buyStock}
               sellStock={sellStock}
-              shortStock={shortStock}
-              coverShort={coverShort}
             />
           </main>
         </div>

@@ -1,4 +1,6 @@
 const Group = require('../models/groups');
+const UserGroupGame = require('../models/userGroupGame');
+const User = require('../models/user');
 
 const getGroupMax = (group) => {
     const acceptedCount = group.members.filter(m => m.accepted).length || 1;
@@ -53,4 +55,40 @@ const getUserGroups = async (req, res) => {
     }
 };
 
-module.exports = { getUserGroups };
+const getGroupStandings = async (req, res) => {
+    const { groupId } = req.query;
+    try {
+        const group = await Group.findById(groupId);
+        if (!group) return res.status(404).json({ error: 'Group not found' });
+
+        const acceptedMembers = group.members.filter(m => m.accepted && m.user);
+        const userIds = acceptedMembers.map(m => m.user);
+
+        const [users, ugGames] = await Promise.all([
+            User.find({ _id: { $in: userIds } }, 'name'),
+            UserGroupGame.find({ userId: { $in: userIds }, groupId }).select('userId netWorth'),
+        ]);
+
+        const nameMap = {};
+        users.forEach(u => { nameMap[String(u._id)] = u.name; });
+
+        const netWorthMap = {};
+        ugGames.forEach(g => { netWorthMap[String(g.userId)] = g.netWorth ?? 0; });
+
+        const standings = userIds.map(id => ({
+            userId: String(id),
+            name: nameMap[String(id)] ?? 'Unknown',
+            netWorth: netWorthMap[String(id)] ?? 0,
+        }));
+
+        standings.sort((a, b) => b.netWorth - a.netWorth);
+        standings.forEach((s, i) => { s.rank = i + 1; });
+
+        res.json(standings);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+module.exports = { getUserGroups, getGroupStandings };

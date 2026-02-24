@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { addSurvivor, getAllSurvivors, deleteSurvivor, toggleSurvivorAvailability } = require('../controllers/survivorControllers')
-const { resetUsers, changeSeason, changeWeek, getCurrentSeason, updatePlayerEvent, applyChallengeBatch, setFinalist, awardFinalistBonuses, applyLiveIdolBonus, toggleOnAirStatus, toggleTribalCouncil } = require('../controllers/adminControllers')
+const { resetUsers, changeSeason, changeWeek, getCurrentSeason, updatePlayerEvent, applyChallengeBatch, applyVoteBatch, setFinalist, awardFinalistBonuses, applyLiveIdolBonus, toggleOnAirStatus, toggleTribalCouncil } = require('../controllers/adminControllers')
 const { requireAuth, requireAdmin } = require('../authMiddleware/authMiddleware')
 
 router.get('/getcurrentseason', getCurrentSeason);
@@ -14,6 +14,7 @@ router.post('/change-season', requireAuth, requireAdmin, changeSeason);
 router.post('/change-week', requireAuth, requireAdmin, changeWeek);
 router.patch('/player/events', requireAuth, requireAdmin, updatePlayerEvent);
 router.patch('/challenge/batch', requireAuth, requireAdmin, applyChallengeBatch);
+router.patch('/vote/batch', requireAuth, requireAdmin, applyVoteBatch);
 router.patch('/finalists/set', requireAuth, requireAdmin, setFinalist);
 router.post('/finalists/award', requireAuth, requireAdmin, awardFinalistBonuses);
 router.post('/apply-live-idol-bonus', requireAuth, requireAdmin, applyLiveIdolBonus);

@@ -5,7 +5,7 @@ const Survivor = require('../models/survivors');
 const Season = require('../models/seasonSettings');
 const Episode = require('../models/episodeSettings')
 
-// Total shares/shorts available for a survivor = 50 × accepted member count
+// Total shares available for a survivor = 50 × accepted member count
 const getGroupMax = (group) => {
     if (!group) return 50;
     const acceptedCount = group.members.filter(m => m.accepted).length || 1;
@@ -123,10 +123,11 @@ const updatePortfolio = async (req, res) => {
 
         const groupMax = getGroupMax(group);
         const sharesUsed = group ? (group.sharesUsed.get(survivorPlayer) || 0) : 0;
-        const currentPrice = calculateTierPrice(sharesUsed, groupMax);
+        const buyPrice  = calculateTierPrice(sharesUsed, groupMax);
+        const sellPrice = calculateTierPrice(Math.max(0, sharesUsed - amount), groupMax);
 
         if (action === 'buy') {
-            if (currentBudget < (currentPrice * amount)) {
+            if (currentBudget < (buyPrice * amount)) {
                 return res.json({ error: 'Not enough funds' });
             }
             // Enforce group share limit
@@ -136,14 +137,14 @@ const updatePortfolio = async (req, res) => {
                     return res.json({ error: `Only ${available} share${available === 1 ? '' : 's'} of ${survivorPlayer} available in this group` });
                 }
             }
-            await handleBuy(userGameData, survivor, survivorPlayer, currentPrice, amount);
+            await handleBuy(userGameData, survivor, survivorPlayer, buyPrice, amount);
         } else if (action === 'sell') {
             if (currentUserSurvivorCount === 0) {
                 return res.json({ error: 'No stock to sell' });
             } else if ((currentUserSurvivorCount - amount) < 0) {
                 return res.json({ error: 'Not enough stock to sell' });
             }
-            await handleSell(userGameData, survivor, survivorPlayer, currentPrice, amount);
+            await handleSell(userGameData, survivor, survivorPlayer, sellPrice, amount);
         } else {
             return res.json({ error: 'Invalid action' });
         }
@@ -203,15 +204,12 @@ const calculateNetWorth = async (userGameData, group) => {
 const updatePortfolioPreseason = async (req, res) => {
     const { userId, groupId, survivorPlayer, action, amount } = req.body;
     try {
-        const [userGameData, survivor, season, group, episode] = await Promise.all([
+        const [userGameData, survivor, group, episode] = await Promise.all([
             UserGroupGame.findOne({ userId, groupId }),
             Survivor.findOne({ name: survivorPlayer }),
-            Season.findOne({ isCurrentSeason: true }),
             Group.findById(groupId),
             Episode.findOne({ isCurrentEpisode: true }),
         ]);
-        const fixedShortPrice = season.currentPrice; // shorts keep the fixed price
-        const isOnAir = episode?.onAir ?? false;
         const isTribalCouncil = episode?.tribalCouncil ?? false;
 
         if (!userGameData || !survivor) {
@@ -219,7 +217,7 @@ const updatePortfolioPreseason = async (req, res) => {
         }
 
         // Tribal council: all trading locked
-        if (isTribalCouncil && (action === 'buy' || action === 'short')) {
+        if (isTribalCouncil && action === 'buy') {
             return res.json({ error: 'Trading locked — tribal council in progress' });
         }
 
@@ -227,14 +225,11 @@ const updatePortfolioPreseason = async (req, res) => {
         const currentBudget = userGameData.budget;
         const currentSurvivorCount = survivor.countStocks;
 
-        // During on-air, only bonus money (above the locked snapshot) can be spent
-        const bonusBalance = (isOnAir && userGameData.lockedBudget != null)
-            ? Math.max(0, currentBudget - userGameData.lockedBudget)
-            : null;
-
         const groupMax = getGroupMax(group);
         const sharesUsed = group ? (group.sharesUsed.get(survivorPlayer) || 0) : 0;
-        const tierPrice = calculateTierPrice(sharesUsed, groupMax);
+        const buyPrice  = calculateTierPrice(sharesUsed, groupMax);
+        const sellPrice = calculateTierPrice(Math.max(0, sharesUsed - amount), groupMax);
+        const tierPrice = action === 'buy' ? buyPrice : sellPrice;
 
         // Enforce group share limit on buy
         if (action === 'buy' && group) {
@@ -242,48 +237,6 @@ const updatePortfolioPreseason = async (req, res) => {
             if (amount > available) {
                 return res.json({ error: `Only ${available} share${available === 1 ? '' : 's'} of ${survivorPlayer} available in this group` });
             }
-        }
-
-        if (action === 'short' || action === 'cover') {
-            const currentUserShortCount = userGameData.shorts ? (userGameData.shorts.get(survivorPlayer) || 0) : 0;
-
-            if (action === 'short') {
-                const cost = amount * fixedShortPrice;
-                if (bonusBalance !== null ? cost > bonusBalance : cost > currentBudget) {
-                    return res.json({ error: bonusBalance !== null ? 'Not enough bonus funds' : 'Not enough funds' });
-                }
-                if (group) {
-                    const shortsUsed = group.shortsUsed.get(survivorPlayer) || 0;
-                    const availableShorts = groupMax - shortsUsed;
-                    if (amount > availableShorts) {
-                        return res.json({ error: `Only ${availableShorts} short${availableShorts === 1 ? '' : 's'} of ${survivorPlayer} available in this group` });
-                    }
-                    group.shortsUsed.set(survivorPlayer, shortsUsed + amount);
-                }
-                userGameData.shorts.set(survivorPlayer, currentUserShortCount + amount);
-                userGameData.budget -= fixedShortPrice * amount;
-            } else {
-                // cover
-                if (currentUserShortCount < amount) {
-                    return res.json({ error: 'Not enough shorts to cover' });
-                }
-                userGameData.shorts.set(survivorPlayer, currentUserShortCount - amount);
-                userGameData.budget += fixedShortPrice * amount;
-                if (group) {
-                    const shortsUsed = group.shortsUsed.get(survivorPlayer) || 0;
-                    group.shortsUsed.set(survivorPlayer, Math.max(0, shortsUsed - amount));
-                }
-            }
-
-            const saves = [userGameData.save()];
-            if (group) saves.push(group.save());
-            await Promise.all(saves);
-            return res.json(userGameData);
-        }
-
-        // During on-air, buying is limited to bonus balance only
-        if (action === 'buy' && bonusBalance !== null && tierPrice * amount > bonusBalance) {
-            return res.json({ error: 'Not enough bonus funds' });
         }
 
         // Handle buy or sell logic
@@ -426,36 +379,36 @@ const getPortfolio = async (req, res) => {
               userGameData.portfolio.delete(key);
             }
           }
+        const currentEpisode = await Episode.findOne({ isCurrentEpisode: true });
+        const currentEpisodeNumber = currentEpisode?.episodeNumber ?? null;
+
+        // On the first getPortfolio call of a new episode, snapshot the stored net worth
+        // (calculated last episode) before it gets overwritten with current prices.
+        if (currentEpisodeNumber !== null && userGameData.episodeSnapshotId !== currentEpisodeNumber) {
+            userGameData.prevNetWorthSnapshot = userGameData.netWorth;
+            userGameData.episodeSnapshotId = currentEpisodeNumber;
+        }
+        const prevNetWorth = userGameData.prevNetWorthSnapshot ?? userGameData.netWorth;
+
         userGameData.netWorth = await calculateNetWorth(userGameData, group);
-        prevNetWorth = await calculatePrevNetWorth(userGameData);
         await userGameData.save();
 
         const maxShares = getGroupMax(group);
         const availableShares = {};
-        const availableShorts = {};
         const currentPrices = {};
         survivors.forEach(s => {
             const used = group ? (group.sharesUsed.get(s.name) || 0) : 0;
             availableShares[s.name] = Math.max(0, maxShares - used);
-            const shortsUsed = group ? (group.shortsUsed.get(s.name) || 0) : 0;
-            availableShorts[s.name] = Math.max(0, maxShares - shortsUsed);
             currentPrices[s.name] = calculateTierPrice(used, maxShares);
         });
-
-        const currentEpisode = await Episode.findOne({ isCurrentEpisode: true });
         const episodeKey = String(currentEpisode?.episodeNumber - 1 ?? '');
         const maxPossibleBudget = group?.maxPossibleBudgets?.get(episodeKey) ?? null;
         const maxPossibleLog    = group?.maxPossibleLog?.get(episodeKey) ?? null;
-
-        const liveBonusBalance = (currentEpisode?.onAir && userGameData.lockedBudget != null)
-            ? Math.max(0, userGameData.budget - userGameData.lockedBudget)
-            : null;
 
         res.json({
             groupId,
             maxSharesPerPlayer: maxShares,
             availableShares,
-            availableShorts,
             currentPrices,
             maxPossibleBudget,
             maxPossibleLog,
@@ -463,11 +416,10 @@ const getPortfolio = async (req, res) => {
                 budget: userGameData.budget,
                 netWorth: userGameData.netWorth,
                 portfolio: userGameData.portfolio,
-                shorts: userGameData.shorts,
                 bootOrders: userGameData.bootOrders,
+                finaleOrders: userGameData.finaleOrders,
                 bonuses: userGameData.bonuses,
                 last_seen_episode_id: user ? user.last_seen_episode_id : 0,
-                liveBonusBalance,
             },
             prevNetWorth
         });
@@ -478,22 +430,27 @@ const getPortfolio = async (req, res) => {
 }
 
 const saveBootOrder = async (req, res) => {
-    const { order, userId, groupId, episodeNumber } = req.body;
+    const { order, userId, groupId, episodeNumber, orderType = "bootOrders" } = req.body;
+
+    const ALLOWED_ORDER_TYPES = ["bootOrders", "finaleOrders"];
+    if (!ALLOWED_ORDER_TYPES.includes(orderType)) {
+        return res.status(400).json({ message: "Invalid order type" });
+    }
 
     try {
         await UserGroupGame.findOneAndUpdate(
             { userId, groupId },
             {
                 $set: {
-                    [`bootOrders.${episodeNumber}`]: order
+                    [`${orderType}.${episodeNumber}`]: order
                 }
             }
         );
 
-        res.status(200).json({ message: "Boot order saved!" });
+        res.status(200).json({ message: "Order saved!" });
     } catch (err) {
         console.error("Error saving", err);
-        res.status(500).json({ message: "Error saving boot order" });
+        res.status(500).json({ message: "Error saving order" });
     }
 };
 

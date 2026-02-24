@@ -1,30 +1,23 @@
 import { useEffect, useCallback } from "react";
 
-const WIN_RATE  = 0.10;
-const LOSS_RATE = 0.10;
+const RIGHT_RATE = 0.08;
+const WRONG_RATE = 0.08;
 
 const fmt = (n) => `${n >= 0 ? "+" : "-"}$${Math.abs(Number(n || 0)).toFixed(2)}`;
 
-const TYPE_LABELS = {
-  team:       "Team Challenge",
-  reward:     "Reward Challenge",
-  individual: "Individual Immunity",
-};
-
-export default function LiveChallengeNotification({
-  challengeEvent,   // { challengeType, winners: [], losers: [] }
-  sharesOwned,      // { survivorName: count }
+export default function LiveVoteNotification({
+  voteEvent,      // { rightSide: [], wrongSide: [] }
+  sharesOwned,    // { survivorName: count }
   onClose,
 }) {
-  const { challengeType, winners = [], losers = [] } = challengeEvent;
+  const { rightSide = [], wrongSide = [] } = voteEvent;
 
-  // Calculate player's total impact across all winners and losers
   let totalImpact = 0;
-  for (const name of winners) {
-    totalImpact += (sharesOwned[name] || 0) * WIN_RATE;
+  for (const name of rightSide) {
+    totalImpact += (sharesOwned[name] || 0) * RIGHT_RATE;
   }
-  for (const name of losers) {
-    totalImpact -= (sharesOwned[name] || 0) * LOSS_RATE;
+  for (const name of wrongSide) {
+    totalImpact -= (sharesOwned[name] || 0) * WRONG_RATE;
   }
 
   const isGain      = totalImpact >= 0;
@@ -44,8 +37,8 @@ export default function LiveChallengeNotification({
     return () => window.removeEventListener("keydown", onKey);
   }, [close]);
 
-  const hasPosition = winners.some(n => sharesOwned[n]) ||
-                      losers.some(n => sharesOwned[n]);
+  const hasPosition = rightSide.some(n => sharesOwned[n]) ||
+                      wrongSide.some(n => sharesOwned[n]);
 
   return (
     <div className="fixed inset-0 z-50 bg-black/90 text-white">
@@ -73,19 +66,19 @@ export default function LiveChallengeNotification({
           <div className="min-h-full grid place-items-center">
             <div className="animate-fadein text-center w-full max-w-xl">
 
-              <div className="text-5xl mb-3">🏆</div>
+              <div className="text-5xl mb-3">🗳️</div>
               <h1 className="font-heading text-2xl sm:text-3xl tracking-tight" style={{ color: accentColor }}>
-                {TYPE_LABELS[challengeType] || "Challenge Result"}
+                Tribal Council Vote
               </h1>
 
-              {/* Winners / Losers panels */}
+              {/* Right side / Wrong side panels */}
               <div className="mt-5 grid grid-cols-2 gap-3 text-left">
-                {winners.length > 0 && (
+                {rightSide.length > 0 && (
                   <div className="rounded-xl p-4" style={{ background: "rgba(94,207,122,0.08)", border: "1px solid rgba(94,207,122,0.25)" }}>
-                    <div className="text-xs text-white/50 uppercase tracking-widest mb-2">Winners</div>
-                    {winners.map(name => {
+                    <div className="text-xs text-white/50 uppercase tracking-widest mb-2">Right Side</div>
+                    {rightSide.map(name => {
                       const shares = sharesOwned[name] || 0;
-                      const impact = shares * WIN_RATE;
+                      const impact = shares * RIGHT_RATE;
                       return (
                         <div key={name} className="flex items-center justify-between mb-1">
                           <span className="text-sm text-white/80">{name}</span>
@@ -98,17 +91,17 @@ export default function LiveChallengeNotification({
                   </div>
                 )}
 
-                {losers.length > 0 && (
-                  <div className="rounded-xl p-4" style={{ background: "rgba(255,68,68,0.06)", border: "1px solid rgba(255,68,68,0.2)" }}>
-                    <div className="text-xs text-white/50 uppercase tracking-widest mb-2">Losers</div>
-                    {losers.map(name => {
+                {wrongSide.length > 0 && (
+                  <div className="rounded-xl p-4" style={{ background: "rgba(251,146,60,0.08)", border: "1px solid rgba(251,146,60,0.25)" }}>
+                    <div className="text-xs text-white/50 uppercase tracking-widest mb-2">Wrong Side</div>
+                    {wrongSide.map(name => {
                       const shares = sharesOwned[name] || 0;
-                      const impact = -(shares * LOSS_RATE);
+                      const impact = -(shares * WRONG_RATE);
                       return (
                         <div key={name} className="flex items-center justify-between mb-1">
                           <span className="text-sm text-white/80">{name}</span>
                           {shares > 0 && (
-                            <span className="text-xs font-bold" style={{ color: "#ff8888" }}>{fmt(impact)}</span>
+                            <span className="text-xs font-bold" style={{ color: "#fb923c" }}>{fmt(impact)}</span>
                           )}
                         </div>
                       );
@@ -118,7 +111,7 @@ export default function LiveChallengeNotification({
               </div>
 
               {/* Total impact */}
-              <div className="mt-4 rounded-xl overflow-hidden" style={{ background: "rgba(0,0,0,0.4)", border: `1px solid rgba(255,255,255,0.08)` }}>
+              <div className="mt-4 rounded-xl overflow-hidden" style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.08)" }}>
                 {hasPosition ? (
                   <div className="px-4 py-3 flex items-center justify-between">
                     <span className="text-sm font-semibold text-white/80">Your Total Impact</span>

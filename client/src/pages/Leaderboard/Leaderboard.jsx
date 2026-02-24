@@ -1,157 +1,196 @@
 import { useContext, useEffect, useState } from "react";
-import CreateGroupModal from "../../components/createGroup";
 import { UserContext } from "../../../context/userContext";
 import axios from "axios";
+import { J } from "../Dashboard/colors";
+
+const fmt = (n) =>
+  "$" + Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const MEDALS = { 1: "🥇", 2: "🥈", 3: "🥉" };
+
+const rankColor = (rank) => {
+  if (rank === 1) return J.gold;
+  if (rank === 2) return "rgba(196,196,210,0.9)";
+  if (rank === 3) return "#cd7f32";
+  return J.textDim;
+};
 
 export default function Leaderboard() {
   const { user, loading } = useContext(UserContext);
   const [leaders, setLeaders] = useState([]);
-  const [myRank, setMyRank] = useState(null); 
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [myEntry, setMyEntry] = useState(null);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
 
   useEffect(() => {
-
     if (loading || !user) return;
     async function fetchLeaders() {
       try {
-        // all entries
-        const { data } = await axios.get("/leaderboard/getleaderboard");
-        if (data?.entries) setLeaders(data.entries);
-
-        // my rank (if logged in)
-        if (user?.id) {
-          const { data: rankData } = await axios.get(`/leaderboard/getleaderboard/${user.id}`);
-          // handle both shapes: number or { rank, ... }
-          const rank =
-            typeof rankData === "number"
-              ? rankData
-              : typeof rankData?.rank === "number"
-              ? rankData.rank
-              : null;
-          setMyRank(rank);
-        } else {
-          setMyRank(null);
-        }
+        const params = user?.id ? { userId: user.id } : {};
+        const { data } = await axios.get("/leaderboard/solo-top10", { params });
+        setLeaders(data.topTen || []);
+        setMyEntry(data.myEntry || null);
       } catch (err) {
         console.error("Error fetching leaderboard:", err);
       } finally {
         setLoadingLeaderboard(false);
       }
     }
-
     fetchLeaders();
   }, [user, loading]);
 
   if (loadingLeaderboard) {
     return (
-      <div className="min-h-screen bg-black-bg text-white grid place-items-center">
-        <div className="flex items-center gap-3">
-          <div className="h-6 w-6 rounded-full border-4 border-white/10 border-t-primary animate-spin" />
-          <span className="text-white/80">Loading leaderboard…</span>
+      <div style={{ minHeight: "100vh", background: J.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, color: J.textDim, fontSize: 15 }}>
+          <div style={{
+            width: 20, height: 20, borderRadius: "50%",
+            border: `3px solid ${J.surfaceRing}`, borderTopColor: J.gold,
+            animation: "spin 0.8s linear infinite",
+          }} />
+          Loading leaderboard…
         </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
-  const topTen = leaders.slice(0, 10);
-  const isUserInTopTen = typeof myRank === "number" ? myRank <= 10 : false;
-  const myEntry =
-    user?.id && !isUserInTopTen
-      ? leaders.find((l) => l.user_id === user.id) || (typeof myRank === "number"
-          ? { user_id: user.id, rank: myRank, username: user.name, net_worth: 0 }
-          : null)
-      : null;
-return (
-  <div className="min-h-screen bg-black-bg text-white">
-    <div className="mx-auto max-w-[48rem] px-5 sm:px-8 lg:px-10 py-10">
-      {/* Header with title and Create Group button */}
-      <header className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="font-heading text-3xl sm:text-4xl tracking-tight">Leaderboard</h1>
-          <p className="text-white/60 mt-1">Top players by net worth.</p>
-        </div>
-      </header>
+  const topTen = leaders;
 
-      {/* Table/card list */}
-      <div className="rounded-2xl bg-charcoal/80 ring-1 ring-white/10 overflow-hidden">
-        {/* Header row */}
-        <div className="grid grid-cols-[72px_1fr_auto] gap-3 px-4 py-3 bg-black/30 text-white/70 text-xs uppercase tracking-wide">
-          <div>#</div>
-          <div>Player</div>
-          <div className="text-right">Net Worth</div>
+  return (
+    <div style={{ minHeight: "100vh", background: J.bg, color: J.text, padding: "32px 16px" }}>
+      <div style={{ maxWidth: 560, margin: "0 auto" }}>
+
+        {/* Header */}
+        <div style={{ marginBottom: 28, textAlign: "center" }}>
+          <div style={{ fontSize: 10, color: J.textFaint, textTransform: "uppercase", letterSpacing: "0.18em", marginBottom: 6 }}>
+            Solo Rankings
+          </div>
+          <h1 style={{ fontSize: 28, fontFamily: "'Cinzel', serif", color: J.gold, margin: 0, letterSpacing: "0.04em" }}>
+            Leaderboard
+          </h1>
+          <p style={{ fontSize: 13, color: J.textDim, marginTop: 6 }}>
+            Top 10 solo players by net worth
+          </p>
         </div>
 
-        {/* Top 10 leaderboard entries */}
-        <ul className="divide-y divide-white/10">
-          {topTen.map((leader) => {
-            const isMe = user && leader.user_id === user.id;
+        {/* Table */}
+        <div style={{
+          borderRadius: 16,
+          background: J.card,
+          border: `1px solid rgba(196,152,90,0.2)`,
+          overflow: "hidden",
+        }}>
+          {/* Column headers */}
+          <div style={{
+            display: "grid", gridTemplateColumns: "56px 1fr auto",
+            padding: "10px 16px",
+            background: "rgba(0,0,0,0.25)",
+            borderBottom: `1px solid ${J.divider}`,
+            fontSize: 10, color: J.textFaint, textTransform: "uppercase", letterSpacing: "0.14em",
+          }}>
+            <div>Rank</div>
+            <div>Player</div>
+            <div style={{ textAlign: "right" }}>Net Worth</div>
+          </div>
+
+          {topTen.length === 0 && (
+            <div style={{ padding: "32px 16px", textAlign: "center", color: J.textFaint, fontSize: 13 }}>
+              No rankings yet.
+            </div>
+          )}
+
+          {topTen.map((leader, i) => {
+            const isMe = user && leader.userId === user.id;
+            const medal = MEDALS[leader.rank];
             return (
-              <li
-                key={leader.user_id}
-                className={[
-                  "grid grid-cols-[72px_1fr_auto] gap-3 px-4 py-3",
-                  isMe ? "bg-primary/10 ring-1 ring-primary/40" : "",
-                ].join(" ")}
+              <div
+                key={leader.userId}
+                style={{
+                  display: "grid", gridTemplateColumns: "56px 1fr auto",
+                  padding: "13px 16px",
+                  alignItems: "center",
+                  borderBottom: i < topTen.length - 1 ? `1px solid ${J.divider}` : "none",
+                  background: isMe ? "rgba(242,201,76,0.06)" : "transparent",
+                  outline: isMe ? `1px solid rgba(242,201,76,0.2)` : "none",
+                  outlineOffset: -1,
+                  transition: "background 0.15s",
+                }}
               >
-                <div className="tabular-nums font-semibold text-white/90">#{leader.rank}</div>
-                <div className="truncate">
-                  <span className="font-semibold">{leader.username}</span>
+                {/* Rank */}
+                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  {medal ? (
+                    <span style={{ fontSize: 18, lineHeight: 1 }}>{medal}</span>
+                  ) : (
+                    <span style={{ fontSize: 14, fontWeight: 700, color: rankColor(leader.rank), fontVariantNumeric: "tabular-nums" }}>
+                      #{leader.rank}
+                    </span>
+                  )}
                 </div>
-                <div className="tabular-nums text-right">
-                  ${Number(leader.net_worth || 0).toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
+
+                {/* Name */}
+                <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <span style={{
+                    fontSize: 14, fontWeight: isMe ? 700 : 500,
+                    color: isMe ? J.gold : J.text,
+                  }}>
+                    {leader.username}
+                    {isMe && (
+                      <span style={{ marginLeft: 8, fontSize: 10, color: J.gold, fontWeight: 400, opacity: 0.7 }}>
+                        (you)
+                      </span>
+                    )}
+                  </span>
                 </div>
-              </li>
+
+                {/* Net worth */}
+                <div style={{
+                  textAlign: "right", fontSize: 14, fontWeight: 600,
+                  fontVariantNumeric: "tabular-nums",
+                  color: leader.rank <= 3 ? rankColor(leader.rank) : J.textDim,
+                }}>
+                  {fmt(leader.netWorth)}
+                </div>
+              </div>
             );
           })}
-        </ul>
 
-        {/* My row if not in Top 10 */}
-        {myEntry && (
-          <>
-            <div className="h-px bg-white/10 mx-4" />
-            <div className="px-4 py-3 bg-black/20 text-white/60 text-xs">Your position</div>
-            <div className="grid grid-cols-[72px_1fr_auto] gap-3 px-4 py-3 bg-primary/10 ring-1 ring-primary/40">
-              <div className="tabular-nums font-semibold text-white/90">#{myEntry.rank}</div>
-              <div className="truncate">
-                <span className="font-semibold">
-                  {myEntry.username || user?.name || "You"}
+          {/* User's row if outside top 10 */}
+          {myEntry && (
+            <>
+              <div style={{ padding: "6px 16px", background: "rgba(0,0,0,0.2)", borderTop: `1px solid ${J.divider}` }}>
+                <span style={{ fontSize: 10, color: J.textFaint, textTransform: "uppercase", letterSpacing: "0.14em" }}>
+                  Your position
                 </span>
               </div>
-              <div className="tabular-nums text-right">
-                ${Number(myEntry.net_worth || 0).toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
+              <div style={{
+                display: "grid", gridTemplateColumns: "56px 1fr auto",
+                padding: "13px 16px", alignItems: "center",
+                background: "rgba(242,201,76,0.06)",
+                outline: `1px solid rgba(242,201,76,0.2)`, outlineOffset: -1,
+              }}>
+                <div>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: J.textDim, fontVariantNumeric: "tabular-nums" }}>
+                    #{myEntry.rank}
+                  </span>
+                </div>
+                <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: J.gold }}>
+                    {myEntry.username || user?.name || "You"}
+                    <span style={{ marginLeft: 8, fontSize: 10, color: J.gold, fontWeight: 400, opacity: 0.7 }}>(you)</span>
+                  </span>
+                </div>
+                <div style={{ textAlign: "right", fontSize: 14, fontWeight: 600, color: J.textDim, fontVariantNumeric: "tabular-nums" }}>
+                  {fmt(myEntry.netWorth)}
+                </div>
               </div>
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
+
+        <p style={{ textAlign: "center", fontSize: 11, color: J.textFaint, marginTop: 16 }}>
+          Rankings update after each episode.
+        </p>
       </div>
     </div>
-    {!user.isGuest && (
-      <>
-      <div className="mb-6 flex items-center justify-center">
-        <button
-          onClick={() => setIsCreateOpen(true)}
-          className="px-4 py-2 rounded-md bg-primary text-white"
-        >
-          Create Group
-        </button>
-      </div>
-      <CreateGroupModal
-        isOpen={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
-        currentUser={user}
-        onCreated={""}
-      />
-      </>
-    )}
-  </div>
-);
+  );
 }
-
-

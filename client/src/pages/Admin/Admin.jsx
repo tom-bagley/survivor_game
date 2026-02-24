@@ -2,14 +2,6 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 
-// wonChallenge and lostChallenge handled via the batch Challenge section
-const PLAYER_EVENT_FIELDS = [
-  { key: "foundIdol",           label: "Found Idol",           color: "yellow" },
-  { key: "rightSideOfVote",     label: "Right Side of Vote",   color: "green"  },
-  { key: "playedIdolCorrectly", label: "Played Idol Correctly",color: "purple" },
-  { key: "wrongSideOfVote",     label: "Wrong Side of Vote",   color: "orange" },
-];
-
 const CHALLENGE_TYPES = [
   { key: "team",       label: "Team Challenge",         hasLosers: true  },
   { key: "reward",     label: "Reward Challenge",        hasLosers: true  },
@@ -66,6 +58,11 @@ export default function Players() {
   const [challengeWinners, setChallengeWinners] = useState([]);
   const [challengeLosers, setChallengeLosers] = useState([]);
   const [applyingChallenge, setApplyingChallenge] = useState(false);
+
+  // Vote results batch state
+  const [voteRightSide, setVoteRightSide] = useState([]);
+  const [voteWrongSide, setVoteWrongSide] = useState([]);
+  const [applyingVote, setApplyingVote] = useState(false);
 
   const onChange = (field) => (e) =>
     setData((s) => ({ ...s, [field]: e.target.value }));
@@ -295,6 +292,29 @@ export default function Players() {
     }
   };
 
+  const handleApplyVoteResults = async () => {
+    if (voteRightSide.length === 0 && voteWrongSide.length === 0) {
+      return toast.error("Select at least one player");
+    }
+    setApplyingVote(true);
+    try {
+      const res = await axios.patch("/admin/vote/batch", {
+        rightSide: voteRightSide,
+        wrongSide: voteWrongSide,
+      });
+      if (res.data?.error) return toast.error(res.data.error);
+      await fetchCurrentEpisode();
+      setVoteRightSide([]);
+      setVoteWrongSide([]);
+      toast.success("Vote results applied");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to apply vote results");
+    } finally {
+      setApplyingVote(false);
+    }
+  };
+
   const handleApplyLiveIdolBonus = async (survivorName) => {
     try {
       const res = await axios.post("/admin/apply-live-idol-bonus", { survivorName });
@@ -429,7 +449,7 @@ export default function Players() {
             <div className="mb-4">
               <h2 className="font-heading text-2xl text-red-300">Vote Out Survivors</h2>
               <p className="text-white/50 text-sm mt-0.5">
-                Mark who was voted out this episode. They'll appear in the elimination sequence and short payouts will be calculated.
+                Mark who was voted out this episode. They'll appear in the elimination sequence.
               </p>
             </div>
             {players.length > 0 ? (
@@ -737,72 +757,141 @@ export default function Players() {
           </section>
         )}
 
-        {/* Current Episode Events */}
-        <section className="rounded-2xl bg-charcoal/80 ring-1 ring-white/10 p-5">
-          <div className="flex items-start justify-between mb-5">
-            <div>
-              <h2 className="font-heading text-2xl">Episode Events</h2>
-              {episode ? (
-                <p className="text-white/50 text-sm mt-0.5">
-                  Episode {episode.episodeNumber} · {episode.season}&nbsp;&nbsp;
-                  {episode.onAir
-                    ? <span className="text-green-400 font-medium">● On Air</span>
-                    : <span className="text-white/30">Off Air</span>
-                  }
-                </p>
-              ) : (
-                <p className="text-white/40 text-sm mt-0.5">No active episode found</p>
-              )}
+        {/* Vote Results */}
+        {episode?.onAir && (
+          <section className="rounded-2xl ring-1 ring-green-500/30 bg-green-500/5 p-5">
+            <div className="mb-4">
+              <h2 className="font-heading text-2xl text-green-300">Vote Results</h2>
+              <p className="text-white/50 text-sm mt-0.5">
+                Select who was on each side of the vote, then apply all at once.
+              </p>
             </div>
-          </div>
 
-          {episode && players.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {PLAYER_EVENT_FIELDS.map(({ key, label, color }) => {
-                const selected = (episode[key] || []).flat(Infinity);
-                return (
-                  <div key={key} className="rounded-xl bg-black/20 ring-1 ring-white/10 p-4">
-                    {/* Category header */}
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className={`w-2 h-2 rounded-full ${dotMap[color]}`} />
-                      <span className="text-sm font-semibold text-white/80">{label}</span>
-                      {selected.length > 0 && (
-                        <span className="ml-auto text-xs text-white/40">
-                          {selected.length} selected
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Player toggle buttons */}
-                    <div className="flex flex-wrap gap-2">
-                      {players.map((p) => {
-                        const active = selected.includes(p.name);
-                        return (
-                          <button
-                            key={p._id}
-                            type="button"
-                            onClick={() => togglePlayerEvent(p.name, key, label)}
-                            className={`
-                              rounded-full px-3 py-1 text-xs font-medium ring-1
-                              transition-all duration-150 focus:outline-none
-                              ${active ? colorMap[color] : inactiveClass}
-                            `}
-                          >
-                            {p.name}
-                          </button>
-                        );
-                      })}
-                    </div>
+            {players.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                {/* Right side */}
+                <div className="rounded-xl bg-black/20 ring-1 ring-white/10 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="w-2 h-2 rounded-full bg-green-400" />
+                    <span className="text-sm font-semibold text-white/80">Right Side of Vote</span>
+                    {voteRightSide.length > 0 && (
+                      <span className="ml-auto text-xs text-white/40">{voteRightSide.length} selected</span>
+                    )}
                   </div>
-                );
-              })}
+                  <div className="flex flex-wrap gap-2">
+                    {players.filter((p) => p.availability).map((p) => {
+                      const active = voteRightSide.includes(p.name);
+                      const applied = (episode?.rightSideOfVote || []).flat(Infinity).includes(p.name);
+                      return (
+                        <button
+                          key={p._id}
+                          type="button"
+                          disabled={applied}
+                          onClick={() => setVoteRightSide((prev) =>
+                            prev.includes(p.name) ? prev.filter((n) => n !== p.name) : [...prev, p.name]
+                          )}
+                          className={`rounded-full px-3 py-1 text-xs font-medium ring-1 transition-all duration-150 focus:outline-none ${
+                            applied
+                              ? "bg-green-400/10 text-green-400/40 ring-green-400/20 cursor-not-allowed line-through"
+                              : active
+                              ? "bg-green-400/20 text-green-400 ring-green-400/40 shadow-md shadow-green-400/20"
+                              : inactiveClass
+                          }`}
+                        >
+                          {applied ? `✓ ${p.name}` : p.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Wrong side */}
+                <div className="rounded-xl bg-black/20 ring-1 ring-white/10 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="w-2 h-2 rounded-full bg-orange-400" />
+                    <span className="text-sm font-semibold text-white/80">Wrong Side of Vote</span>
+                    {voteWrongSide.length > 0 && (
+                      <span className="ml-auto text-xs text-white/40">{voteWrongSide.length} selected</span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {players.filter((p) => p.availability).map((p) => {
+                      const active = voteWrongSide.includes(p.name);
+                      const applied = (episode?.wrongSideOfVote || []).flat(Infinity).includes(p.name);
+                      return (
+                        <button
+                          key={p._id}
+                          type="button"
+                          disabled={applied}
+                          onClick={() => setVoteWrongSide((prev) =>
+                            prev.includes(p.name) ? prev.filter((n) => n !== p.name) : [...prev, p.name]
+                          )}
+                          className={`rounded-full px-3 py-1 text-xs font-medium ring-1 transition-all duration-150 focus:outline-none ${
+                            applied
+                              ? "bg-orange-400/10 text-orange-400/40 ring-orange-400/20 cursor-not-allowed line-through"
+                              : active
+                              ? "bg-orange-400/20 text-orange-400 ring-orange-400/40 shadow-md shadow-orange-400/20"
+                              : inactiveClass
+                          }`}
+                        >
+                          {applied ? `✓ ${p.name}` : p.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-white/40 text-sm mb-4">No players loaded.</p>
+            )}
+
+            <button
+              type="button"
+              onClick={handleApplyVoteResults}
+              disabled={applyingVote || (voteRightSide.length === 0 && voteWrongSide.length === 0)}
+              className="rounded-lg bg-green-500/20 text-green-300 ring-1 ring-green-500/40 font-semibold px-5 py-2 hover:bg-green-500/30 transition-colors focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {applyingVote ? "Applying…" : "Apply Vote Results"}
+            </button>
+          </section>
+        )}
+
+        {/* Idol Played Correctly */}
+        {episode?.onAir && (
+          <section className="rounded-2xl ring-1 ring-purple-500/30 bg-purple-500/5 p-5">
+            <div className="mb-4">
+              <h2 className="font-heading text-2xl text-purple-300">Idol Played Correctly</h2>
+              <p className="text-white/50 text-sm mt-0.5">
+                Mark survivors who successfully played a hidden immunity idol.
+              </p>
             </div>
-          ) : (
-            <p className="text-white/40 text-sm">
-              {!episode ? "No active episode." : "No players loaded."}
-            </p>
-          )}
-        </section>
+
+            {players.length > 0 ? (
+              <div className="flex flex-wrap gap-3">
+                {players.filter((p) => p.availability).map((p) => {
+                  const applied = (episode?.playedIdolCorrectly || []).flat(Infinity).includes(p.name);
+                  return (
+                    <button
+                      key={p._id}
+                      type="button"
+                      disabled={applied}
+                      onClick={() => togglePlayerEvent(p.name, "playedIdolCorrectly", "Played Idol Correctly")}
+                      className={`rounded-full px-4 py-2 text-sm font-semibold ring-1 transition-all duration-150 focus:outline-none ${
+                        applied
+                          ? "bg-purple-400/10 text-purple-400/50 ring-purple-400/20 cursor-not-allowed"
+                          : "bg-purple-400/20 text-purple-300 ring-purple-400/40 hover:bg-purple-400/30 cursor-pointer shadow-md shadow-purple-400/10"
+                      }`}
+                    >
+                      {applied ? `✓ ${p.name}` : `🛡 ${p.name}`}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-white/40 text-sm">No players loaded.</p>
+            )}
+          </section>
+        )}
 
         {/* Players List */}
         <section className="rounded-2xl bg-charcoal/80 ring-1 ring-white/10 p-5">
