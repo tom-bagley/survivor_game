@@ -251,6 +251,18 @@ export default function Players() {
     }
   };
 
+  const handleTradingFreezeToggle = async () => {
+    try {
+      const res = await axios.patch("/admin/freezetrading");
+      if (res.data?.error) return toast.error(res.data.error);
+      await fetchCurrentEpisode();
+      toast.success(res.data.tradingFrozen ? "Trading frozen — challenge in progress" : "Trading unfrozen — players can trade again");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to toggle trading freeze");
+    }
+  };
+
   const handleVoteOut = async (playerId, playerName) => {
     try {
       const res = await axios.patch(`/admin/changeavailability/${playerId}`);
@@ -430,6 +442,20 @@ export default function Players() {
             {episode?.onAir && (
               <button
                 type="button"
+                onClick={handleTradingFreezeToggle}
+                className={`rounded-lg font-semibold px-4 py-2 transition-colors focus:outline-none focus:ring-2 ${
+                  episode?.tradingFrozen
+                    ? "bg-cyan-500/30 text-cyan-300 ring-cyan-500/50 hover:bg-cyan-500/40 focus:ring-cyan-400/60"
+                    : "bg-cyan-500/10 text-cyan-400/70 ring-cyan-500/20 hover:bg-cyan-500/20 hover:text-cyan-300 focus:ring-cyan-400/40"
+                }`}
+              >
+                {episode?.tradingFrozen ? "❄️ Unfreeze Trading" : "❄️ Freeze Trading"}
+              </button>
+            )}
+
+            {episode?.onAir && (
+              <button
+                type="button"
                 onClick={handleTribalCouncilToggle}
                 className={`rounded-lg font-semibold px-4 py-2 transition-colors focus:outline-none focus:ring-2 ${
                   episode?.tribalCouncil
@@ -486,7 +512,7 @@ export default function Players() {
             <div className="mb-4">
               <h2 className="font-heading text-2xl text-yellow-300">Live Idol Bonuses</h2>
               <p className="text-white/50 text-sm mt-0.5">
-                Apply a +$0.50/share idol bonus immediately. Players with shares get notified and can reinvest.
+                Apply a +$5.00/share idol bonus immediately. Players with shares get notified and can reinvest.
               </p>
             </div>
 
@@ -537,9 +563,9 @@ export default function Players() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
             {[
-              { place: 0, label: "1st Place",  rate: "+$5.00 / share", color: "text-yellow-400"  },
-              { place: 1, label: "2nd Place",  rate: "+$1.00 / share", color: "text-white/70"    },
-              { place: 2, label: "3rd Place",  rate: "+$0.50 / share", color: "text-orange-400"  },
+              { place: 0, label: "1st Place",  rate: "+$50.00 / share", color: "text-yellow-400"  },
+              { place: 1, label: "2nd Place",  rate: "+$10.00 / share", color: "text-white/70"    },
+              { place: 2, label: "3rd Place",  rate: "+$5.00 / share",  color: "text-orange-400"  },
             ].map(({ place, label, rate, color }) => (
               <div key={place} className="rounded-xl bg-black/20 ring-1 ring-white/10 p-4">
                 <div className="flex items-center justify-between mb-2">

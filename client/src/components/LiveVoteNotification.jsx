@@ -1,7 +1,7 @@
 import { useEffect, useCallback } from "react";
 
-const RIGHT_RATE = 0.08;
-const WRONG_RATE = 0.08;
+const RIGHT_RATE = 1.00;
+const WRONG_RATE = 0;
 
 const fmt = (n) => `${n >= 0 ? "+" : "-"}$${Math.abs(Number(n || 0)).toFixed(2)}`;
 

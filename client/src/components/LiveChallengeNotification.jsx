@@ -1,7 +1,7 @@
 import { useEffect, useCallback } from "react";
 
-const WIN_RATE  = 0.10;
-const LOSS_RATE = 0.10;
+const CHALLENGE_WIN_RATES = { individual: 5.00, team: 3.00, reward: 1.00 };
+const LOSS_RATE = 0;
 
 const fmt = (n) => `${n >= 0 ? "+" : "-"}$${Math.abs(Number(n || 0)).toFixed(2)}`;
 
@@ -17,11 +17,12 @@ export default function LiveChallengeNotification({
   onClose,
 }) {
   const { challengeType, winners = [], losers = [] } = challengeEvent;
+  const winRate = CHALLENGE_WIN_RATES[challengeType] ?? 1.00;
 
   // Calculate player's total impact across all winners and losers
   let totalImpact = 0;
   for (const name of winners) {
-    totalImpact += (sharesOwned[name] || 0) * WIN_RATE;
+    totalImpact += (sharesOwned[name] || 0) * winRate;
   }
   for (const name of losers) {
     totalImpact -= (sharesOwned[name] || 0) * LOSS_RATE;
@@ -85,7 +86,7 @@ export default function LiveChallengeNotification({
                     <div className="text-xs text-white/50 uppercase tracking-widest mb-2">Winners</div>
                     {winners.map(name => {
                       const shares = sharesOwned[name] || 0;
-                      const impact = shares * WIN_RATE;
+                      const impact = shares * winRate;
                       return (
                         <div key={name} className="flex items-center justify-between mb-1">
                           <span className="text-sm text-white/80">{name}</span>

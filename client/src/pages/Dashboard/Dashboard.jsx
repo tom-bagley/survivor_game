@@ -115,10 +115,50 @@ export default function Dashboard() {
         setSeasonData(seasonResult);
         setEpisodeData(episodeResult);
         setSurvivorPlayerStats(survivorsMap);
-        // Initialise seen counts so we don't replay old events on load
-        setSeenLiveEventCount((episodeResult.liveIdolEvents || []).length);
-        setSeenLiveEventBonusCount((episodeResult.liveEventBonuses || []).length);
-        setSeenChallengeEventCount((episodeResult.liveChallengeEvents || []).length);
+
+        // --- Persistent notification catch-up ---
+        // Use localStorage (keyed by episode number) to remember which events
+        // this browser has already been shown.  Any events beyond the stored
+        // count are queued as pending notifications so users who log in after
+        // a bonus was applied still see it.
+        const epKey = `ep_${episodeResult.episodeNumber}`;
+        const storedIdol       = parseInt(localStorage.getItem(`${epKey}_idol`)       || '0', 10);
+        const storedEventBonus = parseInt(localStorage.getItem(`${epKey}_eventBonus`) || '0', 10);
+        const storedChallenge  = parseInt(localStorage.getItem(`${epKey}_challenge`)  || '0', 10);
+        const storedVote       = parseInt(localStorage.getItem(`${epKey}_vote`)       || '0', 10);
+
+        const idolEventsOnLoad    = episodeResult.liveIdolEvents    || [];
+        const eventBonusesOnLoad  = episodeResult.liveEventBonuses  || [];
+        const challengeEventsOnLoad = episodeResult.liveChallengeEvents || [];
+        const voteEventsOnLoad    = episodeResult.liveVoteEvents    || [];
+
+        if (idolEventsOnLoad.length > storedIdol) {
+          setPendingIdolNotifications(idolEventsOnLoad.slice(storedIdol));
+          localStorage.setItem(`${epKey}_idol`, String(idolEventsOnLoad.length));
+        }
+        if (eventBonusesOnLoad.length > storedEventBonus) {
+          const filtered = eventBonusesOnLoad.slice(storedEventBonus).filter(
+            b => b.field !== 'wonChallenge' && b.field !== 'lostChallenge'
+              && b.field !== 'rightSideOfVote' && b.field !== 'wrongSideOfVote'
+          );
+          if (filtered.length > 0) setPendingEventNotifications(filtered);
+          localStorage.setItem(`${epKey}_eventBonus`, String(eventBonusesOnLoad.length));
+        }
+        if (challengeEventsOnLoad.length > storedChallenge) {
+          setPendingChallengeNotifications(challengeEventsOnLoad.slice(storedChallenge));
+          localStorage.setItem(`${epKey}_challenge`, String(challengeEventsOnLoad.length));
+        }
+        if (voteEventsOnLoad.length > storedVote) {
+          setPendingVoteNotifications(voteEventsOnLoad.slice(storedVote));
+          localStorage.setItem(`${epKey}_vote`, String(voteEventsOnLoad.length));
+        }
+
+        // Seed seen-counts from the totals we just processed so the polling
+        // loop only reacts to genuinely NEW events going forward.
+        setSeenLiveEventCount(idolEventsOnLoad.length);
+        setSeenLiveEventBonusCount(eventBonusesOnLoad.length);
+        setSeenChallengeEventCount(challengeEventsOnLoad.length);
+        setSeenVoteEventCount(voteEventsOnLoad.length);
 
         if (!user.isGuest && portfolioResult) {
           if (portfolioResult.groupId) {
@@ -227,10 +267,13 @@ export default function Dashboard() {
         setEpisodeData(data);
 
         if (isOnAir) {
+          const pollEpKey = `ep_${data.episodeNumber}`;
+
           const idolEvents = data.liveIdolEvents || [];
           if (idolEvents.length > seenLiveEventCount) {
             setPendingIdolNotifications((prev) => [...prev, ...idolEvents.slice(seenLiveEventCount)]);
             setSeenLiveEventCount(idolEvents.length);
+            localStorage.setItem(`${pollEpKey}_idol`, String(idolEvents.length));
           }
 
           const eventBonuses = data.liveEventBonuses || [];
@@ -241,18 +284,21 @@ export default function Dashboard() {
             );
             if (filtered.length > 0) setPendingEventNotifications((prev) => [...prev, ...filtered]);
             setSeenLiveEventBonusCount(eventBonuses.length);
+            localStorage.setItem(`${pollEpKey}_eventBonus`, String(eventBonuses.length));
           }
 
           const challengeEvents = data.liveChallengeEvents || [];
           if (challengeEvents.length > seenChallengeEventCount) {
             setPendingChallengeNotifications((prev) => [...prev, ...challengeEvents.slice(seenChallengeEventCount)]);
             setSeenChallengeEventCount(challengeEvents.length);
+            localStorage.setItem(`${pollEpKey}_challenge`, String(challengeEvents.length));
           }
 
           const voteEvents = data.liveVoteEvents || [];
           if (voteEvents.length > seenVoteEventCount) {
             setPendingVoteNotifications((prev) => [...prev, ...voteEvents.slice(seenVoteEventCount)]);
             setSeenVoteEventCount(voteEvents.length);
+            localStorage.setItem(`${pollEpKey}_vote`, String(voteEvents.length));
           }
         }
       } catch { /* silent */ }

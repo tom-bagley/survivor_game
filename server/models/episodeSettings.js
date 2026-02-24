@@ -10,6 +10,10 @@ const episodeSettingsSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  tradingFrozen: {
+    type: Boolean,
+    default: false,
+  },
   episodeEndTime: {
     type: Date,
     default: null,

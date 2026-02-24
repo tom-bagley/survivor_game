@@ -26,6 +26,7 @@ export default function PlayerGrid({
               currentPrice={(financialData.currentPrices ?? {})[survivorPlayer] ?? 1}
               isEliminated={survivor.availability === false}
               tribalCouncil={episodeData.tribalCouncil}
+              tradingFrozen={episodeData.tradingFrozen}
               buyStock={buyStock}
               sellStock={sellStock}
             />

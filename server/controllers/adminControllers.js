@@ -9,6 +9,13 @@ const Group = require('../models/groups');
 
 const STARTING_BUDGET = 50;
 
+// Per-share bonus for challenge winners, tiered by challenge type
+const CHALLENGE_WIN_RATES = {
+  individual: 5.00,
+  team:       3.00,
+  reward:     1.00,
+};
+
 const getGroupMax = (group) => {
     const acceptedCount = group.members.filter(m => m.accepted).length || 1;
     return 50 * acceptedCount;
@@ -38,7 +45,13 @@ const computeMaxPossibleBudgets = async (episode, season) => {
         // --- Per-player net bonus rate (long shares) ---
         const bonusRates = {};
         const add = (names, rate) => { for (const n of flat(names)) bonusRates[n] = (bonusRates[n] || 0) + rate; };
-        add(episode.wonChallenge,        1.00);
+        // Challenge wins: use per-type rates from liveChallengeEvents
+        for (const event of (episode.liveChallengeEvents || [])) {
+            const rate = CHALLENGE_WIN_RATES[event.challengeType] ?? 1.00;
+            for (const name of (event.winners || [])) {
+                bonusRates[name] = (bonusRates[name] || 0) + rate;
+            }
+        }
         add(episode.rightSideOfVote,     1.00);
         add(episode.foundIdol,           5.00);
         add(episode.playedIdolCorrectly, 20.00);
@@ -46,9 +59,9 @@ const computeMaxPossibleBudgets = async (episode, season) => {
         // Voted-out survivors: their long stock becomes worthless this episode — skip them
         for (const name of (episode.survivorsVotedOut || [])) delete bonusRates[name];
 
-        // --- Boot order bonus: perfect prediction = $20 per voted-out survivor ---
+        // --- Boot order bonus: perfect prediction = $40 per voted-out survivor ---
         const votedOut = episode.survivorsVotedOut || [];
-        const bootOrderBonus = votedOut.length * 20;
+        const bootOrderBonus = votedOut.length * 40;
 
         // --- Stock pricing from finalStockTotals ---
         const stockTotals = episode.finalStockTotals || new Map();
@@ -256,7 +269,7 @@ const addBonuses = async (prevEpisode) => {
         const predictedOrder = ugGame.bootOrders.get(episodeKey);
 
         if (predictedOrder) {
-          const positiveRewards = [20, 5, 3, 1, 1];
+          const positiveRewards = [40, 10, 6, 2, 1];
 
           for (const survivorName of prevEpisode.survivorsVotedOut) {
             const position = predictedOrder.indexOf(survivorName);
@@ -344,9 +357,20 @@ const addBonuses = async (prevEpisode) => {
       );
       const notLive = (name, field) => !liveEventSet.has(`${name}:${field}`);
 
-      // Long bonuses
+      // Long bonuses — challenge wins use per-type rates from liveChallengeEvents
+      // Build a winner→rate map; fall back to 1.00 for any not covered by a batch event
+      const challengeWinnerRates = {};
+      for (const event of (prevEpisode.liveChallengeEvents || [])) {
+        const rate = CHALLENGE_WIN_RATES[event.challengeType] ?? 1.00;
+        for (const name of (event.winners || [])) {
+          challengeWinnerRates[name] = Math.max(challengeWinnerRates[name] || 0, rate);
+        }
+      }
       for (const name of challengeWinners) {
-        if (notLive(name, 'wonChallenge')) awardStockBonus(name, 1.00, "challengeWin");
+        if (!(name in challengeWinnerRates)) challengeWinnerRates[name] = 1.00;
+      }
+      for (const [name, rate] of Object.entries(challengeWinnerRates)) {
+        if (notLive(name, 'wonChallenge')) awardStockBonus(name, rate, "challengeWin");
       }
       for (const name of rightSide) {
         if (notLive(name, 'rightSideOfVote')) awardStockBonus(name, 1.00, "rightSideVote");
@@ -502,8 +526,8 @@ const applyChallengeBatch = async (req, res) => {
       const allGames = await UserGroupGame.find({});
       const bulkOps = [];
 
-      const wonRates  = { longRate: +1.00, longType: 'challengeWin'  };
-      const lostRates = { longRate: 0,     longType: 'challengeLoss' };
+      const wonRates  = { longRate: CHALLENGE_WIN_RATES[challengeType] ?? 1.00, longType: 'challengeWin'  };
+      const lostRates = { longRate: 0, longType: 'challengeLoss' };
 
       for (const ugGame of allGames) {
         let totalBonus = 0;
@@ -912,6 +936,19 @@ const toggleTribalCouncil = async (req, res) => {
   }
 };
 
+const toggleTradingFrozen = async (req, res) => {
+  try {
+    const episode = await Episode.findOne({ isCurrentEpisode: true });
+    if (!episode) return res.status(404).json({ error: 'No active episode found' });
+    episode.tradingFrozen = !episode.tradingFrozen;
+    await episode.save();
+    return res.json({ tradingFrozen: episode.tradingFrozen });
+  } catch (error) {
+    console.error('toggleTradingFrozen error:', error);
+    return res.status(500).json({ error: 'Failed to toggle trading freeze' });
+  }
+};
+
 module.exports = {
   addSurvivor,
   resetUsers,
@@ -921,6 +958,7 @@ module.exports = {
   fetchOnAirStatus,
   toggleOnAirStatus,
   toggleTribalCouncil,
+  toggleTradingFrozen,
   updatePlayerEvent,
   applyChallengeBatch,
   applyVoteBatch,

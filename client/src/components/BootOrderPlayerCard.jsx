@@ -21,10 +21,10 @@ function getInitials(name) {
 }
 
 const DANGER_RANK_STYLES = {
-  1: { bg: "#E63917", border: "rgba(230,57,23,0.75)",  label: "FIRST OUT"  },
-  2: { bg: "#E63917", border: "rgba(230,57,23,0.75)", label: "SECOND OUT" },
-  3: { bg: "#E63917", border: "rgba(230,57,23,0.75)", label: "THIRD OUT"  },
-  4: { bg: "#E63917", border: "rgba(230,57,23,0.75)",  label: "FOURTH OUT" },
+  1: { bg: "#E63917", border: "rgba(230,57,23,0.75)",  label: "Most Likely"  },
+  2: { bg: "#E63917", border: "rgba(230,57,23,0.75)", label: "Second Most Likely" },
+  3: { bg: "#E63917", border: "rgba(230,57,23,0.75)", label: "Third Most Likely"  },
+  4: { bg: "#E63917", border: "rgba(230,57,23,0.75)",  label: "Fourth Most Likely" },
 };
 
 const SAFE_REVERSE_STYLES = {
@@ -34,8 +34,8 @@ const SAFE_REVERSE_STYLES = {
   3: { bg: "#1A5739", border: "rgba(26,87,57,0.75)",   label: "4TH SAFEST"  },
 };
 
-const POSITIVE_REWARDS  = [20, 5, 3, 1];
-const NEGATIVE_PENALTIES = [20, 5, 3, 1];
+const POSITIVE_REWARDS  = [40, 10, 6, 2];
+const NEGATIVE_PENALTIES = [40, 10, 6, 2];
 
 function rankBonus(rank, total) {
   const position = rank - 1;

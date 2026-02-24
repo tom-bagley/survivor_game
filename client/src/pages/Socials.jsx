@@ -45,11 +45,22 @@ export default function Socials() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <section className="max-w-md w-full mt-10 rounded-2xl bg-black/30 ring-1 ring-white/10 p-8 text-center">
-        <h3 className="font-heading text-2xl mb-2">Follow Us</h3>
+        <img
+          src="/logo.jpg"
+          alt="Survivor Stock Exchange"
+          className="mx-auto mb-5 rounded-xl object-cover"
+          style={{
+            height: 96,
+            width: 96,
+            boxShadow: "0 0 18px rgba(232,148,58,0.4)",
+            border: "1px solid rgba(196,152,90,0.25)",
+          }}
+        />
+        <h3 className="font-heading text-2xl mb-2">Follow Survivor Stock Exchange</h3>
         <p className="text-white/60 text-sm mb-8">
-          Stay up to date with{" "}
-          <span className="text-accent font-semibold">Survivor Stock Exchange</span> across
-          all our socials. Interested in my other projects? Check out my github.
+          Stay up to date with <span className="text-accent font-semibold">
+          Survivor Stock Exchange</span> on social media.
+          Interested in the development behind the project? Visit GitHub.
         </p>
 
         <div className="flex flex-col gap-4">

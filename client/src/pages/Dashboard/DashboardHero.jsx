@@ -17,7 +17,20 @@ export default function DashboardHero({ user, seasonData, financialData, groupSt
   return (
     <div style={{ borderBottom: `1px solid ${J.divider}`, marginBottom: 0 }}>
       <div className="mx-auto max-w-[1400px]" style={{ padding: "16px 28px 12px" }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap", marginBottom: showStandings ? 8 : 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: showStandings ? 8 : 0 }}>
+          <img
+            src="/logo.jpg"
+            alt="logo"
+            style={{
+              height: 72,
+              width: 72,
+              borderRadius: 8,
+              objectFit: "cover",
+              flexShrink: 0,
+              boxShadow: "0 0 10px rgba(232,148,58,0.35)",
+              border: "1px solid rgba(196,152,90,0.25)",
+            }}
+          />
           <h1
             className="font-heading"
             style={{

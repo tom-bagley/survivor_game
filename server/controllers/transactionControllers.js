@@ -108,11 +108,19 @@ async function getTotalStockCount() {
 const updatePortfolio = async (req, res) => {
     const { userId, groupId, survivorPlayer, amount, action } = req.body;
     try {
-        const [userGameData, survivor, group] = await Promise.all([
+        const [userGameData, survivor, group, episode] = await Promise.all([
             UserGroupGame.findOne({ userId, groupId }),
             Survivor.findOne({ name: survivorPlayer }),
             Group.findById(groupId),
+            Episode.findOne({ isCurrentEpisode: true }),
         ]);
+
+        if (episode?.tradingFrozen) {
+            return res.json({ error: 'Trading locked — challenge in progress' });
+        }
+        if (episode?.tribalCouncil) {
+            return res.json({ error: 'Trading locked — tribal council in progress' });
+        }
 
         if (!userGameData || !survivor) {
             return res.status(404).json({ error: 'User game data or player not found' });

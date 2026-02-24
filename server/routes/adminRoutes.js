@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { addSurvivor, getAllSurvivors, deleteSurvivor, toggleSurvivorAvailability } = require('../controllers/survivorControllers')
-const { resetUsers, changeSeason, changeWeek, getCurrentSeason, updatePlayerEvent, applyChallengeBatch, applyVoteBatch, setFinalist, awardFinalistBonuses, applyLiveIdolBonus, toggleOnAirStatus, toggleTribalCouncil } = require('../controllers/adminControllers')
+const { resetUsers, changeSeason, changeWeek, getCurrentSeason, updatePlayerEvent, applyChallengeBatch, applyVoteBatch, setFinalist, awardFinalistBonuses, applyLiveIdolBonus, toggleOnAirStatus, toggleTribalCouncil, toggleTradingFrozen } = require('../controllers/adminControllers')
 const { requireAuth, requireAdmin } = require('../authMiddleware/authMiddleware')
 
 router.get('/getcurrentseason', getCurrentSeason);
@@ -20,5 +20,6 @@ router.post('/finalists/award', requireAuth, requireAdmin, awardFinalistBonuses)
 router.post('/apply-live-idol-bonus', requireAuth, requireAdmin, applyLiveIdolBonus);
 router.patch('/changeonairstatus', requireAuth, requireAdmin, toggleOnAirStatus);
 router.patch('/changetribalcouncil', requireAuth, requireAdmin, toggleTribalCouncil);
+router.patch('/freezetrading', requireAuth, requireAdmin, toggleTradingFrozen);
 
 module.exports = router;

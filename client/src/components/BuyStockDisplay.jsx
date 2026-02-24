@@ -1,10 +1,12 @@
 import { useState } from "react";
 
 const LONG_BONUSES = [
-  { label: "Challenge Win",   rate: "+$1.00",  positive: true },
+  { label: "Individual Win",  rate: "+$5.00",  positive: true },
+  { label: "Team Win",        rate: "+$3.00",  positive: true },
+  { label: "Reward Win",      rate: "+$1.00",  positive: true },
   { label: "Right Side Vote", rate: "+$1.00",  positive: true },
-  { label: "Found Idol",      rate: "+$5.00",  positive: true },
-  { label: "Played Idol",     rate: "+$20.00", positive: true },
+  { label: "Found Idol or Advantage",                          rate: "+$5.00",  positive: true },
+  { label: "Played Idol or Shot in the Dark Correctly",        rate: "+$20.00", positive: true },
 ];
 
 const FINALIST_BONUSES = [
@@ -37,6 +39,7 @@ export default function BuyStockDisplay({
   availableShares,
   currentPrice = 1,
   tribalCouncil = false,
+  tradingFrozen = false,
   isEliminated = false,
   buyStock,
   sellStock,
@@ -45,11 +48,12 @@ export default function BuyStockDisplay({
 
   const soldOut    = availableShares === 0;
   const ownedNone  = shares === 0;
+  const frozen     = tribalCouncil || tradingFrozen;
 
-  const buyDisabled   = isEliminated || soldOut || tribalCouncil;
-  const buy5Disabled  = isEliminated || availableShares < 5 || tribalCouncil;
-  const sellDisabled  = isEliminated || ownedNone || tribalCouncil;
-  const sell5Disabled = isEliminated || shares < 5 || tribalCouncil;
+  const buyDisabled   = isEliminated || soldOut || frozen;
+  const buy5Disabled  = isEliminated || availableShares < 5 || frozen;
+  const sellDisabled  = isEliminated || ownedNone || frozen;
+  const sell5Disabled = isEliminated || shares < 5 || frozen;
 
   return (
     <div style={{
@@ -67,7 +71,7 @@ export default function BuyStockDisplay({
         <img
           src={profilePhotoUrl}
           alt={name}
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", objectPosition: "top center" }}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center" }}
         />
         {/* Top vignette */}
         <div style={{
@@ -233,28 +237,7 @@ export default function BuyStockDisplay({
               </div>
             </div>
 
-            {shares > 0 && (
-              <div style={{
-                marginTop: 12,
-                paddingTop: 12,
-                borderTop: `1px solid ${J.divider}`,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}>
-                <span style={{ fontSize: 11, color: J.textFaint }}>
-                  {`Best episode · ${shares} share${shares !== 1 ? "s" : ""}`}
-                </span>
-                <span style={{
-                  fontSize: 16,
-                  fontWeight: 800,
-                  fontFamily: "'Cinzel', serif",
-                  color: J.gold,
-                }}>
-                  {`+$${(shares * 20).toFixed(2)}`}
-                </span>
-              </div>
-            )}
+          
           </div>
         )}
 
@@ -283,7 +266,7 @@ export default function BuyStockDisplay({
                 boxShadow: buyDisabled ? "none" : "0 4px 20px rgba(58,148,84,0.45)",
               }}
             >
-              {isEliminated ? "ELIMINATED" : tribalCouncil ? "TRIBAL" : "▲ BUY 1"}
+              {isEliminated ? "ELIMINATED" : tradingFrozen ? "FROZEN" : tribalCouncil ? "TRIBAL" : "▲ BUY 1"}
             </button>
             <button
               type="button"
@@ -305,7 +288,7 @@ export default function BuyStockDisplay({
                 boxShadow: buy5Disabled ? "none" : "0 4px 20px rgba(58,148,84,0.45)",
               }}
             >
-              {isEliminated ? "ELIMINATED" : tribalCouncil ? "TRIBAL" : "▲ BUY 5"}
+              {isEliminated ? "ELIMINATED" : tradingFrozen ? "FROZEN" : tribalCouncil ? "TRIBAL" : "▲ BUY 5"}
             </button>
           </div>
 
@@ -330,7 +313,7 @@ export default function BuyStockDisplay({
                 color: J.textDim,
               }}
             >
-              {isEliminated ? "ELIMINATED" : tribalCouncil ? "TRIBAL" : "SELL 1"}
+              {isEliminated ? "ELIMINATED" : tradingFrozen ? "FROZEN" : tribalCouncil ? "TRIBAL" : "SELL 1"}
             </button>
             <button
               type="button"
@@ -351,7 +334,7 @@ export default function BuyStockDisplay({
                 color: J.textDim,
               }}
             >
-              {isEliminated ? "ELIMINATED" : tribalCouncil ? "TRIBAL" : "SELL 5"}
+              {isEliminated ? "ELIMINATED" : tradingFrozen ? "FROZEN" : tribalCouncil ? "TRIBAL" : "SELL 5"}
             </button>
           </div>
 
