@@ -72,7 +72,7 @@ export default function Navbar() {
   const adminLink = user?.role === "admin" ? [{ to: "/admin", label: "Admin" }] : [];
 
   return (
-    <nav className="z-40 bg-black-bg/80 backdrop-blur supports-[backdrop-filter]:bg-black-bg/60 border-b border-sand/20">
+    <nav className="relative z-40 bg-black-bg/80 backdrop-blur supports-[backdrop-filter]:bg-black-bg/60 border-b border-sand/20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between">
           {/* Brand */}

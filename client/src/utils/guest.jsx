@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // src/utils/guest.js
-const DEFAULT_BUDGET = 50;
+const DEFAULT_BUDGET = 100;
 const GUEST_KEY = "survivor_guest";
 
 function uid() {
