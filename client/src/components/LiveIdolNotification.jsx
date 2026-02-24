@@ -8,7 +8,7 @@ const formatUSD = (n) =>
 
 export default function LiveIdolNotification({
   survivorName,
-  bonusPerShare = 5.00,
+  bonusPerShare = 2.50,
   sharesOwned = 0,
   survivorProfilePic = null,
   onClose,

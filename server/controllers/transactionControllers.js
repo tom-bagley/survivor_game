@@ -390,15 +390,19 @@ const getPortfolio = async (req, res) => {
         const currentEpisode = await Episode.findOne({ isCurrentEpisode: true });
         const currentEpisodeNumber = currentEpisode?.episodeNumber ?? null;
 
-        // On the first getPortfolio call of a new episode, snapshot the stored net worth
-        // (calculated last episode) before it gets overwritten with current prices.
-        if (currentEpisodeNumber !== null && userGameData.episodeSnapshotId !== currentEpisodeNumber) {
+        // Recalculate net worth first so any fallback snapshot uses a fresh value.
+        userGameData.netWorth = await calculateNetWorth(userGameData, group);
+
+        // The authoritative snapshot is set by toggleOnAirStatus when the episode goes
+        // live (episodeSnapshotId = episode.episodeNumber). Only fall back here if the
+        // on-air toggle hasn't run for the previous episode yet (snapshot is stale).
+        if (currentEpisodeNumber !== null &&
+            (userGameData.episodeSnapshotId == null || userGameData.episodeSnapshotId < currentEpisodeNumber - 1)) {
             userGameData.prevNetWorthSnapshot = userGameData.netWorth;
-            userGameData.episodeSnapshotId = currentEpisodeNumber;
+            userGameData.episodeSnapshotId = currentEpisodeNumber - 1;
         }
         const prevNetWorth = userGameData.prevNetWorthSnapshot ?? userGameData.netWorth;
 
-        userGameData.netWorth = await calculateNetWorth(userGameData, group);
         await userGameData.save();
 
         const maxShares = getGroupMax(group);

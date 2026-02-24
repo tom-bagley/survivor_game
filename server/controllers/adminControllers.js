@@ -11,9 +11,9 @@ const STARTING_BUDGET = 50;
 
 // Per-share bonus for challenge winners, tiered by challenge type
 const CHALLENGE_WIN_RATES = {
-  individual: 5.00,
-  team:       3.00,
-  reward:     1.00,
+  individual: 2.50,
+  team:       1.50,
+  reward:     0.50,
 };
 
 const getGroupMax = (group) => {
@@ -52,16 +52,16 @@ const computeMaxPossibleBudgets = async (episode, season) => {
                 bonusRates[name] = (bonusRates[name] || 0) + rate;
             }
         }
-        add(episode.rightSideOfVote,     1.00);
-        add(episode.foundIdol,           5.00);
-        add(episode.playedIdolCorrectly, 20.00);
+        add(episode.rightSideOfVote,     0.50);
+        add(episode.foundIdol,           2.50);
+        add(episode.playedIdolCorrectly, 10.00);
 
         // Voted-out survivors: their long stock becomes worthless this episode — skip them
         for (const name of (episode.survivorsVotedOut || [])) delete bonusRates[name];
 
         // --- Boot order bonus: perfect prediction = $40 per voted-out survivor ---
         const votedOut = episode.survivorsVotedOut || [];
-        const bootOrderBonus = votedOut.length * 40;
+        const bootOrderBonus = votedOut.length * 20;
 
         // --- Stock pricing from finalStockTotals ---
         const stockTotals = episode.finalStockTotals || new Map();
@@ -127,7 +127,7 @@ const computeMaxPossibleBudgets = async (episode, season) => {
                 episodeNumber:    episode.episodeNumber,
                 startBudget:      parseFloat(prevMax.toFixed(4)),
                 bootOrderBonus:   bootOrderBonus,
-                votedOut:         votedOut.map(name => ({ survivor: name, bonus: 20 })),
+                votedOut:         votedOut.map(name => ({ survivor: name, bonus: 10 })),
                 stockAllocations,
                 totalStockBonus:  parseFloat(totalStockBonus.toFixed(4)),
                 endBudget:        parseFloat(endBudget.toFixed(4)),
@@ -269,7 +269,7 @@ const addBonuses = async (prevEpisode) => {
         const predictedOrder = ugGame.bootOrders.get(episodeKey);
 
         if (predictedOrder) {
-          const positiveRewards = [40, 10, 6, 2, 1];
+          const positiveRewards = [20, 5, 3, 1, 0.5];
 
           for (const survivorName of prevEpisode.survivorsVotedOut) {
             const position = predictedOrder.indexOf(survivorName);
@@ -306,7 +306,7 @@ const addBonuses = async (prevEpisode) => {
         const predictedOrder = ugGame.finaleOrders.get(episodeKey);
 
         if (predictedOrder) {
-          const finaleRewards = [20, 10, 5, 3, 2, 1];
+          const finaleRewards = [10, 5, 2.5, 1.5, 1, 0.5];
 
           prevEpisode.finalists.forEach((survivorName, actualPosition) => {
             const predictedPosition = predictedOrder.indexOf(survivorName);
@@ -367,21 +367,21 @@ const addBonuses = async (prevEpisode) => {
         }
       }
       for (const name of challengeWinners) {
-        if (!(name in challengeWinnerRates)) challengeWinnerRates[name] = 1.00;
+        if (!(name in challengeWinnerRates)) challengeWinnerRates[name] = 0.50;
       }
       for (const [name, rate] of Object.entries(challengeWinnerRates)) {
         if (notLive(name, 'wonChallenge')) awardStockBonus(name, rate, "challengeWin");
       }
       for (const name of rightSide) {
-        if (notLive(name, 'rightSideOfVote')) awardStockBonus(name, 1.00, "rightSideVote");
+        if (notLive(name, 'rightSideOfVote')) awardStockBonus(name, 0.50, "rightSideVote");
       }
       for (const name of correctIdols) {
-        if (notLive(name, 'playedIdolCorrectly')) awardStockBonus(name, 20.00, "playedIdolCorrectly");
+        if (notLive(name, 'playedIdolCorrectly')) awardStockBonus(name, 10.00, "playedIdolCorrectly");
       }
       const liveIdolApplied = new Set((prevEpisode.liveIdolEvents || []).map(e => e.survivorName));
       for (const name of idolFinds) {
         if (liveIdolApplied.has(name)) continue; // bonus already applied live during episode
-        awardStockBonus(name, 5.00, "foundIdol");
+        awardStockBonus(name, 2.50, "foundIdol");
       }
 
       /* -----------------------------
@@ -488,7 +488,22 @@ const toggleOnAirStatus = async (req, res) => {
       const newWeek = await doChangeWeek();
       return res.json({ onAir: false, weekAdvanced: true, newWeek });
     } else {
-      // Turning ON
+      // Turning ON → snapshot each user's current net worth before the episode airs
+      const { calculateNetWorth } = require('./transactionControllers');
+      const [allGames, allGroups] = await Promise.all([
+        UserGroupGame.find({}),
+        Group.find({}),
+      ]);
+      const groupMap = new Map(allGroups.map(g => [String(g._id), g]));
+      await Promise.all(allGames.map(async (game) => {
+        const grp = groupMap.get(String(game.groupId)) || null;
+        const nw = await calculateNetWorth(game, grp);
+        game.netWorth = nw;
+        game.prevNetWorthSnapshot = nw;
+        game.episodeSnapshotId = episode.episodeNumber;
+        return game.save();
+      }));
+
       episode.onAir = true;
       await episode.save();
       return res.json({ onAir: true, weekAdvanced: false });
@@ -526,7 +541,7 @@ const applyChallengeBatch = async (req, res) => {
       const allGames = await UserGroupGame.find({});
       const bulkOps = [];
 
-      const wonRates  = { longRate: CHALLENGE_WIN_RATES[challengeType] ?? 1.00, longType: 'challengeWin'  };
+      const wonRates  = { longRate: CHALLENGE_WIN_RATES[challengeType] ?? 0.50, longType: 'challengeWin'  };
       const lostRates = { longRate: 0, longType: 'challengeLoss' };
 
       for (const ugGame of allGames) {
@@ -614,7 +629,7 @@ const applyVoteBatch = async (req, res) => {
       const allGames = await UserGroupGame.find({});
       const bulkOps = [];
 
-      const rightRates = { longRate: +1.00, longType: 'rightSideVote' };
+      const rightRates = { longRate: +0.50, longType: 'rightSideVote' };
       const wrongRates = { longRate: 0,     longType: 'wrongSideVote' };
 
       for (const ugGame of allGames) {
@@ -681,11 +696,11 @@ const applyVoteBatch = async (req, res) => {
 // Rates applied immediately when admin marks an event during a live episode.
 // foundIdol is handled separately via applyLiveIdolBonus.
 const LIVE_EVENT_RATES = {
-  wonChallenge:        { longRate: +1.00,  longType: 'challengeWin'       },
+  wonChallenge:        { longRate: +0.50,  longType: 'challengeWin'       },
   lostChallenge:       { longRate: 0,      longType: 'challengeLoss'       },
-  rightSideOfVote:     { longRate: +1.00,  longType: 'rightSideVote'       },
+  rightSideOfVote:     { longRate: +0.50,  longType: 'rightSideVote'       },
   wrongSideOfVote:     { longRate: 0,      longType: 'wrongSideVote'       },
-  playedIdolCorrectly: { longRate: +20.00, longType: 'playedIdolCorrectly' },
+  playedIdolCorrectly: { longRate: +10.00, longType: 'playedIdolCorrectly' },
 };
 
 const updatePlayerEvent = async (req, res) => {
@@ -807,7 +822,7 @@ const awardFinalistBonuses = async (req, res) => {
     const finalists = (episode.finalists || []).filter(Boolean);
     if (finalists.length === 0) return res.status(400).json({ error: "No finalists set on the current episode" });
 
-    const rates = [50.00, 10.00, 5.00]; // 1st, 2nd, 3rd
+    const rates = [25.00, 5.00, 2.50]; // 1st, 2nd, 3rd
 
     const userGroupGames = await UserGroupGame.find({});
     const bulkOps = [];
@@ -871,7 +886,7 @@ const applyLiveIdolBonus = async (req, res) => {
     const alreadyApplied = (episode.liveIdolEvents || []).some(e => e.survivorName === survivorName);
     if (alreadyApplied) return res.status(400).json({ error: "Bonus already applied for this survivor" });
 
-    const bonusPerShare = 5.00;
+    const bonusPerShare = 2.50;
     const episodeNumber = episode.episodeNumber;
 
     const userGroupGames = await UserGroupGame.find({});

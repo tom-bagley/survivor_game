@@ -1,6 +1,6 @@
 import { useEffect, useCallback } from "react";
 
-const CHALLENGE_WIN_RATES = { individual: 5.00, team: 3.00, reward: 1.00 };
+const CHALLENGE_WIN_RATES = { individual: 2.50, team: 1.50, reward: 0.50 };
 const LOSS_RATE = 0;
 
 const fmt = (n) => `${n >= 0 ? "+" : "-"}$${Math.abs(Number(n || 0)).toFixed(2)}`;
@@ -17,7 +17,7 @@ export default function LiveChallengeNotification({
   onClose,
 }) {
   const { challengeType, winners = [], losers = [] } = challengeEvent;
-  const winRate = CHALLENGE_WIN_RATES[challengeType] ?? 1.00;
+  const winRate = CHALLENGE_WIN_RATES[challengeType] ?? 0.50;
 
   // Calculate player's total impact across all winners and losers
   let totalImpact = 0;

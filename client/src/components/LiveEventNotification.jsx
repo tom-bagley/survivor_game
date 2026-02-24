@@ -4,11 +4,11 @@ const formatAmt = (n) =>
   `${n >= 0 ? "+" : "-"}$${Math.abs(Number(n || 0)).toFixed(2)}`;
 
 const EVENT_CONFIG = {
-  wonChallenge:        { emoji: "🏆", title: "Challenge Win!",           description: "won a challenge",                        longRate: 1.00  },
+  wonChallenge:        { emoji: "🏆", title: "Challenge Win!",           description: "won a challenge",                        longRate: 0.50  },
   lostChallenge:       { emoji: "📉", title: "Challenge Loss",            description: "lost a challenge",                       longRate: 0     },
-  rightSideOfVote:     { emoji: "🗳️",  title: "Right Side of the Vote!", description: "voted with the majority",                 longRate: 1.00  },
+  rightSideOfVote:     { emoji: "🗳️",  title: "Right Side of the Vote!", description: "voted with the majority",                 longRate: 0.50  },
   wrongSideOfVote:     { emoji: "❌", title: "Wrong Side of the Vote",   description: "voted with the minority",                longRate: 0     },
-  playedIdolCorrectly: { emoji: "🔮", title: "Idol Played Correctly!",   description: "played a hidden immunity idol correctly", longRate: 20.00 },
+  playedIdolCorrectly: { emoji: "🔮", title: "Idol Played Correctly!",   description: "played a hidden immunity idol correctly", longRate: 10.00 },
 };
 
 export default function LiveEventNotification({

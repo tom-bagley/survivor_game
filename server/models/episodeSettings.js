@@ -79,7 +79,7 @@ const episodeSettingsSchema = new Schema({
     type: [{
       survivorName: { type: String, required: true },
       appliedAt:    { type: Date, default: Date.now },
-      bonusPerShare: { type: Number, default: 0.50 },
+      bonusPerShare: { type: Number, default: 0.25 },
     }],
     default: [],
   },

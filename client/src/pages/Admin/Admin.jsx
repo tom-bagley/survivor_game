@@ -512,7 +512,7 @@ export default function Players() {
             <div className="mb-4">
               <h2 className="font-heading text-2xl text-yellow-300">Live Idol Bonuses</h2>
               <p className="text-white/50 text-sm mt-0.5">
-                Apply a +$5.00/share idol bonus immediately. Players with shares get notified and can reinvest.
+                Apply a +$2.50/share idol bonus immediately. Players with shares get notified and can reinvest.
               </p>
             </div>
 

@@ -26,11 +26,11 @@ function getInitials(name) {
 // Display: danger 0-3 top-to-bottom, safe shown safest-first (7,6,5,4)
 
 const SLOT_DISPLAY = [
-  { idx: 0, label: "Most Likely",   reward: "+$40",  color: "#E63917", isDanger: true },
-  { idx: 1, label: "Second Most Likely",  reward: "+$10",  color: "#C7321A", isDanger: true },
-  { idx: 2, label: "Third Most Likely",   reward: "+$6",   color: "#B02D17", isDanger: true },
-  { idx: 3, label: "Fourth Most Likely",  reward: "+$2",   color: "#992714", isDanger: true },
-  { idx: 4, label: "Fifth Most Likely",   reward: "+$1",   color: "#7A2010", isDanger: true },
+  { idx: 0, label: "Most Likely",   reward: "+$20",  color: "#E63917", isDanger: true },
+  { idx: 1, label: "Second Most Likely",  reward: "+$5",   color: "#C7321A", isDanger: true },
+  { idx: 2, label: "Third Most Likely",   reward: "+$3",   color: "#B02D17", isDanger: true },
+  { idx: 3, label: "Fourth Most Likely",  reward: "+$1",   color: "#992714", isDanger: true },
+  { idx: 4, label: "Fifth Most Likely",   reward: "+$0.50",color: "#7A2010", isDanger: true },
 ];
 
 // ─── sub-components ───────────────────────────────────────────────────────────

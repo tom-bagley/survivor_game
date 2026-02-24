@@ -24,12 +24,12 @@ function getInitials(name) {
 // ─── slot definitions ─────────────────────────────────────────────────────────
 
 const SLOT_DISPLAY = [
-  { idx: 0, label: "WINNER",    reward: "+$20", color: "#D4A017" },
-  { idx: 1, label: "2ND PLACE", reward: "+$10", color: "#B8892A" },
-  { idx: 2, label: "3RD PLACE", reward: "+$5",  color: "#9C7240" },
-  { idx: 3, label: "4TH PLACE", reward: "+$3",  color: "#7E5B38" },
-  { idx: 4, label: "5TH PLACE", reward: "+$2",  color: "#604530" },
-  { idx: 5, label: "6TH PLACE", reward: "+$1",  color: "#433027" },
+  { idx: 0, label: "WINNER",    reward: "+$10",   color: "#D4A017" },
+  { idx: 1, label: "2ND PLACE", reward: "+$5",    color: "#B8892A" },
+  { idx: 2, label: "3RD PLACE", reward: "+$2.50", color: "#9C7240" },
+  { idx: 3, label: "4TH PLACE", reward: "+$1.50", color: "#7E5B38" },
+  { idx: 4, label: "5TH PLACE", reward: "+$1",    color: "#604530" },
+  { idx: 5, label: "6TH PLACE", reward: "+$0.50", color: "#433027" },
 ];
 
 // ─── sub-components ───────────────────────────────────────────────────────────

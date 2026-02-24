@@ -1,18 +1,18 @@
 import { useState } from "react";
 
 const LONG_BONUSES = [
-  { label: "Individual Win",  rate: "+$5.00",  positive: true },
-  { label: "Team Win",        rate: "+$3.00",  positive: true },
-  { label: "Reward Win",      rate: "+$1.00",  positive: true },
-  { label: "Right Side Vote", rate: "+$1.00",  positive: true },
-  { label: "Found Idol or Advantage",                          rate: "+$5.00",  positive: true },
-  { label: "Played Idol or Shot in the Dark Correctly",        rate: "+$20.00", positive: true },
+  { label: "Individual Win",  rate: "+$2.50",  positive: true },
+  { label: "Team Win",        rate: "+$1.50",  positive: true },
+  { label: "Reward Win",      rate: "+$0.50",  positive: true },
+  { label: "Right Side Vote", rate: "+$0.50",  positive: true },
+  { label: "Found Idol or Advantage",                          rate: "+$2.50",  positive: true },
+  { label: "Played Idol or Shot in the Dark Correctly",        rate: "+$10.00", positive: true },
 ];
 
 const FINALIST_BONUSES = [
-  { label: "Winner (1st)", rate: "+$50.00" },
-  { label: "2nd Place",    rate: "+$10.00" },
-  { label: "3rd Place",    rate: "+$5.00"  },
+  { label: "Winner (1st)", rate: "+$25.00" },
+  { label: "2nd Place",    rate: "+$5.00"  },
+  { label: "3rd Place",    rate: "+$2.50"  },
 ];
 
 // Island / survivor palette

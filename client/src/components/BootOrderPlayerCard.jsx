@@ -34,7 +34,7 @@ const SAFE_REVERSE_STYLES = {
   3: { bg: "#1A5739", border: "rgba(26,87,57,0.75)",   label: "4TH SAFEST"  },
 };
 
-const POSITIVE_REWARDS  = [40, 10, 6, 2];
+const POSITIVE_REWARDS  = [20, 5, 3, 1];
 const NEGATIVE_PENALTIES = [40, 10, 6, 2];
 
 function rankBonus(rank, total) {

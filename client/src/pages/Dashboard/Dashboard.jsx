@@ -377,7 +377,10 @@ export default function Dashboard() {
     setPendingEventNotifications((prev) => prev.slice(1));
     await refreshFinancials("budget");
   };
-  const dismissChallengeNotification = () => setPendingChallengeNotifications((prev) => prev.slice(1));
+  const dismissChallengeNotification = async () => {
+    setPendingChallengeNotifications((prev) => prev.slice(1));
+    await refreshFinancials("budget");
+  };
   const dismissVoteNotification = () => setPendingVoteNotifications((prev) => prev.slice(1));
 
   const dismissTradeAccept = async (tradeId) => {
@@ -509,7 +512,7 @@ export default function Dashboard() {
         return (
           <LiveIdolNotification
             survivorName={evt.survivorName}
-            bonusPerShare={evt.bonusPerShare ?? 0.50}
+            bonusPerShare={evt.bonusPerShare ?? 0.25}
             sharesOwned={sharesOwned[evt.survivorName] ?? 0}
             survivorProfilePic={survivorPlayerStats[evt.survivorName]?.profile_pic ?? null}
             onClose={dismissIdolNotification}
