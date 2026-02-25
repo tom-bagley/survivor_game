@@ -7,7 +7,7 @@ const { startEpisode } = require('../jobs/checkEpisodeStatusJobs');
 const Episode = require('../models/episodeSettings');
 const Group = require('../models/groups');
 
-const STARTING_BUDGET = 50;
+const STARTING_BUDGET = 100;
 
 // Per-share bonus for challenge winners, tiered by challenge type
 const CHALLENGE_WIN_RATES = {
@@ -18,7 +18,7 @@ const CHALLENGE_WIN_RATES = {
 
 const getGroupMax = (group) => {
     const acceptedCount = group.members.filter(m => m.accepted).length || 1;
-    return 50 * acceptedCount;
+    return STARTING_BUDGET * acceptedCount;
 };
 
 // Returns a list of event label strings for a given survivor this episode.
