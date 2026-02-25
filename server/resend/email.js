@@ -59,16 +59,24 @@ const sendRestSuccessEmail = async (email) => {
     }
 }
 
-const sendGroupInviteEmail = async (email, inviteURL, inviteUserUsername) => {
+const sendGroupInviteEmails = async (emails, inviteURL, inviteUserUsername) => {
     try {
-        const { data, error } = await resend.emails.send({
-            from: 'Survivor Stock Exchange <no-reply@mail.survivorstockexchange.com>',
-            to: [email],
-            subject: "Invite to join",
-            html: joinGroupEmail
-                .replace(/{resetURL}/g, inviteURL)
-                .replace(/{inviteUser}/g, inviteUserUsername)
-        })
+        const html = joinGroupEmail
+            .replace(/{resetURL}/g, inviteURL)
+            .replace(/{inviteUser}/g, inviteUserUsername);
+
+        const { data, error } = await resend.batch.send(
+            emails.map(email => ({
+                from: 'Survivor Stock Exchange <no-reply@mail.survivorstockexchange.com>',
+                to: [email],
+                subject: "Invite to join",
+                html,
+            }))
+        );
+
+        if (error) {
+            throw new Error(error.message);
+        }
     } catch (error) {
         throw new Error("Error sending join group email")
     }
@@ -79,5 +87,5 @@ module.exports = {
     sendWelcomeEmail,
     sendPasswordResetEmail,
     sendRestSuccessEmail,
-    sendGroupInviteEmail
+    sendGroupInviteEmails
 }

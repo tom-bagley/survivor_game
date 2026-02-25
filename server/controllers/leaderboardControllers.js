@@ -5,7 +5,7 @@ const UserGroupGame = require('../models/userGroupGame');
 const Episode = require('../models/episodeSettings');
 const crypto = require('node:crypto');
 const { rawListeners } = require('../models/user');
-const { sendGroupInviteEmail } = require('../resend/email');
+const { sendGroupInviteEmails } = require('../resend/email');
 
 const getLeaderboard = async (req, res) => {
     try {
@@ -75,14 +75,10 @@ const createGroup = async (req, res) => {
 
     const baseUrl = process.env.CLIENT_URL;
 
-    await Promise.all(
-      filteredEmails.map((email) =>
-        sendGroupInviteEmail(
-          email,
-          `${baseUrl}/join-group?token=${rawToken}`,
-          inviteUserUsername
-        )
-      )
+    await sendGroupInviteEmails(
+      filteredEmails,
+      `${baseUrl}/join-group?token=${rawToken}`,
+      inviteUserUsername
     );
     
 
