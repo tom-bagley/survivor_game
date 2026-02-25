@@ -78,7 +78,7 @@ const registerUser = async (req, res) => {
         await UserGroupGame.create({
             userId: user._id,
             groupId: soloGroup._id,
-            budget: typeof budget === 'number' ? budget : 50,
+            budget: typeof budget === 'number' ? budget : 100,
             portfolio: portfolioMap,
             bootOrders: bootOrdersMap,
         });
