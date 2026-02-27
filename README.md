@@ -1,14 +1,17 @@
-# Survivor Season 48 Interactive Stock Game
+# Survivor Stock Exchange
 
 ## Table of Contents
 1. [Introduction](#introduction)
-2. [Project Contents](#project_contents)
+2. [Project Features](#project_features)
+3. [Project Structure](#project_contents)
 
 
 ## Introduction
-Welcome to the Survivor Season 48 Stock Game! In this interactive experience, each player begins with $100 to invest in Survivor contestants. You can choose to put all your stock in one contestant or spread your investments across multiple players.
+Welcome to the Survivor Stock Exchange! In this interactive experience, each player begins with $100 to invest in Survivor contestants. You can choose to put all your stock in one contestant or spread your investments across multiple players.
 
-Each week, as contestants are eliminated from the show, any stock you’ve invested in them will be lost. Survivor contestants with higher investments will see their stock prices rise, making them more expensive to buy—but also more valuable.
+Each week, as contestants are eliminated from the show, any stock you’ve invested in them will be lost. Survivor contestants with higher investments will see their stock prices rise, making them more expensive to buy—but also more valuable. 
+
+Bonuses are given each week for survivors who win challenges, rewards, find and play idols and advangtages, and cast their votes correctly. You can choose long term strateies or short term based on who you think is going to win the next challenge.
 
 The ultimate goal? Outplay, outlast, and outwit other players to end the game with the highest portfolio value. May the best strategist win!
 
