@@ -1,5 +1,7 @@
 # Survivor Stock Exchange
 
+> **Status:** The application is currently not live while its URL is being changed. Please check back soon for the updated link.
+
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Features](#features)
